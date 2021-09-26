@@ -2,7 +2,8 @@
 
 package:
   name: cc3d-player5
-  version: {{ data.get('version') }}
+#  version: {{ data.get('version') }}
+  version: 4.2.6
 
 about:
   home: https://compucell3d.org
@@ -32,9 +33,11 @@ requirements:
     - webcolors
     - requests
     - psutil
+    - qscintilla2
     - pyqt
     - pyqtgraph
 
 test:
   imports:
-    - cc3d.player5
+    - sys
+#    - cc3d.player5
