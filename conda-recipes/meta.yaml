@@ -25,11 +25,11 @@ requirements:
   build:
     - python=3.7
     - setuptools
-
+# should we remove vtk=8.2 from dependencies? cc3d will provide this
   run:
     - python=3.7
     - cc3d
-    - vtk=8.2
+#    - vtk=8.2
     - webcolors
     - requests
     - psutil
