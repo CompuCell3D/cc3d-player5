@@ -47,22 +47,6 @@ class CC3DSender(QObject):
 
         self.editorMessageBox = None
 
-        self.tweditCC3DPath = None
-
-        if sys.platform.startswith('win'):
-            self.tweditCC3DPath = os.path.join(cc3d_scripts_path, 'twedit++.bat')
-        elif sys.platform.startswith('darwin'):
-            self.tweditCC3DPath = os.path.join(cc3d_scripts_path, 'twedit++.command')
-        else:  # linux/unix
-            self.tweditCC3DPath = os.path.join(cc3d_scripts_path, 'twedit++.sh')
-
-        self.tweditCC3DPath = os.path.abspath(self.tweditCC3DPath)
-        # checking inf file exists
-        try:
-            open(self.tweditCC3DPath)
-        except:
-            self.tweditCC3DPath = None
-
         self.tweditPID = -1
 
         self.connectionEstablished = False
@@ -153,8 +137,6 @@ class CC3DSender(QObject):
         self.column_Request = column
 
         print("self.connectionEstablished=", self.connectionEstablished)
-        if not self.tweditCC3DPath:
-            return
 
         if not self.connectionEstablished:
             self.connectionEstablished = self.establishConnection()
@@ -398,15 +380,11 @@ class CC3DSender(QObject):
         self.socket.abort()
         from subprocess import Popen
         print("self.socket.socketDescriptor()=", self.socket.socketDescriptor())
-        # p = Popen([self.tweditCC3DPath, "--port=%s " % self.port, "--socket=%s" % self.socket.socketDescriptor()])
 
         # turns out socket descriptor is not used anywhere
         # sending -1 for now but should eliminate this extra argument altogether
 
-        p = Popen([self.tweditCC3DPath, "--port=%s " % self.port, "--socket=%s" % str(-1)])
-
-        # p = Popen(["python", self.tweditCC3DPath,"--port=%s "%self.port,"--socket=%s"%self.socket.socketDescriptor()])
-        # p = Popen(["python", "D:\\Project_SVN_CC3D\\branch\\twedit++\\twedit_plus_plus_cc3d.py","--port=%s "%self.port,"--socket=%s"%self.socket.socketDescriptor()])
+        p = Popen(["cc3d-twedit5", "--port=%s " % self.port, "--socket=%s" % str(-1)], shell=True)
         print("\n\n\n\n\STARTED TWEDIT++\n\n\n\n\n")
 
         # self.editorStarted=True
