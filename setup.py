@@ -22,6 +22,7 @@ setup(name='cc3d-player5',
                   '*.information', '*.qrc', '*.sql', '*.xml'
             ],
             'cc3d.player5': [
+                  'compucell3d.pyw',
                   'Configuration/*',
                   'Configuration_settings/*',
                   'Configuration_settings/osx/*',
