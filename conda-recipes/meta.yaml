@@ -29,7 +29,6 @@ requirements:
   run:
     - python=3.7
     - cc3d
-#    - vtk=8.2
     - webcolors
     - requests
     - psutil
