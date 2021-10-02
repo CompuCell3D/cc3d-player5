@@ -19,7 +19,7 @@ setDebugging(0)
 
 if sys.platform.lower().startswith('linux'):
     # On linux have to import rr early on to avoid
-    # PyQt-related crash - appears to only affect VirtualBox Installs
+    # PyQt-related crash - appears to only affect VirtualBox Installs   
     # of linux
     try:
         import roadrunner
