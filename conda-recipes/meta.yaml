@@ -37,4 +37,5 @@ requirements:
 
 test:
   imports:
-    - cc3d.player5
+    - sys
+#    - cc3d.player5
