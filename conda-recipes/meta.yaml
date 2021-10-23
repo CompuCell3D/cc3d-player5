@@ -28,11 +28,11 @@ requirements:
   run:
     - python=3.7
     - cc3d
-    - vtk=8.2
+    - qscintilla2
     - webcolors
     - requests
     - psutil
-    - pyqt
+    - pyqt=5.6
     - pyqtgraph
 
 test:
