@@ -37,12 +37,6 @@ requirements:
     - pyqt # [not osx]
     - pyqtgraph
 
-#    - qscintilla2=2.9.3
-#    - webcolors=1.11.1
-#    - requests=2.25.1
-#    - pyqt=5.6
-#    - pyqtgraph=0.11.0
-
 test:
   imports:
     - sys
