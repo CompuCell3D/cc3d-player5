@@ -10,6 +10,7 @@ When running automated testing f Demo suite use the following cml options:
 """
 
 import sys
+import vtk
 from cc3d.player5.__main__ import main, except_hook
 
 
