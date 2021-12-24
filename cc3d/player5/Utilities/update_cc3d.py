@@ -14,29 +14,15 @@ def main():
 
     args = process_cml()
 
-# {conda_exec} activate base \n conda list env
-
-    command_win = f'echo %cd% & {conda_exec} activate c1_test & conda list'
-
-    # command_win = f'{conda_exec} activate {conda_env_name} & conda install -c local cc3d=4.3.1'
-
     command_join_char = ';'
     if sys.platform.startswith('win'):
         command_join_char = '&'
 
     command = f'{conda_exec} activate c2_test {command_join_char} conda install -c local {args.package}={args.version}'
 
-
-    # ret = subprocess.run(command_win, capture_output=True, shell=True)
-    # print(ret.stdout.decode())
     proc = subprocess.Popen(command, shell=True)
     proc.wait()
 
-
-    # subprocess.run(f'{conda_exec} activate base ; conda list env', shell=True)
-    # subprocess.call(f'{conda_exec} list env', shell=True)
-    # os.system(f'{conda_exec} activate base', )
-    # os.system(f'{conda_exec} list env')
     input1 = input("PRESS ANY KEY TO CONTINUE... ")
 
 
@@ -54,6 +40,7 @@ def process_cml():
     args = parser.parse_args()
 
     return args
+
 
 def find_current_conda_env(conda_exec):
     if conda_exec is None:

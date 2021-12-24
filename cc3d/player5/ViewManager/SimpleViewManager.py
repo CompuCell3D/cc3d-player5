@@ -11,7 +11,11 @@ from cc3d.player5 import DefaultData
 import cc3d
 import datetime
 from cc3d.player5.Utilities.WebFetcher import WebFetcher
+from cc3d.player5.Utilities import update_cc3d
 from os import environ
+import shlex
+import subprocess
+
 
 try:
     from cc3d.player5.Utilities.WebFetcherRequests import WebFetcherRequests
@@ -557,7 +561,7 @@ class SimpleViewManager(QObject):
                     whats_new = search_obj_whats_new.groups()[1]
                     whats_new = whats_new.strip()
                     whats_new_list = whats_new.split(', ')
-                except:
+                except (IndexError, AttributeError):
                     pass
 
         return whats_new_list
@@ -651,7 +655,8 @@ class SimpleViewManager(QObject):
             ret = QMessageBox.information(self, title, message, buttons)
 
             if ret == QMessageBox.Yes:
-                QDesktopServices.openUrl(QUrl('http://sourceforge.net/projects/cc3d/files/' + current_version))
+                self.do_update(package_name='compucell3d', version=current_version)
+                # QDesktopServices.openUrl(QUrl('http://sourceforge.net/projects/cc3d/files/' + current_version))
 
         elif self.display_no_update_info:
             ret = QMessageBox.information(self, 'Software update check', 'You are running latest version of CC3D.',
@@ -664,6 +669,54 @@ class SimpleViewManager(QObject):
         """
 
         self.check_version(check_interval=-1, display_no_update_info=True)
+
+    def do_update(self, package_name: str, version: str) -> None:
+        """
+        launches script that updates CC3D. opens new terminal so that users can monitor progress of the update and
+        report any issues
+        :param package_name: name of the package
+        :param version: version of the package
+        :return: None
+        """
+
+        # conda_exec = find_conda()
+        # conda_env_name = find_current_conda_env(conda_exec=conda_exec)
+        # if not conda_exec or not conda_env_name:
+        #     return
+
+        posix = True
+        if sys.platform.startswith('win'):
+            posix = False
+
+        cmd = f'{sys.executable} {update_cc3d.__file__} --package={package_name} --version={version}'
+        args = shlex.split(cmd, posix=posix)
+        subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE)
+
+        #
+        # subprocess.Popen([f'{sys.executable}', r'D:\cc3d-player5\cc3d\player5\Utilities\update_cc3d.py'],
+        #                  creationflags=subprocess.CREATE_NEW_CONSOLE)
+
+        # self.spawn_program_and_die([str(conda_exec), 'list', 'env' ], exit_code=0)
+        # subprocess.Popen([f'{str(conda_exec)}', 'list', 'env' ,';', 'dir'], creationflags=subprocess.CREATE_NEW_CONSOLE)
+        # We have started the program, and can suspend this interpreter
+        sys.exit(0)
+
+
+        print('conda_exec=', conda_exec)
+
+    def spawn_program_and_die(self, program, exit_code=0):
+        """
+        Start an external program and exit the script
+        with the specified return code.`
+
+        Takes the parameter program, which is a list
+        that corresponds to the argv of your command.
+        """
+        import subprocess
+        # Start the external program
+        subprocess.Popen(program, creationflags=subprocess.CREATE_NEW_CONSOLE)
+        # We have started the program, and can suspend this interpreter
+        sys.exit(exit_code)
 
     @staticmethod
     def __open_manuals_webpage():
