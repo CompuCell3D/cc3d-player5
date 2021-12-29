@@ -18,7 +18,8 @@ def main():
     if sys.platform.startswith('win'):
         command_join_char = '&'
 
-    command = f'{conda_exec} activate c2_test {command_join_char} conda install -c local {args.package}={args.version}'
+    command = f'{conda_exec} activate {conda_env_name} ' \
+              f'{command_join_char} conda install -c local {args.package}={args.version}'
 
     proc = subprocess.Popen(command, shell=True)
     proc.wait()

@@ -971,7 +971,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # check if current CC3D version is greater or equal to the version
         # (minimal required version) specified in the project
 
-        current_version = cc3d.getVersionAsString()
+        current_version = cc3d.get_version_str()
         current_version_int = current_version.replace('.', '')
         project_version = self.cc3dSimulationDataHandler.cc3dSimulationData.version
         project_version_int = project_version.replace('.', '')

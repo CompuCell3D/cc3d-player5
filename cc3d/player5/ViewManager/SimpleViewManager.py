@@ -44,7 +44,7 @@ class SimpleViewManager(QObject):
             "ZoomFactor": Configuration.getSetting("ZoomFactor"),
         }
 
-        self.cc3d_updates_url = "http://www.compucell3d.org/current_version"
+        self.cc3d_updates_url = "http://www.compucell3d.org/current_version_conda_based"
 
         # file actions
         self.open_act = None
@@ -475,7 +475,6 @@ class SimpleViewManager(QObject):
         :return:None
         """
 
-        
         # checking if cc3d is running in nanohub. if it is do not check for updates (it'll be blocked by their firewall)
         if 'NANOHUB_SIM' in environ:
             return
@@ -645,6 +644,9 @@ class SimpleViewManager(QObject):
             message += '<p><b>New Features:</b></p>'
             for whats_new_item in whats_new_list:
                 message += '<p> * ' + whats_new_item + '</p>'
+            message += '</br></br>'  # adding new lines
+            message += '<p>When you click <b>YES</b> Player will close and update console will pop up. ' \
+                       'Please follow instructions on the pop up screen </p>'
 
         if display_new_version_info:
             if encourage_update:
@@ -679,11 +681,6 @@ class SimpleViewManager(QObject):
         :return: None
         """
 
-        # conda_exec = find_conda()
-        # conda_env_name = find_current_conda_env(conda_exec=conda_exec)
-        # if not conda_exec or not conda_env_name:
-        #     return
-
         posix = True
         if sys.platform.startswith('win'):
             posix = False
@@ -692,31 +689,7 @@ class SimpleViewManager(QObject):
         args = shlex.split(cmd, posix=posix)
         subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE)
 
-        #
-        # subprocess.Popen([f'{sys.executable}', r'D:\cc3d-player5\cc3d\player5\Utilities\update_cc3d.py'],
-        #                  creationflags=subprocess.CREATE_NEW_CONSOLE)
-
-        # self.spawn_program_and_die([str(conda_exec), 'list', 'env' ], exit_code=0)
-        # subprocess.Popen([f'{str(conda_exec)}', 'list', 'env' ,';', 'dir'], creationflags=subprocess.CREATE_NEW_CONSOLE)
-        # We have started the program, and can suspend this interpreter
         sys.exit(0)
-
-
-        print('conda_exec=', conda_exec)
-
-    def spawn_program_and_die(self, program, exit_code=0):
-        """
-        Start an external program and exit the script
-        with the specified return code.`
-
-        Takes the parameter program, which is a list
-        that corresponds to the argv of your command.
-        """
-        import subprocess
-        # Start the external program
-        subprocess.Popen(program, creationflags=subprocess.CREATE_NEW_CONSOLE)
-        # We have started the program, and can suspend this interpreter
-        sys.exit(exit_code)
 
     @staticmethod
     def __open_manuals_webpage():
