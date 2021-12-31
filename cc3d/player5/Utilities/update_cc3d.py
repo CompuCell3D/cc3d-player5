@@ -19,7 +19,7 @@ def main():
         command_join_char = '&'
 
     command = f'{conda_exec} activate {conda_env_name} ' \
-              f'{command_join_char} conda install -c local {args.package}={args.version}'
+              f'{command_join_char} conda install -c compucell3d -c conda-forge {args.package}={args.version}'
 
     proc = subprocess.Popen(command, shell=True)
     proc.wait()
