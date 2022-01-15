@@ -15,6 +15,7 @@ from cc3d.player5.Utilities import update_cc3d
 from os import environ
 import shlex
 import subprocess
+from cc3d.player5.Utilities.terminal import Terminal
 
 
 try:
@@ -687,7 +688,14 @@ class SimpleViewManager(QObject):
 
         cmd = f'{sys.executable} {update_cc3d.__file__} --package={package_name} --version={version}'
         args = shlex.split(cmd, posix=posix)
-        subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE)
+        if sys.platform.startswith('win'):
+            subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE)
+        # elif sys.platform.startswith('darwin'):
+        else:
+            trm = Terminal()
+            trm.execute(terminal='', title='update cc3d',
+                        script=[cmd, 'read -n1 -rsp press\\ any\\ key\\ to\\ continue\\ ...'],
+                        cwd=None, wait=None, profile=None)
 
         sys.exit(0)
 
