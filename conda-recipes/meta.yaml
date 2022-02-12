@@ -1,7 +1,7 @@
 # when building as standalone package uncomment line below and set version and build_number to proper values
-{% set version = "4.3.0" %}
-{% set build_number = "16" %}
-{% set python_version = "3.7" %}
+#{% set version = "4.3.0" %}
+#{% set build_number = "16" %}
+#{% set python_version = "3.7" %}
 
 package:
   name: cc3d-player5
