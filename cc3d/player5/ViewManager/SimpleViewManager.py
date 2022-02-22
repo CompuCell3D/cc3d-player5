@@ -714,7 +714,7 @@ class SimpleViewManager(QObject):
         try:
             version_str = cc3d.__version__
             revision_str = cc3d.__revision__
-            commit_label = cc3d.__git_hash__
+            commit_label = cc3d.__githash__
         except ImportError:
             pass
 
