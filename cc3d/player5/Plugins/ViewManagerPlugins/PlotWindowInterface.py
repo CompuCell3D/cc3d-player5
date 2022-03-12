@@ -5,9 +5,10 @@ from PyQt5.QtGui import *
 import numpy as np
 from collections import OrderedDict
 from typing import Iterable
-
 import warnings
 from deprecated import deprecated
+from pathlib import Path
+from cc3d import CompuCellSetup
 
 try:
     import webcolors as wc
@@ -538,8 +539,16 @@ class PlotWindowInterface(QtCore.QObject):
         :return:
         """
 
+        plot_output_path = Path(file_name)
+        if not plot_output_path.is_absolute():
+            # if user gives non absolute path we will save it in the simulation output folder
+            pg = CompuCellSetup.persistent_globals
+            output_dir = Path(pg.output_directory)
+            plot_output_path = output_dir.joinpath(plot_output_path)
+            plot_output_path.parent.mkdir(parents=True, exist_ok=True)
+
         self.plotWindowInterfaceMutex.lock()
-        self.savePlotAsPNGSignal.emit(str(file_name), size_x, size_y, self.plotWindowInterfaceMutex)
+        self.savePlotAsPNGSignal.emit(str(plot_output_path), size_x, size_y, self.plotWindowInterfaceMutex)
 
         self.plotWindowInterfaceMutex.lock()
         self.plotWindowInterfaceMutex.unlock()
