@@ -7,8 +7,8 @@ from .color_delegate import ColorDelegate
 
 
 class CellTypeColorMapView(QTableView):
-   
-    def __init__(self, parent, vm): 
+
+    def __init__(self, parent, vm):
         QTableView.__init__(self, parent)
         self.setFrameStyle(QFrame.NoFrame)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -32,7 +32,7 @@ class CellTypeColorMapView(QTableView):
             # verticalHeader = self.verticalHeader()
             # verticalHeader.setResizeMode(QHeaderView.Fixed)
             # verticalHeader.setDefaultSectionSize(20)
-            
+
         # vm - viewmanager, instance of class SimpleTabView
         self.vm = vm
 
@@ -51,6 +51,8 @@ class CellTypeColorMapView(QTableView):
         if event.button() == Qt.LeftButton:
             index = self.indexAt(event.pos())
             model = index.model()
+            if model is None:
+                return
             if index.column() == model.color_idx:
                 self.edit(index)
         else:

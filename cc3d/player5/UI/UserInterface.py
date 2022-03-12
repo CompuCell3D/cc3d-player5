@@ -156,14 +156,21 @@ class UserInterface(QMainWindow):
             # saved settings because we are working with same screen configuration so it is safe to restore
             if self.viewmanager.MDI_ON:
                 # configuration of MDI
-                main_window_size = Configuration.getSetting("MainWindowSize")
-                main_window_position = Configuration.getSetting("MainWindowPosition")
-                player_sizes = Configuration.getSetting("PlayerSizes")
+                if Configuration.check_if_setting_exists("PlayerSizes"):
+                    main_window_size = Configuration.getSetting("MainWindowSize")
+                    main_window_position = Configuration.getSetting("MainWindowPosition")
+                    player_sizes = Configuration.getSetting("PlayerSizes")
+                else:
+                    return
             else:
-                main_window_size = Configuration.getSetting("MainWindowSizeFloating")
+                if Configuration.check_if_setting_exists("PlayerSizesFloating"):
 
-                main_window_position = Configuration.getSetting("MainWindowPositionFloating")
-                player_sizes = Configuration.getSetting("PlayerSizesFloating")
+                    main_window_size = Configuration.getSetting("MainWindowSizeFloating")
+
+                    main_window_position = Configuration.getSetting("MainWindowPositionFloating")
+                    player_sizes = Configuration.getSetting("PlayerSizesFloating")
+                else:
+                    return
 
         self.resize(main_window_size)
         # we want main window to move only during initial opening of the GUI but not upon loading new simulation
