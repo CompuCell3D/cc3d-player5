@@ -1,5 +1,10 @@
 import os, sys
 from setuptools import setup, find_packages
+import sys
+
+extra_package_data = []
+if sys.platform.startswith('darwin'):
+    extra_package_data = ['*.dylib']
 
 rootdir = os.path.abspath(os.path.dirname(__file__))
 version_path = os.path.join(rootdir, 'VERSION.txt')
@@ -25,7 +30,7 @@ setup(name='cc3d-player5',
       package_data={
             '': [
                   '*.information', '*.qrc', '*.sql', '*.xml'
-            ],
+            ] + extra_package_data,
             'cc3d.player5': [
                   'compucell3d.pyw',
                   'Configuration/*',
