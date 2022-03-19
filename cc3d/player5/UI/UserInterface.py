@@ -631,7 +631,7 @@ class UserInterface(QMainWindow):
         @param act reference to the action that was triggered (QAction)
         """
 
-        name = str(act.data().toString())
+        name = str(act.data())
         if name:
             tb = self.__toolbars[name][1]
             if act.isChecked():
