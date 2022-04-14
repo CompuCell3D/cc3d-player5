@@ -213,16 +213,11 @@ import vtk
 # sys.path.append(environ["PYTHON_MODULE_PATH"])
 # sys.path.append(os.environ["SWIG_LIB_INSTALL_DIR"])
 
-versionStr = '3.6.0'
-revisionStr = '0'
+import cc3d
 
-try:
-    import Version
+versionStr = cc3d.__version__
+revisionStr = cc3d.__revision__
 
-    versionStr = Version.getVersionAsString()
-    revisionStr = Version.getSVNRevisionAsString()
-except ImportError as e:
-    pass
 
 print("CompuCell3D Version: %s Revision: %s\n" % (versionStr, revisionStr))
 
@@ -230,8 +225,6 @@ import CompuCellSetup
 from CMLParser import CMLParser
 
 from xml.parsers.expat import ExpatError
-
-
 
 try:
 
@@ -256,19 +249,10 @@ try:
     helpOnly = cmlParser.parse_cml()
     cml_args = cmlParser.cml_args
 
-    # print 'BEFORE cmlParser.processCommandLineOptions() \n\n\n\n'
-    # helpOnly = cmlParser.processCommandLineOptions()
-    # print 'GOT PAST cmlParser.processCommandLineOptions() \n\n\n\n'
-    #
-    # if helpOnly:
-    #     raise NameError('HelpOnly')
 
     # setting up push address
-
-
     if hasattr(cmlParser, 'push_address'):
         CompuCellSetup.set_push_address(cmlParser.push_address)
-
 
     # setting up return tag
     if hasattr(cmlParser, 'return_value_tag'):

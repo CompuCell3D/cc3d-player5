@@ -11,7 +11,12 @@ from cc3d.player5 import DefaultData
 import cc3d
 import datetime
 from cc3d.player5.Utilities.WebFetcher import WebFetcher
+from cc3d.player5.Utilities import update_cc3d
 from os import environ
+import shlex
+import subprocess
+from cc3d.player5.Utilities.terminal import Terminal
+
 
 try:
     from cc3d.player5.Utilities.WebFetcherRequests import WebFetcherRequests
@@ -40,7 +45,7 @@ class SimpleViewManager(QObject):
             "ZoomFactor": Configuration.getSetting("ZoomFactor"),
         }
 
-        self.cc3d_updates_url = "http://www.compucell3d.org/current_version"
+        self.cc3d_updates_url = "http://www.compucell3d.org/current_version_conda_based"
 
         # file actions
         self.open_act = None
@@ -471,7 +476,6 @@ class SimpleViewManager(QObject):
         :return:None
         """
 
-        
         # checking if cc3d is running in nanohub. if it is do not check for updates (it'll be blocked by their firewall)
         if 'NANOHUB_SIM' in environ:
             return
@@ -557,7 +561,7 @@ class SimpleViewManager(QObject):
                     whats_new = search_obj_whats_new.groups()[1]
                     whats_new = whats_new.strip()
                     whats_new_list = whats_new.split(', ')
-                except:
+                except (IndexError, AttributeError):
                     pass
 
         return whats_new_list
@@ -641,6 +645,9 @@ class SimpleViewManager(QObject):
             message += '<p><b>New Features:</b></p>'
             for whats_new_item in whats_new_list:
                 message += '<p> * ' + whats_new_item + '</p>'
+            message += '</br></br>'  # adding new lines
+            message += '<p>When you click <b>YES</b> Player will close and update console will pop up. ' \
+                       'Please follow instructions on the pop up screen </p>'
 
         if display_new_version_info:
             if encourage_update:
@@ -651,7 +658,8 @@ class SimpleViewManager(QObject):
             ret = QMessageBox.information(self, title, message, buttons)
 
             if ret == QMessageBox.Yes:
-                QDesktopServices.openUrl(QUrl('http://sourceforge.net/projects/cc3d/files/' + current_version))
+                self.do_update(package_name='compucell3d', version=current_version)
+                # QDesktopServices.openUrl(QUrl('http://sourceforge.net/projects/cc3d/files/' + current_version))
 
         elif self.display_no_update_info:
             ret = QMessageBox.information(self, 'Software update check', 'You are running latest version of CC3D.',
@@ -664,6 +672,32 @@ class SimpleViewManager(QObject):
         """
 
         self.check_version(check_interval=-1, display_no_update_info=True)
+
+    def do_update(self, package_name: str, version: str) -> None:
+        """
+        launches script that updates CC3D. opens new terminal so that users can monitor progress of the update and
+        report any issues
+        :param package_name: name of the package
+        :param version: version of the package
+        :return: None
+        """
+
+        posix = True
+        if sys.platform.startswith('win'):
+            posix = False
+
+        cmd = f'{sys.executable} {update_cc3d.__file__} --package={package_name} --version={version}'
+        args = shlex.split(cmd, posix=posix)
+        if sys.platform.startswith('win'):
+            subprocess.Popen(args, creationflags=subprocess.CREATE_NEW_CONSOLE)
+        # elif sys.platform.startswith('darwin'):
+        else:
+            trm = Terminal()
+            trm.execute(terminal='', title='update cc3d',
+                        script=[cmd, 'read -n1 -rsp press\\ any\\ key\\ to\\ continue\\ ...'],
+                        cwd=None, wait=None, profile=None)
+
+        sys.exit(0)
 
     @staticmethod
     def __open_manuals_webpage():
@@ -680,7 +714,7 @@ class SimpleViewManager(QObject):
         try:
             version_str = cc3d.__version__
             revision_str = cc3d.__revision__
-            commit_label = cc3d.get_sha_label()
+            commit_label = cc3d.__githash__
         except ImportError:
             pass
 

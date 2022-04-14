@@ -789,6 +789,9 @@ class SimpleTabView(MainArea, SimpleViewManager):
         """
         print("processIncommingSimulation = ", _fileName, ' _stopCurrentSim=', _stopCurrentSim)
         persistent_globals = CompuCellSetup.persistent_globals
+        # we set all previous cmd args to None to avoid spurious re-initialization based on stale cmd args
+        self.cml_args = None
+
         if _stopCurrentSim:
             startNewSimulation = False
             if not self.simulationIsRunning and not self.simulationIsStepping:
@@ -971,7 +974,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # check if current CC3D version is greater or equal to the version
         # (minimal required version) specified in the project
 
-        current_version = cc3d.getVersionAsString()
+        current_version = cc3d.get_version_str()
         current_version_int = current_version.replace('.', '')
         project_version = self.cc3dSimulationDataHandler.cc3dSimulationData.version
         project_version_int = project_version.replace('.', '')
@@ -2732,7 +2735,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :param abs_sim_fname: {str} absolute simulation fname
         :return: None
         """
-        title_to_display = join(basename(dirname(self.__sim_file_name)), basename(self.__sim_file_name))
+        title_to_display = join(basename(dirname(abs_sim_fname)), basename(abs_sim_fname))
         # handling extra display label - only when user passes it via command line option
 
         persistent_globals = CompuCellSetup.persistent_globals

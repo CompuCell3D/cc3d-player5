@@ -1,0 +1,44 @@
+# when building as standalone package uncomment line below and set version and build_number to proper values
+#{% set version = "4.3.0" %}
+#{% set build_number = "16" %}
+{% set python_version = "3.7" %}
+
+package:
+  name: cc3d-player5
+  version: {{ version }}
+
+about:
+  home: https://compucell3d.org
+  license: LGPL
+  license_file: ../LICENSE.txt
+
+extra:
+  maintainers: T.J. Sego, Maciek Swat
+
+source:
+  # url: https://github.com/CompuCell3D/cc3d-player5/archive/master.tar.gz
+  path: ../
+
+build:
+  number: {{ build_number }}
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  build:
+    - python={{ python_version }}
+    - setuptools
+
+  run:
+    - python={{ python_version }}
+    - cc3d={{ version }}
+    - qscintilla2
+    - webcolors
+    - requests
+    - pyqt=5.6 # [osx]
+    - pyqt # [not osx]
+    - pyqtgraph
+
+test:
+  imports:
+    - sys
+    - cc3d.player5

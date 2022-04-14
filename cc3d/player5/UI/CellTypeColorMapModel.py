@@ -52,6 +52,8 @@ class CellTypeColorMapModel(QtCore.QAbstractTableModel):
 
         types_invisible = types_invisible_str.replace(" ", "")
         types_invisible = types_invisible.split(",")
+        # removing empty strings from the list
+        types_invisible = list(filter(lambda x: len(x), types_invisible))
         types_invisible_dict = {int(type_id): 1 for type_id in types_invisible}
 
         self.item_data = OrderedDict()

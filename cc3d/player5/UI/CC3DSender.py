@@ -1,8 +1,3 @@
-# todo: abstract current Player connectivity with Twedit
-
-# from PyQt4.QtCore import *
-# from PyQt4.QtGui import *
-# from PyQt4.QtNetwork import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -14,6 +9,8 @@ import os
 from os import environ
 import time
 from weakref import ref
+
+from cc3d import cc3d_scripts_path
 
 SIZEOF_UINT16 = 2
 
@@ -49,22 +46,6 @@ class CC3DSender(QObject):
                 break
 
         self.editorMessageBox = None
-
-        self.tweditCC3DPath = None
-
-        if sys.platform.startswith('win'):
-            self.tweditCC3DPath = os.path.join(environ['PREFIX_CC3D'], 'twedit++.bat')
-        elif sys.platform.startswith('darwin'):
-            self.tweditCC3DPath = os.path.join(environ['PREFIX_CC3D'], 'twedit++.command')
-        else:  # linux/unix
-            self.tweditCC3DPath = os.path.join(environ['PREFIX_CC3D'], 'twedit++.sh')
-
-        self.tweditCC3DPath = os.path.abspath(self.tweditCC3DPath)
-        # checking inf file exists
-        try:
-            open(self.tweditCC3DPath)
-        except:
-            self.tweditCC3DPath = None
 
         self.tweditPID = -1
 
@@ -156,8 +137,6 @@ class CC3DSender(QObject):
         self.column_Request = column
 
         print("self.connectionEstablished=", self.connectionEstablished)
-        if not self.tweditCC3DPath:
-            return
 
         if not self.connectionEstablished:
             self.connectionEstablished = self.establishConnection()
@@ -401,15 +380,11 @@ class CC3DSender(QObject):
         self.socket.abort()
         from subprocess import Popen
         print("self.socket.socketDescriptor()=", self.socket.socketDescriptor())
-        # p = Popen([self.tweditCC3DPath, "--port=%s " % self.port, "--socket=%s" % self.socket.socketDescriptor()])
 
         # turns out socket descriptor is not used anywhere
         # sending -1 for now but should eliminate this extra argument altogether
 
-        p = Popen([self.tweditCC3DPath, "--port=%s " % self.port, "--socket=%s" % str(-1)])
-
-        # p = Popen(["python", self.tweditCC3DPath,"--port=%s "%self.port,"--socket=%s"%self.socket.socketDescriptor()])
-        # p = Popen(["python", "D:\\Project_SVN_CC3D\\branch\\twedit++\\twedit_plus_plus_cc3d.py","--port=%s "%self.port,"--socket=%s"%self.socket.socketDescriptor()])
+        p = Popen(["cc3d-twedit5", "--port=%s " % self.port, "--socket=%s" % str(-1)], shell=True)
         print("\n\n\n\n\STARTED TWEDIT++\n\n\n\n\n")
 
         # self.editorStarted=True

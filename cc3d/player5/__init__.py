@@ -1,3 +1,9 @@
+try:
+    # needed to avoid import errors on some windows systems
+    import vtk
+except ImportError:
+    print('vtk not found. Ignoring for now')
+
 from cc3d.core.GraphicsOffScreen import *
 
 

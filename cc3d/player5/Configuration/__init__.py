@@ -276,6 +276,38 @@ def getRecentSimulationsIncludingNewItem(simName):
     return current_strlist
 
 
+def check_if_setting_exists(_key, fieldName=None):
+
+    if Configuration.myCustomSettings:
+        setting_storage = Configuration.myCustomSettings
+
+    else:
+        setting_storage = Configuration.myGlobalSettings
+
+    # some settings are stored in the global settings e.g. number of recent simulations or recent simulations list
+    if _key in Configuration.globalOnlySettings:
+        setting_storage = Configuration.myGlobalSettings
+
+    if fieldName is not None:
+        field_params = getSetting('FieldParams')
+        try:
+            single_field_params = field_params[fieldName]
+
+            _ = single_field_params[_key]
+            return True
+        except LookupError:
+            return False
+            pass  # returning global parameter for the field
+
+    # val = settingStorage.getSetting(_key)
+    # a way to fetch unknown setting from default setting and writing it back to the custom settins
+    try:
+        val = setting_storage.getSetting(_key)
+        return True
+    except KeyError:
+        return False
+
+
 # we append an optional fieldName now to allow for field-dependent parameters from Prefs
 def getSetting(_key, fieldName=None):
     """
