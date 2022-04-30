@@ -14,7 +14,7 @@ also available via conda as an extension package of the CompuCell3D conda packag
 
 .. code-block:: console
 
-    conda install -c compucell3d cc3d-player5
+    conda install -c conda-forge -c compucell3d cc3d-player5
 
 For conda packages, Player can be launched from a terminal by activating the conda
 environment in which Player is installed and then issuing the command ``cc3d-player5``.
