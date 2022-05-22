@@ -41,6 +41,7 @@ import vtk
 from cc3d import CompuCellSetup
 from cc3d.core.RollbackImporter import RollbackImporter
 from cc3d.CompuCellSetup.readers import readCC3DFile
+from cc3d.CompuCellSetup.simulation_utils import str_to_int_list
 from typing import Union, Optional
 from cc3d.player5.Utilities.unzipper import Unzipper
 from weakref import ref
@@ -870,10 +871,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
         CompuCellSetup.persistent_globals.simulation_file_name = self.__sim_file_name
         self.UI.console.bringUpOutputConsole()
 
-        # have to connect error handler to the signal emited from self.simulation object
+        # have to connect error handler to the signal emitted from self.simulation object
         # TODO changing signals
         self.simulation.errorOccured.connect(self.handleErrorMessage)
         self.simulation.errorFormatted.connect(self.handleErrorFormatted)
+        self.simulation.pauseRequest.connect(self.__pauseSim)
 
         self.simulation.visFieldCreatedSignal.connect(self.handle_vis_field_created)
 
@@ -1345,6 +1347,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # restore steering panel
         self.restore_steering_panel()
+
+        # updating pauseAt
+        pg = CompuCellSetup.persistent_globals
+        pg.pause_at = str_to_int_list(s=Configuration.getSetting("PauseAt"))
 
     def handleSimulationFinishedCMLResultReplay(self, _flag):
         """
@@ -2085,6 +2091,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.simulation.semPause.acquire()
             self.run_act.setEnabled(True)
             self.pause_act.setEnabled(False)
+            self.__drawField()
 
     def __save_windows_layout(self):
         """
@@ -3194,6 +3201,9 @@ class SimpleTabView(MainArea, SimpleViewManager):
             #            dlg.setPreferences()
             Configuration.syncPreferences()
             self.trigger_configs_changed()  # Explicitly calling signal 'configsChanged'
+            # updating pauseAt
+            pg = CompuCellSetup.persistent_globals
+            pg.pause_at = str_to_int_list(s=Configuration.getSetting("PauseAt"))
             self.redo_completed_step()
 
     def __generatePIFFromCurrentSnapshot(self):

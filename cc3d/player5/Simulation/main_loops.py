@@ -99,6 +99,9 @@ def main_loop_player(sim, simthread=None, steppable_registry=None):
 
         cur_step += 1
 
+        if cur_step in pg.pause_at:
+            simthread.emit_pause_request()
+
     if run_finish_flag:
         # # we emit request to finish simulation
         simthread.emitFinishRequest()

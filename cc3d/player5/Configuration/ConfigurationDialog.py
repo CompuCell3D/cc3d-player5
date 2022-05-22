@@ -37,11 +37,14 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         #            self.cancelButton.setFocusPolicy(Qt.NoFocus)
 
         self.tabWidget.currentChanged.connect(self.currentTabChanged)
+        comma_separated_list_validator = QRegExpValidator(QRegExp('(\d+)(,\d+)*'))
+
 
         # Output tab
         self.outputImagesCheckBox.clicked.connect(self.outputImagesClicked)
         self.outputLatticeDataCheckBox.clicked.connect(self.outputLatticeDataClicked)
         self.outputToProjectCheckBox.clicked.connect(self.outputToProjectClicked)
+        self.pause_at_LE.setValidator(comma_separated_list_validator)
 
         # Cell Type/Colors tab
         self.typeColorTable.clicked.connect(self.typeColorTableClicked)
@@ -67,8 +70,6 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
         self.fieldMinRangeFixedCheckBox.clicked.connect(self.fieldMinRangeClicked)
         self.fieldMaxRangeFixedCheckBox.clicked.connect(self.fieldMaxRangeClicked)
-
-        comma_separated_list_validator = QRegExpValidator(QRegExp('(\d+)(,\d+)*'))
 
         self.cellTypesInvisibleList.setValidator(comma_separated_list_validator)
 
@@ -579,6 +580,8 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         Configuration.setSetting("ClosePlayerAfterSimulationDone", self.closePlayerCheckBox.isChecked())
         Configuration.setSetting("ProjectLocation", self.projectLocationLineEdit.text())
         Configuration.setSetting("OutputLocation", self.outputLocationLineEdit.text())
+        Configuration.setSetting("PauseAt", self.pause_at_LE.text())
+
 
         if str(self.outputLocationLineEdit.text()).rstrip() == '':
             Configuration.setSetting("OutputLocation", os.path.join(os.path.expanduser('~'), 'CC3DWorkspace'))
@@ -679,6 +682,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.floatingWindowsCB.setChecked(Configuration.getSetting("FloatingWindows"))
 
         self.min_max_display_CB.setChecked(Configuration.getSetting("DisplayMinMaxInfo"))
+        self.pause_at_LE.setText(Configuration.getSetting("PauseAt"))
 
         # Cell Type/Colors
         self.populateCellColors()
