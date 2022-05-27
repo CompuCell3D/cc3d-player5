@@ -5,6 +5,8 @@ from PyQt5.QtGui import *
 from collections import OrderedDict
 from cc3d import CompuCellSetup
 from cc3d.player5 import Configuration
+from cc3d.player5.UI.cell_type_colors import default_cell_type_color_list
+from cc3d.player5.Utilities.utils import assign_cell_type_colors
 import warnings
 import weakref
 
@@ -48,31 +50,20 @@ class CellTypeColorMapModel(QtCore.QAbstractTableModel):
         :return:
         """
 
-        types_invisible_str = str(Configuration.getSetting('Types3DInvisible'))
+        setting_types_invisible = str(Configuration.getSetting('Types3DInvisible'))
+        type_id_type_name_dict = CompuCellSetup.simulation_utils.extract_type_names_and_ids()
+        setting_type_color_map = Configuration.getSetting('TypeColorMap')
 
-        types_invisible = types_invisible_str.replace(" ", "")
-        types_invisible = types_invisible.split(",")
-        # removing empty strings from the list
-        types_invisible = list(filter(lambda x: len(x), types_invisible))
-        types_invisible_dict = {int(type_id): 1 for type_id in types_invisible}
+        type_id_to_type_name_color_map = assign_cell_type_colors(type_id_type_name_dict=type_id_type_name_dict,
+                                                                 setting_type_color_map=setting_type_color_map,
+                                                                 setting_types_invisible=setting_types_invisible
+                                                                 )
 
         self.item_data = OrderedDict()
-
-        type_color_map = Configuration.getSetting('TypeColorMap')
-        names_ids = CompuCellSetup.simulation_utils.extract_type_names_and_ids()
-        for type_id, type_name in names_ids.items():
-
-            try:
-                color = type_color_map[type_id]
-            except KeyError:
-                color = QColor('black')
-
-            try:
-                types_invisible_dict[type_id]
-                show_in_3d = 0
-            except KeyError:
-                show_in_3d = 1
-
+        for type_id, type_color_props in type_id_to_type_name_color_map.items():
+            color = type_color_props.color
+            show_in_3d = 0 if type_color_props.invisible else 1
+            type_name = type_color_props.type_name
             self.item_data[type_id] = [type_name, color, show_in_3d, type_id]
 
         self.update(item_data=self.item_data)
