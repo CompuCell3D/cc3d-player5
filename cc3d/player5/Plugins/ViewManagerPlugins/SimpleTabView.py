@@ -41,7 +41,7 @@ import vtk
 from cc3d import CompuCellSetup
 from cc3d.core.RollbackImporter import RollbackImporter
 from cc3d.CompuCellSetup.readers import readCC3DFile
-from cc3d.CompuCellSetup.simulation_utils import str_to_int_list
+from cc3d.CompuCellSetup.simulation_utils import str_to_int_container
 from typing import Union, Optional
 from cc3d.player5.Utilities.unzipper import Unzipper
 from weakref import ref
@@ -1350,7 +1350,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # updating pauseAt
         pg = CompuCellSetup.persistent_globals
-        pg.pause_at = str_to_int_list(s=Configuration.getSetting("PauseAt"))
+        pg.pause_at = str_to_int_container(s=Configuration.getSetting("PauseAt"), container="dict")
 
     def handleSimulationFinishedCMLResultReplay(self, _flag):
         """
@@ -3203,7 +3203,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.trigger_configs_changed()  # Explicitly calling signal 'configsChanged'
             # updating pauseAt
             pg = CompuCellSetup.persistent_globals
-            pg.pause_at = str_to_int_list(s=Configuration.getSetting("PauseAt"))
+            pg.pause_at = str_to_int_container(s=Configuration.getSetting("PauseAt"), container='dict')
             self.redo_completed_step()
 
     def __generatePIFFromCurrentSnapshot(self):
