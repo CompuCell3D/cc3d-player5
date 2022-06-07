@@ -99,6 +99,13 @@ def main_loop_player(sim, simthread=None, steppable_registry=None):
 
         cur_step += 1
 
+        # checking if curr step is listed in pause_at dict. If so we emit pause signal
+        try:
+            pg.pause_at[cur_step]
+            simthread.emit_pause_request()
+        except KeyError:
+            pass
+
     if run_finish_flag:
         # # we emit request to finish simulation
         simthread.emitFinishRequest()

@@ -24,6 +24,7 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
     errorFormatted = pyqtSignal(str)
     errorOccuredDetailed = pyqtSignal(str, str,int,int,str)
     visFieldCreatedSignal = pyqtSignal(str, int)
+    pauseRequest = pyqtSignal(bool)
 
     #
     # CONSTRUCTOR
@@ -87,6 +88,9 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
 
     def emitErrorFormatted(self,_errorMessage):
         self.errorFormatted.emit(_errorMessage)
+
+    def emit_pause_request(self, flag=True):
+        self.pauseRequest.emit(flag)
 
     def redoCompletedStep(self):
         self.sem.tryAcquire()
