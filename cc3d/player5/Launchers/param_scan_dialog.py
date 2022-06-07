@@ -25,38 +25,13 @@ class ParamScanDialog(QDialog, ui_param_scan_dialog.Ui_ParamScanDialog):
         QDialog.__init__(self, parent)
         self.setModal(modal)
 
-        # self.output_dir = None
-        # self.initParams()  # read params from QSession file
-
         self.setupUi(self)  # in ui_configurationdlg.Ui_CC3DPrefs
 
         self.browse_output_dir_PB.clicked.connect(self.select_output_dir)
         self.install_dir_browse_PB.clicked.connect(self.select_cc3d_install_dir)
         self.browse_simulation_PB.clicked.connect(self.select_simulation)
         self.update_cml_PB.clicked.connect(self.update_cml)
-        # self.updateUI()
 
-    def get_prefix_cc3d(self):
-        try:
-            prefix_cc3d = environ['PREFIX_CC3D']
-        except (KeyError, AttributeError):
-            raise RuntimeError(f'PREFIX_CC3D env var needs to be set')
-
-        return prefix_cc3d
-
-    def select_run_script(self):
-
-        prefix_cc3d = self.get_prefix_cc3d()
-
-        script_extension = 'sh'
-        if sys.platform.startswith('win'):
-            script_extension = 'bat'
-        elif sys.platform.startswith('darwin'):
-            script_extension = 'command'
-
-        ps_script_full_name = join(prefix_cc3d, f'paramScan.{script_extension}')
-
-        return ps_script_full_name
 
     def select_output_dir(self):
 
@@ -117,21 +92,16 @@ class ParamScanDialog(QDialog, ui_param_scan_dialog.Ui_ParamScanDialog):
         :return:
         """
 
-        ps_run_script = self.select_run_script()
+        python_exe = f'{sys.executable}'
+        cml_list = [python_exe, '-m', 'cc3d.core.param_scan.parameter_scan_run']
 
-        # ./paramScan.command --input=/Users/m/Demo2/CC3D_4.0.0/Demos/ParameterScan/CellSorting/CellSorting.cc3d
-        # --output-dir=/Users/m/CC3DWorkspace/ParameterScanOUtput
-        # --output-frequency=2
-        # --screenshot-output-frequency=2
-        # --gui
-        # --install-dir=/Users/m/Demo2/CC3D_4.0.0
+        if python_exe.find(' ') >= 0:
 
-        cml_list = [f'{ps_run_script}']
-        if ps_run_script.find(' ') >= 0:
-
-            raise RuntimeError ('Parameter Run script is installed in the folder that contains spaces. In current'
+            raise RuntimeError ('python executable script is installed in the folder that contains spaces. In current'
                                 'version we require that installation of CC3D should be into a folder without spaces if'
                                 'you want to run parameter scan')
+
+
 
         cml_list.append(f'--input="{self.param_scan_simulation_LE.text()}"')
 
@@ -164,6 +134,8 @@ class ParamScanDialog(QDialog, ui_param_scan_dialog.Ui_ParamScanDialog):
             return
 
         cml_str = ' '.join(cml_list)
+
+        cml_str += '\n\n\nCopy above command , paste it into terminal and run. Or run directly by pressing "Run" button'
 
         self.cml_PTE.setPlainText(cml_str)
 
