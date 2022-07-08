@@ -33,6 +33,7 @@ from cc3d.core.GraphicsUtils.utils import extract_address_int_from_vtk_object
 from cc3d.player5 import Graphics
 from cc3d.core import XMLUtils
 from .PlotManagerSetup import create_plot_manager
+from .PopupWindowManagerSetup import create_popup_window_manager
 from .WidgetManager import WidgetManager
 from cc3d.cpp import PlayerPython
 from cc3d.core.CMLFieldHandler import CMLFieldHandler
@@ -118,6 +119,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # object responsible for creating/managing plot windows so they're accessible from steppable level
 
         self.plotManager = create_plot_manager(self)
+        self.popup_window_manager = create_popup_window_manager(self)
 
         self.widgetManager = WidgetManager(self)
 
@@ -696,6 +698,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.stopRequestSignal.connect(self.simulation.stop)
 
             self.plotManager.init_signal_and_slots()
+            self.popup_window_manager.init_signal_and_slots()
             self.widgetManager.initSignalAndSlots()
 
             self.fieldStorage = PlayerPython.FieldStorage()
@@ -1345,6 +1348,9 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # restoring plots
 
         self.plotManager.restore_plots_layout()
+
+        # restoring message windows
+        self.popup_window_manager.restore_popup_layout()
 
         # restore steering panel
         self.restore_steering_panel()
@@ -2143,15 +2149,18 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # handling plot windows
         try:
-            print(self.plotManager.plotWindowList)
+            print(self.plotManager.plot_window_list)
         except AttributeError:
             print("plot manager does not have plotWindowList member")
 
         plot_layout_dict = self.plotManager.get_plot_windows_layout_dict()
+        msg_window_layout_dict = self.popup_window_manager.get_popup_windows_layout_dict()
 
         # combining two layout dicts
         windows_layout_combined = windows_layout.copy()
         windows_layout_combined.update(plot_layout_dict)
+
+        windows_layout_combined.update(msg_window_layout_dict)
 
         # handling steerling panel
         steering_panel_layout_dict = self.get_steering_panel_layout_dict()
