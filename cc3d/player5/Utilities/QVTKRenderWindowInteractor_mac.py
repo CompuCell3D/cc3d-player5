@@ -547,6 +547,8 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
             key = chr(0)
 
         keySym = _qt_key_to_key_sym(ev.key())
+        if keySym is None:
+            return
         if shift and len(keySym) == 1 and keySym.isalpha():
             keySym = keySym.upper()
 
