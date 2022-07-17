@@ -11,7 +11,7 @@ except ImportError:
 
 PLOT_TYPE_POSITION = 3
 (XYPLOT, HISTOGRAM, BARPLOT) = list(range(0, 3))
-MAX_FIELD_LEGTH = 25
+MAX_FIELD_LENGTH = 25
 
 # Notice histogram and Bar Plot implementations need more work.
 # They are functional but have a bit strange syntax and for Bar Plot we can only plot one series per plot
