@@ -1,6 +1,10 @@
+# it may happen that standard conda-builder is extremely slow . IN this situation it is good idea to install mamba and boa
+# boa is a fast builder that uses mamba. It also has conda mambabuild utility that replaces conda build. you can still use 
+# meta.yaml files if you want just type conda mambabuild ... instead of conda build ...
+# see https://boa-build.readthedocs.io/en/latest/mambabuild.html
 # when building as standalone package uncomment line below and set version and build_number to proper values
-#{% set version = "4.3.0" %}
-#{% set build_number = "16" %}
+#{% set version = "4.3.1" %}
+#{% set build_number = "0" %}
 {% set python_version = "3.7" %}
 
 package:
@@ -30,6 +34,7 @@ requirements:
 
   run:
     - python={{ python_version }}
+    # - numpy=1.18 # when building with conda mambabuild
     - cc3d={{ version }}
     - qscintilla2
     - webcolors
