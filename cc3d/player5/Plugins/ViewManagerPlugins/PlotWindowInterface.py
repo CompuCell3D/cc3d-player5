@@ -22,7 +22,7 @@ MODULENAME = '---- PlotManager.py: '
 
 PLOT_TYPE_POSITION = 3
 (XYPLOT, HISTOGRAM, BARPLOT) = list(range(0, 3))
-MAX_FIELD_LEGTH = 25
+MAX_FIELD_LENGTH = 25
 
 
 # todo
@@ -599,8 +599,8 @@ class PlotWindowInterface(QtCore.QObject):
             plot_name = plot_name.replace(' ', '_')
 
             field_size = len(plot_name) + 2  # +2 is for _x or _y
-            if MAX_FIELD_LEGTH > field_size:
-                field_size = MAX_FIELD_LEGTH
+            if MAX_FIELD_LENGTH > field_size:
+                field_size = MAX_FIELD_LENGTH
 
             fmt = ''
             fmt += '{0:>' + str(field_size) + '},'

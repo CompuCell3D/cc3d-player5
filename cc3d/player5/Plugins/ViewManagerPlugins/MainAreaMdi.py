@@ -320,6 +320,9 @@ class MainArea(QMdiArea):
             obj_type = GRAPHICS_WINDOW_LABEL
         elif isinstance(widget, Graphics.PlotFrameWidget.PlotFrameWidget):
             obj_type = PLOT_WINDOW_LABEL
+        elif isinstance(widget, Graphics.PopupMessageWidget.PopupMessageWidget):
+            obj_type = MESSAGE_WINDOW_LABEL
+
 
         window_name = obj_type + ' ' + str(self.win_inventory.get_counter())
 

@@ -63,6 +63,8 @@ class CellTypeColorMapView(QTableView):
         if event.button() == Qt.LeftButton:
             index = self.indexAt(event.pos())
             model = index.model()
+            if model is None:
+                return
             if index.column() == model.show_in_3d_idx:
                 # somewhat hacky solution - editor event checks also for mouseRelease event so we need to
                 # reimplement mouseReleaseEvent

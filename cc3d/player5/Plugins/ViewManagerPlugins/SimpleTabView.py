@@ -33,6 +33,7 @@ from cc3d.core.GraphicsUtils.utils import extract_address_int_from_vtk_object
 from cc3d.player5 import Graphics
 from cc3d.core import XMLUtils
 from .PlotManagerSetup import create_plot_manager
+from .PopupWindowManagerSetup import create_popup_window_manager
 from .WidgetManager import WidgetManager
 from cc3d.cpp import PlayerPython
 from cc3d.core.CMLFieldHandler import CMLFieldHandler
@@ -41,10 +42,12 @@ import vtk
 from cc3d import CompuCellSetup
 from cc3d.core.RollbackImporter import RollbackImporter
 from cc3d.CompuCellSetup.readers import readCC3DFile
+from cc3d.CompuCellSetup.simulation_utils import str_to_int_container
 from typing import Union, Optional
 from cc3d.player5.Utilities.unzipper import Unzipper
 from weakref import ref
 from subprocess import Popen
+from cc3d.player5.Utilities.terminal import Terminal
 
 
 MODULENAME = '---- SimpleTabView.py: '
@@ -116,6 +119,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # object responsible for creating/managing plot windows so they're accessible from steppable level
 
         self.plotManager = create_plot_manager(self)
+        self.popup_window_manager = create_popup_window_manager(self)
 
         self.widgetManager = WidgetManager(self)
 
@@ -694,6 +698,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.stopRequestSignal.connect(self.simulation.stop)
 
             self.plotManager.init_signal_and_slots()
+            self.popup_window_manager.init_signal_and_slots()
             self.widgetManager.initSignalAndSlots()
 
             self.fieldStorage = PlayerPython.FieldStorage()
@@ -870,10 +875,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
         CompuCellSetup.persistent_globals.simulation_file_name = self.__sim_file_name
         self.UI.console.bringUpOutputConsole()
 
-        # have to connect error handler to the signal emited from self.simulation object
+        # have to connect error handler to the signal emitted from self.simulation object
         # TODO changing signals
         self.simulation.errorOccured.connect(self.handleErrorMessage)
         self.simulation.errorFormatted.connect(self.handleErrorFormatted)
+        self.simulation.pauseRequest.connect(self.__pauseSim)
 
         self.simulation.visFieldCreatedSignal.connect(self.handle_vis_field_created)
 
@@ -1343,8 +1349,15 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         self.plotManager.restore_plots_layout()
 
+        # restoring message windows
+        self.popup_window_manager.restore_popup_layout()
+
         # restore steering panel
         self.restore_steering_panel()
+
+        # updating pauseAt
+        pg = CompuCellSetup.persistent_globals
+        pg.pause_at = str_to_int_container(s=Configuration.getSetting("PauseAt"), container="dict")
 
     def handleSimulationFinishedCMLResultReplay(self, _flag):
         """
@@ -1640,13 +1653,15 @@ class SimpleTabView(MainArea, SimpleViewManager):
         pg = CompuCellSetup.persistent_globals
 
         param_scan_dialog = ParamScanDialog()
-        try:
-            prefix_cc3d = os.environ['PREFIX_CC3D']
-        except KeyError:
-            prefix_cc3d = ''
-
-        param_scan_dialog.install_dir_LE.setText(prefix_cc3d)
+        # try:
+        #     prefix_cc3d = os.environ['PREFIX_CC3D']
+        # except KeyError:
+        #     prefix_cc3d = ''
+        #
+        # param_scan_dialog.install_dir_LE.setText(prefix_cc3d)
         param_scan_dialog.param_scan_simulation_LE.setText(self.__sim_file_name)
+
+        scan_display_label = Path().joinpath(*Path(self.__sim_file_name).parts[-2:])
 
         default_output_dir = pg.output_directory
         sim_core = Path(self.__sim_file_name).stem
@@ -1665,10 +1680,26 @@ class SimpleTabView(MainArea, SimpleViewManager):
             except RuntimeError as e:
                 self.handleErrorFormatted(f"Could not run parameter scan: Here is the reason: {str(e)}")
                 return
-
-            print('executing ', ' '.join(cml_list))
+            cmd = ' '.join(cml_list)
+            print('executing ', cmd)
             print(cml_list)
-            Popen(cml_list)
+            # Popen(cml_list)
+            # todo - consider using commented out code to spawne standalone terminal
+            # trm = Terminal()
+            # trm.execute(terminal='', title=f'Running Paremeter Scan - {scan_display_label}',
+            #             script=['dir', 'read -n1 -rsp press\\ any\\ key\\ to\\ continue\\ ...'],
+            #             cwd=None, wait=None, profile=None)
+
+
+            cc3d_process = Popen(cml_list)
+            out, err = cc3d_process.communicate()
+            if out:
+                print("standard output of subprocess:")
+                print(out)
+            if err:
+                print("standard error of subprocess:")
+                print(err)
+            print("returncode of param scan command:")
 
         print('Starting parameter scan')
 
@@ -1710,7 +1741,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 # when self.prepareSimulation() fails
                 return
 
-        # print 'SIMULATION PREPARED self.__viewManagerType=',str(self.__viewManagerType)
         if self.__viewManagerType == ViewManagerType.REPLAY:
 
             self.simulation.semPause.release()  # just in case
@@ -1768,7 +1798,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :return: None
         """
 
-        self.simulation.screenUpdateFrequency = 1  # when we step we need to ensure screenUpdateFrequency is 1
+        # when we step we need to ensure screenUpdateFrequency is 1
+        self.simulation.screenUpdateFrequency = 1
 
         if not self.drawingAreaPrepared:
 
@@ -2085,6 +2116,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.simulation.semPause.acquire()
             self.run_act.setEnabled(True)
             self.pause_act.setEnabled(False)
+            self.__drawField()
 
     def __save_windows_layout(self):
         """
@@ -2117,15 +2149,18 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # handling plot windows
         try:
-            print(self.plotManager.plotWindowList)
+            print(self.plotManager.plot_window_list)
         except AttributeError:
             print("plot manager does not have plotWindowList member")
 
         plot_layout_dict = self.plotManager.get_plot_windows_layout_dict()
+        msg_window_layout_dict = self.popup_window_manager.get_popup_windows_layout_dict()
 
         # combining two layout dicts
         windows_layout_combined = windows_layout.copy()
         windows_layout_combined.update(plot_layout_dict)
+
+        windows_layout_combined.update(msg_window_layout_dict)
 
         # handling steerling panel
         steering_panel_layout_dict = self.get_steering_panel_layout_dict()
@@ -3194,6 +3229,9 @@ class SimpleTabView(MainArea, SimpleViewManager):
             #            dlg.setPreferences()
             Configuration.syncPreferences()
             self.trigger_configs_changed()  # Explicitly calling signal 'configsChanged'
+            # updating pauseAt
+            pg = CompuCellSetup.persistent_globals
+            pg.pause_at = str_to_int_container(s=Configuration.getSetting("PauseAt"), container='dict')
             self.redo_completed_step()
 
     def __generatePIFFromCurrentSnapshot(self):
