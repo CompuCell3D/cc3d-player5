@@ -35,7 +35,7 @@ from cc3d.core import XMLUtils
 from .PlotManagerSetup import create_plot_manager
 from .PopupWindowManagerSetup import create_popup_window_manager
 from .WidgetManager import WidgetManager
-from cc3d.cpp import PlayerPython
+from cc3d.cpp import PlayerPython, CompuCell
 from cc3d.core.CMLFieldHandler import CMLFieldHandler
 from . import ScreenshotManager
 import vtk
@@ -141,6 +141,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.__fieldType = ("Cell_Field", FIELD_TYPES[0])
 
         self.__step = 0
+        self.log_level = None
+        self.log_to_file = False
 
         self.output_step_max_items = 3
         self.step_output_list = []
@@ -210,6 +212,35 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # Here we are checking for new version - notice we use check interval in order not to perform version checks
         # too often. Default check interval is 7 days
         self.check_version(check_interval=7)
+        self.setup_logging()
+
+    def setup_logging(self):
+        """
+        updates logging settings based on current value of logging and the new value requested via settings.
+        Checks if the change in logging configuration is necessary
+        """
+        log_level_val = getattr(CompuCell, Configuration.getSetting("LogLevel"))
+        if log_level_val != self.log_level:
+            CompuCell.Logger.enableConsoleLogging(log_level_val)
+            self.log_level = log_level_val
+
+        pg = CompuCellSetup.persistent_globals
+
+        log_to_file = Configuration.getSetting("LogToFile")
+
+        if self.log_to_file != log_to_file:
+            # look for a change compared to the current setting
+            self.log_to_file = log_to_file
+        if self.log_to_file:
+            if pg.output_directory is not None:
+                if not Path(pg.output_directory).exists():
+                    pg.create_output_dir()
+                CompuCell.Logger.enableFileLogging(str(
+                    Path(pg.output_directory).joinpath("simulation.log")), log_level_val)
+        else:
+            if pg.output_directory is not None:
+                CompuCell.Logger.disableFileLogging()
+
 
     @property
     def UI(self):
@@ -896,6 +927,9 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # each loaded simulation has to be passed to a function which updates list of recent files
         Configuration.setSetting("RecentSimulations", os.path.abspath(self.__sim_file_name))
+
+        # setup logging once simulation is loaded and we are set to use simulation-specific settings
+        self.setup_logging()
 
     def __loadDMLFile(self, file_name: str) -> None:
         """
@@ -2684,8 +2718,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if Configuration.getSetting("OutputToProjectOn"):
             self.__outputDirectory = str(Configuration.getSetting("ProjectLocation"))
 
-        # todo 5 - write code that create screenshot outoput if parameters are changed
-
+        # todo 5 - write code that create screenshot output if parameters are changed
+        # we call setup logging after parameters in config dialog got updated . this function checks
+        # if change in logging configuration is necessary
+        self.setup_logging()
         if self.simulation:
             self.init_simulation_control_vars()
 

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>634</width>
-    <height>517</height>
+    <width>667</width>
+    <height>606</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
          <property name="title">
           <string>Output Specs</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_19">
+         <layout class="QVBoxLayout" name="verticalLayout_14">
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_10">
             <item>
@@ -355,36 +355,118 @@
            </widget>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_14">
+           <layout class="QHBoxLayout" name="horizontalLayout_35">
             <item>
-             <widget class="QCheckBox" name="debugOutputPlayerCB">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;enables player debug output (deprecated)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Turn On Player Debug Output</string>
-              </property>
-             </widget>
+             <layout class="QGridLayout" name="gridLayout_8">
+              <item row="0" column="0">
+               <widget class="QCheckBox" name="debugOutputPlayerCB">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;enables player debug output (deprecated)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Turn On Player Debug Output</string>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="useInternalConsoleCheckBox">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;enables using internal player console for output (half-deprrecated)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Use internal console for text output</string>
+                </property>
+               </widget>
+              </item>
+              <item row="2" column="0">
+               <widget class="QCheckBox" name="closePlayerCheckBox">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If checked this will cause player close after simulation is done&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
+                <property name="text">
+                 <string>Close Player after simulation ends</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
             <item>
-             <widget class="QCheckBox" name="useInternalConsoleCheckBox">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;enables using internal player console for output (half-deprrecated)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <spacer name="horizontalSpacer_28">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
               </property>
-              <property name="text">
-               <string>Use internal console for text output</string>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
               </property>
-             </widget>
+             </spacer>
             </item>
             <item>
-             <widget class="QCheckBox" name="closePlayerCheckBox">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If checked this will cause player close after simulation is done&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Close Player after simulation ends</string>
-              </property>
-             </widget>
+             <layout class="QGridLayout" name="gridLayout_9">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_25">
+                <property name="text">
+                 <string>Log Level</string>
+                </property>
+               </widget>
+              </item>
+              <item row="0" column="1">
+               <widget class="QComboBox" name="log_level_combo">
+                <property name="currentText">
+                 <string>LOG_INFORMATION</string>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>LOG_FATAL</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>LOG_CRITICAL</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>LOG_ERROR</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>LOG_WARNING</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>LOG_NOTICE</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>LOG_INFORMATION</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>LOG_DEBUG</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>LOG_TRACE</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+              <item row="1" column="0" colspan="2">
+               <widget class="QCheckBox" name="write_log_CB">
+                <property name="text">
+                 <string>Write Log To File</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </item>
@@ -765,14 +847,14 @@
                <attribute name="verticalHeaderVisible">
                 <bool>false</bool>
                </attribute>
-               <attribute name="verticalHeaderMinimumSectionSize">
-                <number>11</number>
-               </attribute>
                <attribute name="verticalHeaderDefaultSectionSize">
                 <number>18</number>
                </attribute>
                <attribute name="verticalHeaderHighlightSections">
                 <bool>false</bool>
+               </attribute>
+               <attribute name="verticalHeaderMinimumSectionSize">
+                <number>11</number>
                </attribute>
                <attribute name="verticalHeaderShowSortIndicator" stdset="0">
                 <bool>true</bool>
