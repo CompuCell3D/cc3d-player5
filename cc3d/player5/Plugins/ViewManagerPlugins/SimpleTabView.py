@@ -430,6 +430,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.simulation.drawMutex.unlock()
 
         new_window.set_connects(self)  # in GraphicsFrameWidget
+        new_window.updateGeometry()
         new_window.set_initial_cross_section(self.basicSimulationData)
         new_window.set_field_types_combo_box(self.fieldTypes)
 
