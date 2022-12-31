@@ -2104,7 +2104,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         """
 
         # here we are resetting previous warnings because draw functions may write their own warning
-        self.displayWarning('')
+        # self.displayWarning('')
 
         __drawFieldFcn = getattr(self, "drawField" + str(self.__viewManagerType))
 
@@ -2657,7 +2657,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # This block of code simply checks to see if some plugins assoc'd with Vis are defined
         # todo 5 - rework this - remove parsing away from the player
-        # from cc3d.core import XMLUtils
+
+
 
         cc3d_xml_2_obj_converter = CompuCellSetup.persistent_globals.cc3d_xml_2_obj_converter
         if cc3d_xml_2_obj_converter is not None:
@@ -2690,6 +2691,19 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 Configuration.setSetting("CellGlyphsOn", False)
             else:
                 self.cell_glyphs_act.setEnabled(True)
+        plugins = []
+        visualizations = []
+        if not self.pluginCOMDefined:
+            plugins.append("COM")
+            visualizations.append("Glyphs")
+        if not self.pluginFPPDefined:
+            plugins.append("FPP")
+            visualizations.append("FPP Links")
+
+        if len(plugins):
+            warning = f"{', '.join(plugins)} Plugin(s) not defined - turning off {', '.join(visualizations)}"
+
+            self.displayWarning(warning)
 
     def setParams(self):
         """
