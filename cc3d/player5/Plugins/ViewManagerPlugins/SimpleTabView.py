@@ -709,9 +709,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.cmlReplayManager.initial_data_read.connect(self.initializeSimulationViewWidget)
             self.cmlReplayManager.subsequent_data_read.connect(self.handleCompletedStep)
             self.cmlReplayManager.final_data_read.connect(self.handleSimulationFinished)
-            # self.stopRequestSignal.connect(self.simulation.stop)
             self.stopRequestSignal.connect(self.handleSimulationFinished)
-            # self.stopRequestSignal.connect(self.cmlReplayManager.stop)
+
 
             self.fieldExtractor = PlayerPython.FieldExtractorCML()
             self.fieldExtractor.setFieldDim(self.basicSimulationData.fieldDim)
@@ -1131,18 +1130,9 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if self.saveSettings:
             Configuration.syncPreferences()
             Configuration.writeAllSettings()
+            if self.simulation:
+                self.simulation.semPause.release()
 
-            """
-            For some reason have to introduce delay to avoid problems with application becoming unresponsive
-            """
-            # # # import time
-            # # # time.sleep(0.5)
-            # self.simulation.stop()
-            # self.simulation.wait()
-
-            # self.__simulationStop()
-
-            return
 
     def read_screenshot_description_file(self, scr_file=None):
         """
@@ -1401,21 +1391,15 @@ class SimpleTabView(MainArea, SimpleViewManager):
         """
         callback - runs after CML replay mode finished. Cleans after vtk replay
 
-        :param _flag: bool - not used at tyhe moment
+        :param _flag: bool - not used at the moment
         :return: None
         """
         print("responding to self.final_data_read.emit(True)")
         persistent_globals = CompuCellSetup.persistent_globals
         if persistent_globals.player_type == PlayerType.REPLAY:
             self.latticeDataModelTable.prepareToClose()
-            # self.cmlReplayManager.initial_data_read.disconnect(self.initializeSimulationViewWidget)
-            # self.cmlReplayManager.subsequent_data_read.disconnect(self.handleCompletedStep)
-            # self.cmlReplayManager.final_data_read.disconnect(self.handleSimulationFinished)
-            # self.stopRequestSignal.disconnect(self.cmlReplayManager.stop)
             # if stepping , we need to release semPause otherwise it will keep blocking when we try to exit the app
             self.simulation.semPause.release()
-            # self.cmlReplayManager.quit()
-        # # # self.__stopSim()
         self.__cleanAfterSimulation()
 
 
@@ -2287,8 +2271,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.pause_act.setEnabled(False)
             self.stop_act.setEnabled(False)
 
-            # self.__stopSim()
-            # return
             self.cmlReplayManager.initial_data_read.disconnect(self.initializeSimulationViewWidget)
             self.cmlReplayManager.subsequent_data_read.disconnect(self.handleCompletedStep)
             self.cmlReplayManager.final_data_read.disconnect(self.handleSimulationFinished)
