@@ -709,6 +709,9 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.cmlReplayManager.initial_data_read.connect(self.initializeSimulationViewWidget)
             self.cmlReplayManager.subsequent_data_read.connect(self.handleCompletedStep)
             self.cmlReplayManager.final_data_read.connect(self.handleSimulationFinished)
+            # self.stopRequestSignal.connect(self.simulation.stop)
+            self.stopRequestSignal.connect(self.handleSimulationFinished)
+            # self.stopRequestSignal.connect(self.cmlReplayManager.stop)
 
             self.fieldExtractor = PlayerPython.FieldExtractorCML()
             self.fieldExtractor.setFieldDim(self.basicSimulationData.fieldDim)
@@ -934,7 +937,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
     def __loadDMLFile(self, file_name: str) -> None:
         """
-        loads lattice descriotion file and initializes simulation result replay
+        loads lattice description file and initializes simulation result replay
 
         :param file_name:
         :return: None
@@ -1394,21 +1397,29 @@ class SimpleTabView(MainArea, SimpleViewManager):
         pg = CompuCellSetup.persistent_globals
         pg.pause_at = str_to_int_container(s=Configuration.getSetting("PauseAt"), container="dict")
 
-    def handleSimulationFinishedCMLResultReplay(self, _flag):
+    def handleSimulationFinishedCMLResultReplay(self, _flag=False):
         """
         callback - runs after CML replay mode finished. Cleans after vtk replay
 
         :param _flag: bool - not used at tyhe moment
         :return: None
         """
+        print("responding to self.final_data_read.emit(True)")
         persistent_globals = CompuCellSetup.persistent_globals
         if persistent_globals.player_type == PlayerType.REPLAY:
             self.latticeDataModelTable.prepareToClose()
-
+            # self.cmlReplayManager.initial_data_read.disconnect(self.initializeSimulationViewWidget)
+            # self.cmlReplayManager.subsequent_data_read.disconnect(self.handleCompletedStep)
+            # self.cmlReplayManager.final_data_read.disconnect(self.handleSimulationFinished)
+            # self.stopRequestSignal.disconnect(self.cmlReplayManager.stop)
+            # if stepping , we need to release semPause otherwise it will keep blocking when we try to exit the app
+            self.simulation.semPause.release()
+            # self.cmlReplayManager.quit()
         # # # self.__stopSim()
         self.__cleanAfterSimulation()
 
-    def handleSimulationFinishedRegular(self, _flag):
+
+    def handleSimulationFinishedRegular(self, _flag=False):
         """
         Callback - called after "regular" simulation finishes
 
@@ -1418,15 +1429,17 @@ class SimpleTabView(MainArea, SimpleViewManager):
         print('INSIDE handleSimulationFinishedRegular')
         self.__cleanAfterSimulation()
 
-    def handleSimulationFinished(self, _flag):
+    def handleSimulationFinished(self, _flag=False):
         """
         dispatch function for simulation finished event
 
         :param _flag: bool - unused
         :return: None
         """
+
         handleSimulationFinishedFcn = getattr(self, "handleSimulationFinished" + str(self.__viewManagerType))
         handleSimulationFinishedFcn(_flag)
+
 
     def handleCompletedStepCMLResultReplay(self, _mcs):
         """
@@ -2274,6 +2287,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.pause_act.setEnabled(False)
             self.stop_act.setEnabled(False)
 
+            # self.__stopSim()
+            # return
             self.cmlReplayManager.initial_data_read.disconnect(self.initializeSimulationViewWidget)
             self.cmlReplayManager.subsequent_data_read.disconnect(self.handleCompletedStep)
             self.cmlReplayManager.final_data_read.disconnect(self.handleSimulationFinished)
