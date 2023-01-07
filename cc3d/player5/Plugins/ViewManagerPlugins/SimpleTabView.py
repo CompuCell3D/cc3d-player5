@@ -953,16 +953,16 @@ class SimpleTabView(MainArea, SimpleViewManager):
             print('-----------------------')
             Configuration.setSetting("LatticeOutputOn", False)
 
-        if Configuration.getSetting("CellGlyphsOn"):
-            QMessageBox.warning(self, "Message",
-                                "Warning: Turning OFF 'Vis->Cell Glyphs' ",
-                                QMessageBox.Ok)
-            print('-----------------------')
-            print('  WARNING:  Turning OFF "Vis->Cell Glyphs"')
-            print('-----------------------')
-            Configuration.setSetting("CellGlyphsOn", False)
-            #                self.graphicsWindowVisDict[self.lastActiveWindow.winId()][3] = False
-            self.cell_glyphs_act.setChecked(False)
+        # if Configuration.getSetting("CellGlyphsOn"):
+        #     QMessageBox.warning(self, "Message",
+        #                         "Warning: Turning OFF 'Vis->Cell Glyphs' ",
+        #                         QMessageBox.Ok)
+        #     print('-----------------------')
+        #     print('  WARNING:  Turning OFF "Vis->Cell Glyphs"')
+        #     print('-----------------------')
+        #     Configuration.setSetting("CellGlyphsOn", False)
+        #     #                self.graphicsWindowVisDict[self.lastActiveWindow.winId()][3] = False
+        #     self.cell_glyphs_act.setChecked(False)
 
         if Configuration.getSetting("FPPLinksOn"):
             QMessageBox.warning(self, "Message",
@@ -2655,6 +2655,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # This block of code simply checks to see if some plugins assoc'd with Vis are defined
         # todo 5 - rework this - remove parsing away from the player
 
+        persistent_globals = CompuCellSetup.persistent_globals
+        check_for_COM_plugin  = persistent_globals.player_type != PlayerType.REPLAY
 
 
         cc3d_xml_2_obj_converter = CompuCellSetup.persistent_globals.cc3d_xml_2_obj_converter
@@ -2682,7 +2684,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             else:
                 self.fpp_links_act.setEnabled(True)
 
-            if not self.pluginCOMDefined:
+            if check_for_COM_plugin and not self.pluginCOMDefined:
                 self.cell_glyphs_act.setEnabled(False)
                 self.cell_glyphs_act.setChecked(False)
                 Configuration.setSetting("CellGlyphsOn", False)
@@ -3057,8 +3059,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.simulation.drawMutex.lock()
         self.update_active_window_vis_flags()
 
+        persistent_globals = CompuCellSetup.persistent_globals
+        check_for_COM_plugin  = persistent_globals.player_type != PlayerType.REPLAY
+
         if self.cell_glyphs_act.isEnabled():
-            if not self.pluginCOMDefined:
+            if check_for_COM_plugin and not self.pluginCOMDefined:
                 QMessageBox.warning(self, "Message",
                                     "Warning: You have not defined a CenterOfMass plugin",
                                     QMessageBox.Ok)
