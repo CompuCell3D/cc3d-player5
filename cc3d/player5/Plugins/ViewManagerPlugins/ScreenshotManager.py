@@ -283,7 +283,20 @@ class ScreenshotManager(ScreenshotManagerCore):
 
             screenshot_fname = os.path.join(screenshot_dir, screenshot_name + "_" + mcs_formatted_number + ".png")
 
-            self.gd.clear_display()
-            self.gd.draw(screenshot_data=screenshot_data, bsd=bsd, screenshot_name=screenshot_name)
-            self.gd.output_screenshot(screenshot_fname=screenshot_fname, file_format="png",
+            tvw = self.tabViewWidget()
+            try:
+                boundary_strategy = persistent_globals.simulator.getBoundaryStrategy()
+            except AttributeError:
+                boundary_strategy = None
+            gd = GenericDrawer(boundary_strategy=boundary_strategy)
+            gd.set_field_extractor(field_extractor=tvw.fieldExtractor)
+
+            # gd.clear_display()
+            gd.draw(screenshot_data=screenshot_data, bsd=bsd, screenshot_name=screenshot_name)
+            gd.output_screenshot(screenshot_fname=screenshot_fname, file_format="png",
                                       screenshot_data=screenshot_data)
+
+            # self.gd.clear_display()
+            # self.gd.draw(screenshot_data=screenshot_data, bsd=bsd, screenshot_name=screenshot_name)
+            # self.gd.output_screenshot(screenshot_fname=screenshot_fname, file_format="png",
+            #                           screenshot_data=screenshot_data)
