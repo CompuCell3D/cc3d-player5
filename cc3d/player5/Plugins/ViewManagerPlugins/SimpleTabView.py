@@ -714,6 +714,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
             self.fieldExtractor = PlayerPython.FieldExtractorCML()
             self.fieldExtractor.setFieldDim(self.basicSimulationData.fieldDim)
+            if self.latticeType == 1:
+                self.fieldExtractor.setLatticeType("Hexagonal")
 
         else:
             self.__viewManagerType = ViewManagerType.REGULAR
