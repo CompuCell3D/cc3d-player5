@@ -306,9 +306,10 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
         finally:
             self.sem.release()
             self.semPause.release()
+            self.finishMutex.unlock()
 
 
-        self.wait()
+        # self.wait()
 
     def stop(self):
         self.sem.tryAcquire()
