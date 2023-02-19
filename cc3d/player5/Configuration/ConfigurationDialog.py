@@ -580,7 +580,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         Configuration.setSetting("ProjectLocation", self.projectLocationLineEdit.text())
         Configuration.setSetting("OutputLocation", self.outputLocationLineEdit.text())
         Configuration.setSetting("PauseAt", self.pause_at_LE.text())
-        Configuration.setSetting("LogLevel", self.log_level_combo.currentText())
+        Configuration.setSetting("LogLevel", "LOG_"+self.log_level_combo.currentText())
         Configuration.setSetting("LogToFile", self.write_log_CB.isChecked())
 
 
@@ -678,7 +678,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.outputLocationLineEdit.setText(str(Configuration.getSetting("OutputLocation")))
         self.outputToProjectCheckBox.setChecked(Configuration.getSetting("OutputToProjectOn"))
 
-        self.log_level_combo.setCurrentText(str(Configuration.getSetting("LogLevel")))
+        self.log_level_combo.setCurrentText(str(Configuration.getSetting("LogLevel"))[len("LOG_"):])
         self.write_log_CB.setChecked(Configuration.getSetting("LogToFile"))
 
         self.numberOfRecentSimulationsSB.setValue(Configuration.getSetting("NumberOfRecentSimulations"))

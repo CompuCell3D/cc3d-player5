@@ -221,7 +221,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         """
         log_level_val = getattr(CompuCell, Configuration.getSetting("LogLevel"))
         if log_level_val != self.log_level:
-            CompuCell.Logger.enableConsoleLogging(log_level_val)
+            logger = CompuCell.CC3DLogger.get()
+            logger.enableConsoleLogging(log_level_val)
             self.log_level = log_level_val
 
         pg = CompuCellSetup.persistent_globals
@@ -235,11 +236,13 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if pg.output_directory is not None:
                 if not Path(pg.output_directory).exists():
                     pg.create_output_dir()
-                CompuCell.Logger.enableFileLogging(str(
+                logger = CompuCell.CC3DLogger.get()
+                logger.enableFileLogging(str(
                     Path(pg.output_directory).joinpath("simulation.log")), log_level_val)
         else:
             if pg.output_directory is not None:
-                CompuCell.Logger.disableFileLogging()
+                logger = CompuCell.CC3DLogger.get()
+                logger.disableFileLogging()
 
 
     @property
