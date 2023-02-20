@@ -5,7 +5,12 @@
 # when building as standalone package uncomment line below and set version and build_number to proper values
 #{% set version = "4.3.1" %}
 #{% set build_number = "0" %}
-{% set python_version = "3.7" %}
+#{% set python_version = "3.7" %}
+
+{% set version = environ.get('version') %}
+{% set build_number = environ.get('build_number',0) %}
+{% set numpy_version = environ.get('numpy_version') %}
+
 
 package:
   name: cc3d-player5
@@ -29,18 +34,19 @@ build:
 
 requirements:
   build:
-    - python={{ python_version }}
+    - python={{ python }}
     - setuptools
 
   run:
-    - python={{ python_version }}
+    - python={{ python }}
     # - numpy=1.18 # when building with conda mambabuild
     - cc3d={{ version }}
     - qscintilla2
     - webcolors
     - requests
-    - pyqt=5.6 # [osx]
-    - pyqt # [not osx]
+    - pyqt=5
+#    - pyqt=5.6 # [osx]
+#    - pyqt # [not osx]
     - pyqtgraph
 
 test:
