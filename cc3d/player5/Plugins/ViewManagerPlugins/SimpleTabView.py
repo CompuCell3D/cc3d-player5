@@ -1138,6 +1138,23 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if self.simulation:
                 self.simulation.semPause.release()
 
+        self.reset_sim_model()
+
+    def reset_sim_model(self):
+        """
+        This function resets steering panel. It looks like it is necessary
+        with SWIG 4-compiled XMLUtils so that we do not get
+        memory leak warning on exit from player. Note this only happened
+        on exit and in all likelihood was NOT a memory leak but false positive warning from swig
+
+        """
+        self.model = SimModel(None, self.__modelEditor)
+
+        # hook in simulation thread class to XML model TreeView panel in the GUI - needed for steering
+        self.simulation.setSimModel(self.model)
+
+        self.__modelEditor.setModel(self.model)
+
 
     def read_screenshot_description_file(self, scr_file=None):
         """
@@ -1633,6 +1650,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :return: None
         """
         if not self.drawingAreaPrepared:
+            self.reset_sim_model()
             # checking if the simulation file is not an empty string
             if self.__sim_file_name == "":
                 msg = QMessageBox.warning(self, "Not A Valid Simulation File", \
@@ -1763,6 +1781,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # when we run simulation we ensure that self.simulation.screenUpdateFrequency
         # is whatever is written in the settings
+
         self.simulation.screenUpdateFrequency = self.__updateScreen
 
         if not self.drawingAreaPrepared:
@@ -2403,6 +2422,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # self.simulation.stop()
         self.stopRequestSignal.emit()
         self.simulation.wait()
+
+
 
     def makeCustomSimDir(self, _dirName, _simulationFileName):
         """
