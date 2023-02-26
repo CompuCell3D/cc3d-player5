@@ -2360,7 +2360,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.fieldTypes = {}
 
         self.UI.save_ui_geometry()
-
+        self.__save_windows_layout()
         # saving settings with the simulation
         if self.customSettingPath:
             Configuration.writeSettingsForSingleSimulation(self.customSettingPath)
