@@ -32,7 +32,7 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
         QtCore.QThread.__init__(self, parent)
 
         # NOTE: to implement synchronization between threads we use semaphores.
-        # If yuou use mutexes for this then if you lokc mutex in one thread and try to unlock
+        # If you use mutexes for this then if you lokc mutex in one thread and try to unlock
         # from another thread than on Linux it will not work. Semaphores are better for this
         self.__ui = parent
         self.sem = QSemaphore(1)
@@ -96,8 +96,6 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
         self.sem.tryAcquire()
         self.sem.release()
         self.loopWorkPostEvent(self.last_mcs_handled)
-        # print('inside redoCompletedStep')
-        # self.completedStep.emit(self.last_mcs_handled)
 
     def emitCompletedStep(self,_mcs=None):
         self.last_mcs_handled = _mcs
@@ -149,12 +147,6 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
     def getCurrentStep(self):
         return self.__mcs
 
-    # def getSimFileName(self):
-    #     if self.__ui:
-    #         return self.__ui.getSimFileName()
-    #     else:
-    #         return ''
-
     def setCurrentStep(self, _mcs):
         self.__mcs = _mcs
 
@@ -195,6 +187,8 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
         self.emitSteppablesStarted()
 
     def waitForPlayerTaskToFinish(self):
+        self.drawMutex.lock()
+        self.drawMutex.unlock()
         self.sem.acquire()
         self.sem.release()
 
@@ -306,8 +300,10 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
         finally:
             self.sem.release()
             self.semPause.release()
+            # IMPORTANT - self.finishMutex may be unlocked elsewhere and if we try to unlock unlocked mutes
+            # we will get segfault on exit. This is why we do tryLock
+            self.finishMutex.tryLock()
             self.finishMutex.unlock()
-
 
         # self.wait()
 
@@ -346,17 +342,9 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
 
         CompuCellSetup.persistent_globals.simthread = self
 
-        # execfile("pythonSetupScripts/CompuCellPythonSimulationNewPlayer.py")
-        # determinig the path of the CompuCellPythonSimulationNewPlayer.py based on the location of the current scrit (SimlulationThread.py)
-
-
         _path = os.path.abspath(os.path.dirname(__file__))
 
-        # print '_path1 = ',_path
-
         _path = os.path.abspath(os.path.join(_path + '../../../'))
-
-        # run_script_name = os.path.abspath(os.path.join(_path, 'pythonSetupScripts/CompuCellPythonSimulationNewPlayer.py'))
 
         # alternative
         # assume PREFIX_CC3D points to the CC3D installation directory
@@ -370,16 +358,7 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
 
         if not os.path.isfile(run_script_name):
             raise RuntimeError('Could not locate: CompuCellPythonSimulationNewPlayer.py run script')
-        # print '_path2 = ',_path
-        # print 'run_script_name =', run_script_name
 
-        # this is in case player5 dire is soft-linked from git repository into installation repository
-        # if not os.path.isfile(run_script_name):
-        #
-        #     run_script_name = os.path.abspath(os.path.join(_path, 'core/pythonSetupScripts/CompuCellPythonSimulationNewPlayer.py'))
-        #
-        # import py_compile
-        # py_compile.compile(file=run_script_name)
         exec(compile(open(run_script_name).read(), run_script_name, 'exec'))
 
     def add_visualization_field(self, field_name, field_type):
@@ -403,22 +382,9 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
         return self.callingWidget.fieldStorage
 
     def run(self):
-        # from cc3d.CompuCellSetup.sim_runner import run_cc3d_project
         cc3d_sim_fname = CompuCellSetup.persistent_globals.simulation_file_name
         self.inject()
         run_cc3d_project(cc3d_sim_fname=cc3d_sim_fname)
-        return
-        # print('SIMTHREAD: GOT INSIDE RUN FUNCTION')
-        # print('self.runUserPythonScriptFlag=',self.runUserPythonScriptFlag)
-        #
-        # if self.runUserPythonScriptFlag:
-        #     # print "runUserPythonScriptFlag=",self.runUserPythonScriptFlag
-        #     globalDict = {'simTabView': 20}
-        #     localDict = {}
-        #
-        #     print('GOT INSIDE RUN FUNCTION');
-        #
-        #     self.runUserPythonScript(self.pythonFileName, globalDict, localDict)
 
     @staticmethod
     def main_loop():

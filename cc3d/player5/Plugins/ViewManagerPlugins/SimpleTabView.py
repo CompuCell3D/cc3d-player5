@@ -1666,12 +1666,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 print("Assertion Error: ", str(e))
 
                 self.handleErrorMessage("Assertion Error", str(e))
-                # import ParameterScanEnums
-                #
-                # if _errorType == 'Assertion Error' and _traceback_message.startswith(
-                #         'Parameter Scan ERRORCODE=' + str(ParameterScanEnums.SCAN_FINISHED_OR_DIRECTORY_ISSUE)):
-                #     #                     print 'Exiting inside prepare simulation '
-                #     sys.exit(ParameterScanEnums.SCAN_FINISHED_OR_DIRECTORY_ISSUE)
 
                 return False
             except xml.parsers.expat.ExpatError as e:
@@ -1708,12 +1702,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
         pg = CompuCellSetup.persistent_globals
 
         param_scan_dialog = ParamScanDialog()
-        # try:
-        #     prefix_cc3d = os.environ['PREFIX_CC3D']
-        # except KeyError:
-        #     prefix_cc3d = ''
-        #
-        # param_scan_dialog.install_dir_LE.setText(prefix_cc3d)
         param_scan_dialog.param_scan_simulation_LE.setText(self.__sim_file_name)
 
         scan_display_label = Path().joinpath(*Path(self.__sim_file_name).parts[-2:])
@@ -2360,7 +2348,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.fieldTypes = {}
 
         self.UI.save_ui_geometry()
-        self.__save_windows_layout()
+        # self.__save_windows_layout()
         # saving settings with the simulation
         if self.customSettingPath:
             Configuration.writeSettingsForSingleSimulation(self.customSettingPath)
