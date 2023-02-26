@@ -415,8 +415,13 @@
               <item row="0" column="1">
                <widget class="QComboBox" name="log_level_combo">
                 <property name="currentText">
-                 <string>FATAL</string>
+                 <string>CURRENT</string>
                 </property>
+                <item>
+                 <property name="text">
+                  <string>CURRENT</string>
+                 </property>
+                </item>
                 <item>
                  <property name="text">
                   <string>FATAL</string>
