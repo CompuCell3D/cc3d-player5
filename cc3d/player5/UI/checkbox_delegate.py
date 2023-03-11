@@ -22,7 +22,7 @@ class CheckBoxDelegate(QtWidgets.QItemDelegate):
         checkbox.rect = option.rect
         checkbox.state |= QStyle.State_On if value else QStyle.State_Off
         checkbox.state |= QStyle.State_Enabled
-        # checkbox.state |= option.state & QStyle::State_MouseOver ? QStyle::State_MouseOver: QStyle::State_None;
+        # checkbox.state |= QStyle.State_MouseOver if option.state & QStyle.State_MouseOver else QStyle.State_None
 
         QApplication.style().drawControl(QStyle.CE_CheckBox, checkbox, painter)
 
