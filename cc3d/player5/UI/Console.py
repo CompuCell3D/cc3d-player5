@@ -2,6 +2,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from cc3d.player5.CustomGui.CTabWidget import CTabWidget
+from cc3d.player5.styles import tab_bar_style
 from .ErrorConsole import ErrorConsole
 
 
@@ -9,6 +10,7 @@ class Console(CTabWidget):
     def __init__(self, parent):
         QTabWidget.__init__(self, parent)
         self.setTabPosition(QTabWidget.South)
+        self.tabBar().setStyleSheet(tab_bar_style)
 
         # self.__errorConsole.setText("Error: XML Error \n  File: cellsort_2D_error.xml\n
         # Line: 23 Col: 1 has the following problem not well-formed (invalid token) \n\n\n\n")

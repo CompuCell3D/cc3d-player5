@@ -121,6 +121,11 @@ class CMLResultReader(SimulationThread.SimulationThread, CMLResultsReaderBase):
             # read successful
             self.subsequent_data_read.emit(file_number)
 
+    def stop(self):
+        self.reading = False
+        self.set_run_state(state=STOP_STATE)
+        self.final_data_read.emit(True)
+
     def set_run_state(self, state: int) -> None:
         """
         sets current run state

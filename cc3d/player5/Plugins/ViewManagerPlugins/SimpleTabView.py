@@ -35,7 +35,7 @@ from cc3d.core import XMLUtils
 from .PlotManagerSetup import create_plot_manager
 from .PopupWindowManagerSetup import create_popup_window_manager
 from .WidgetManager import WidgetManager
-from cc3d.cpp import PlayerPython
+from cc3d.cpp import PlayerPython, CompuCell
 from cc3d.core.CMLFieldHandler import CMLFieldHandler
 from . import ScreenshotManager
 import vtk
@@ -141,6 +141,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.__fieldType = ("Cell_Field", FIELD_TYPES[0])
 
         self.__step = 0
+        self.log_level = None
+        self.log_to_file = False
 
         self.output_step_max_items = 3
         self.step_output_list = []
@@ -210,6 +212,38 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # Here we are checking for new version - notice we use check interval in order not to perform version checks
         # too often. Default check interval is 7 days
         self.check_version(check_interval=7)
+        self.setup_logging()
+
+    def setup_logging(self):
+        """
+        updates logging settings based on current value of logging and the new value requested via settings.
+        Checks if the change in logging configuration is necessary
+        """
+        log_level_val = getattr(CompuCell, Configuration.getSetting("LogLevel"))
+        if log_level_val != self.log_level:
+            logger = CompuCell.CC3DLogger.get()
+            logger.enableConsoleLogging(log_level_val)
+            self.log_level = log_level_val
+
+        pg = CompuCellSetup.persistent_globals
+
+        log_to_file = Configuration.getSetting("LogToFile")
+
+        if self.log_to_file != log_to_file:
+            # look for a change compared to the current setting
+            self.log_to_file = log_to_file
+        if self.log_to_file:
+            if pg.output_directory is not None:
+                if not Path(pg.output_directory).exists():
+                    pg.create_output_dir()
+                logger = CompuCell.CC3DLogger.get()
+                logger.enableFileLogging(str(
+                    Path(pg.output_directory).joinpath("simulation.log")), log_level_val)
+        else:
+            if pg.output_directory is not None:
+                logger = CompuCell.CC3DLogger.get()
+                logger.disableFileLogging()
+
 
     @property
     def UI(self):
@@ -678,9 +712,13 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.cmlReplayManager.initial_data_read.connect(self.initializeSimulationViewWidget)
             self.cmlReplayManager.subsequent_data_read.connect(self.handleCompletedStep)
             self.cmlReplayManager.final_data_read.connect(self.handleSimulationFinished)
+            self.stopRequestSignal.connect(self.handleSimulationFinished)
+
 
             self.fieldExtractor = PlayerPython.FieldExtractorCML()
             self.fieldExtractor.setFieldDim(self.basicSimulationData.fieldDim)
+            if self.latticeType == 1:
+                self.fieldExtractor.setLatticeType("Hexagonal")
 
         else:
             self.__viewManagerType = ViewManagerType.REGULAR
@@ -898,9 +936,12 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # each loaded simulation has to be passed to a function which updates list of recent files
         Configuration.setSetting("RecentSimulations", os.path.abspath(self.__sim_file_name))
 
+        # setup logging once simulation is loaded and we are set to use simulation-specific settings
+        self.setup_logging()
+
     def __loadDMLFile(self, file_name: str) -> None:
         """
-        loads lattice descriotion file and initializes simulation result replay
+        loads lattice description file and initializes simulation result replay
 
         :param file_name:
         :return: None
@@ -917,16 +958,16 @@ class SimpleTabView(MainArea, SimpleViewManager):
             print('-----------------------')
             Configuration.setSetting("LatticeOutputOn", False)
 
-        if Configuration.getSetting("CellGlyphsOn"):
-            QMessageBox.warning(self, "Message",
-                                "Warning: Turning OFF 'Vis->Cell Glyphs' ",
-                                QMessageBox.Ok)
-            print('-----------------------')
-            print('  WARNING:  Turning OFF "Vis->Cell Glyphs"')
-            print('-----------------------')
-            Configuration.setSetting("CellGlyphsOn", False)
-            #                self.graphicsWindowVisDict[self.lastActiveWindow.winId()][3] = False
-            self.cell_glyphs_act.setChecked(False)
+        # if Configuration.getSetting("CellGlyphsOn"):
+        #     QMessageBox.warning(self, "Message",
+        #                         "Warning: Turning OFF 'Vis->Cell Glyphs' ",
+        #                         QMessageBox.Ok)
+        #     print('-----------------------')
+        #     print('  WARNING:  Turning OFF "Vis->Cell Glyphs"')
+        #     print('-----------------------')
+        #     Configuration.setSetting("CellGlyphsOn", False)
+        #     #                self.graphicsWindowVisDict[self.lastActiveWindow.winId()][3] = False
+        #     self.cell_glyphs_act.setChecked(False)
 
         if Configuration.getSetting("FPPLinksOn"):
             QMessageBox.warning(self, "Message",
@@ -1094,18 +1135,26 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if self.saveSettings:
             Configuration.syncPreferences()
             Configuration.writeAllSettings()
+            if self.simulation:
+                self.simulation.semPause.release()
 
-            """
-            For some reason have to introduce delay to avoid problems with application becoming unresponsive
-            """
-            # # # import time
-            # # # time.sleep(0.5)
-            # self.simulation.stop()
-            # self.simulation.wait()
+        self.reset_sim_model()
 
-            # self.__simulationStop()
+    def reset_sim_model(self):
+        """
+        This function resets steering panel. It looks like it is necessary
+        with SWIG 4-compiled XMLUtils so that we do not get
+        memory leak warning on exit from player. Note this only happened
+        on exit and in all likelihood was NOT a memory leak but false positive warning from swig
 
-            return
+        """
+        self.model = SimModel(None, self.__modelEditor)
+
+        # hook in simulation thread class to XML model TreeView panel in the GUI - needed for steering
+        self.simulation.setSimModel(self.model)
+
+        self.__modelEditor.setModel(self.model)
+
 
     def read_screenshot_description_file(self, scr_file=None):
         """
@@ -1360,21 +1409,23 @@ class SimpleTabView(MainArea, SimpleViewManager):
         pg = CompuCellSetup.persistent_globals
         pg.pause_at = str_to_int_container(s=Configuration.getSetting("PauseAt"), container="dict")
 
-    def handleSimulationFinishedCMLResultReplay(self, _flag):
+    def handleSimulationFinishedCMLResultReplay(self, _flag=False):
         """
         callback - runs after CML replay mode finished. Cleans after vtk replay
 
-        :param _flag: bool - not used at tyhe moment
+        :param _flag: bool - not used at the moment
         :return: None
         """
+        print("responding to self.final_data_read.emit(True)")
         persistent_globals = CompuCellSetup.persistent_globals
         if persistent_globals.player_type == PlayerType.REPLAY:
             self.latticeDataModelTable.prepareToClose()
-
-        # # # self.__stopSim()
+            # if stepping , we need to release semPause otherwise it will keep blocking when we try to exit the app
+            self.simulation.semPause.release()
         self.__cleanAfterSimulation()
 
-    def handleSimulationFinishedRegular(self, _flag):
+
+    def handleSimulationFinishedRegular(self, _flag=False):
         """
         Callback - called after "regular" simulation finishes
 
@@ -1384,15 +1435,17 @@ class SimpleTabView(MainArea, SimpleViewManager):
         print('INSIDE handleSimulationFinishedRegular')
         self.__cleanAfterSimulation()
 
-    def handleSimulationFinished(self, _flag):
+    def handleSimulationFinished(self, _flag=False):
         """
         dispatch function for simulation finished event
 
         :param _flag: bool - unused
         :return: None
         """
+
         handleSimulationFinishedFcn = getattr(self, "handleSimulationFinished" + str(self.__viewManagerType))
         handleSimulationFinishedFcn(_flag)
+
 
     def handleCompletedStepCMLResultReplay(self, _mcs):
         """
@@ -1597,6 +1650,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :return: None
         """
         if not self.drawingAreaPrepared:
+            self.reset_sim_model()
             # checking if the simulation file is not an empty string
             if self.__sim_file_name == "":
                 msg = QMessageBox.warning(self, "Not A Valid Simulation File", \
@@ -1612,12 +1666,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 print("Assertion Error: ", str(e))
 
                 self.handleErrorMessage("Assertion Error", str(e))
-                # import ParameterScanEnums
-                #
-                # if _errorType == 'Assertion Error' and _traceback_message.startswith(
-                #         'Parameter Scan ERRORCODE=' + str(ParameterScanEnums.SCAN_FINISHED_OR_DIRECTORY_ISSUE)):
-                #     #                     print 'Exiting inside prepare simulation '
-                #     sys.exit(ParameterScanEnums.SCAN_FINISHED_OR_DIRECTORY_ISSUE)
 
                 return False
             except xml.parsers.expat.ExpatError as e:
@@ -1654,12 +1702,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
         pg = CompuCellSetup.persistent_globals
 
         param_scan_dialog = ParamScanDialog()
-        # try:
-        #     prefix_cc3d = os.environ['PREFIX_CC3D']
-        # except KeyError:
-        #     prefix_cc3d = ''
-        #
-        # param_scan_dialog.install_dir_LE.setText(prefix_cc3d)
         param_scan_dialog.param_scan_simulation_LE.setText(self.__sim_file_name)
 
         scan_display_label = Path().joinpath(*Path(self.__sim_file_name).parts[-2:])
@@ -1727,6 +1769,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # when we run simulation we ensure that self.simulation.screenUpdateFrequency
         # is whatever is written in the settings
+
         self.simulation.screenUpdateFrequency = self.__updateScreen
 
         if not self.drawingAreaPrepared:
@@ -2070,7 +2113,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         """
 
         # here we are resetting previous warnings because draw functions may write their own warning
-        self.displayWarning('')
+        # self.displayWarning('')
 
         __drawFieldFcn = getattr(self, "drawField" + str(self.__viewManagerType))
 
@@ -2305,7 +2348,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.fieldTypes = {}
 
         self.UI.save_ui_geometry()
-
+        # self.__save_windows_layout()
         # saving settings with the simulation
         if self.customSettingPath:
             Configuration.writeSettingsForSingleSimulation(self.customSettingPath)
@@ -2367,6 +2410,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # self.simulation.stop()
         self.stopRequestSignal.emit()
         self.simulation.wait()
+
+
 
     def makeCustomSimDir(self, _dirName, _simulationFileName):
         """
@@ -2623,7 +2668,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # This block of code simply checks to see if some plugins assoc'd with Vis are defined
         # todo 5 - rework this - remove parsing away from the player
-        # from cc3d.core import XMLUtils
+
+        persistent_globals = CompuCellSetup.persistent_globals
+        check_for_COM_plugin  = persistent_globals.player_type != PlayerType.REPLAY
+
 
         cc3d_xml_2_obj_converter = CompuCellSetup.persistent_globals.cc3d_xml_2_obj_converter
         if cc3d_xml_2_obj_converter is not None:
@@ -2650,12 +2698,25 @@ class SimpleTabView(MainArea, SimpleViewManager):
             else:
                 self.fpp_links_act.setEnabled(True)
 
-            if not self.pluginCOMDefined:
+            if check_for_COM_plugin and not self.pluginCOMDefined:
                 self.cell_glyphs_act.setEnabled(False)
                 self.cell_glyphs_act.setChecked(False)
                 Configuration.setSetting("CellGlyphsOn", False)
             else:
                 self.cell_glyphs_act.setEnabled(True)
+        plugins = []
+        visualizations = []
+        if not self.pluginCOMDefined:
+            plugins.append("COM")
+            visualizations.append("Glyphs")
+        if not self.pluginFPPDefined:
+            plugins.append("FPP")
+            visualizations.append("FPP Links")
+
+        if len(plugins):
+            warning = f"{', '.join(plugins)} Plugin(s) not defined - turning off {', '.join(visualizations)}"
+
+            self.displayWarning(warning)
 
     def setParams(self):
         """
@@ -2685,8 +2746,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if Configuration.getSetting("OutputToProjectOn"):
             self.__outputDirectory = str(Configuration.getSetting("ProjectLocation"))
 
-        # todo 5 - write code that create screenshot outoput if parameters are changed
-
+        # todo 5 - write code that create screenshot output if parameters are changed
+        # we call setup logging after parameters in config dialog got updated . this function checks
+        # if change in logging configuration is necessary
+        self.setup_logging()
         if self.simulation:
             self.init_simulation_control_vars()
 
@@ -3010,8 +3073,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.simulation.drawMutex.lock()
         self.update_active_window_vis_flags()
 
+        persistent_globals = CompuCellSetup.persistent_globals
+        check_for_COM_plugin  = persistent_globals.player_type != PlayerType.REPLAY
+
         if self.cell_glyphs_act.isEnabled():
-            if not self.pluginCOMDefined:
+            if check_for_COM_plugin and not self.pluginCOMDefined:
                 QMessageBox.warning(self, "Message",
                                     "Warning: You have not defined a CenterOfMass plugin",
                                     QMessageBox.Ok)
