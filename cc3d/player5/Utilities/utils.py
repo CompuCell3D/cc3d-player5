@@ -33,10 +33,14 @@ def assign_cell_type_colors(type_id_type_name_dict: Dict[int, str],
     :return:
     """
     types_invisible_dict = {}
-    if setting_types_invisible is not None:
+    if setting_types_invisible:
         types_invisible = setting_types_invisible.replace(" ", "")
         types_invisible = types_invisible.split(",")
-        types_invisible_dict = {int(type_id): 1 for type_id in types_invisible}
+        if types_invisible:
+            types_invisible_dict = {int(type_id): 1 for type_id in types_invisible}
+
+    # Enforce invisible medium
+    types_invisible_dict[0] = 1
 
     type_id_to_type_name_color_map = OrderedDict()
     if type_id_type_name_dict is not None and len(type_id_type_name_dict):

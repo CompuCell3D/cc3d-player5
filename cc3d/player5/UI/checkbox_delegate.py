@@ -1,7 +1,7 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import QModelIndex
 from PyQt5.QtGui import QStandardItemModel
-from PyQt5.QtWidgets import QApplication, QTableView
+from PyQt5.QtWidgets import QApplication, QTableView, QStyleOptionButton, QStyle
 
 
 class CheckBoxDelegate(QtWidgets.QItemDelegate):
@@ -17,15 +17,26 @@ class CheckBoxDelegate(QtWidgets.QItemDelegate):
         """
         return None
 
+    def draw_checkbox(self, value:bool, painter, option):
+        checkbox = QStyleOptionButton()
+        checkbox.rect = option.rect
+        checkbox.state |= QStyle.State_On if value else QStyle.State_Off
+        checkbox.state |= QStyle.State_Enabled
+        # checkbox.state |= QStyle.State_MouseOver if option.state & QStyle.State_MouseOver else QStyle.State_None
+
+        QApplication.style().drawControl(QStyle.CE_CheckBox, checkbox, painter)
+
     def paint(self, painter, option, index):
         """
         Paint a checkbox without the label.
         """
         try:
-            self.drawCheck(painter, option, option.rect, QtCore.Qt.Unchecked if int(index.data()) == 0 else QtCore.Qt.Checked)
+            value = bool(int(index.data()))
+            self.draw_checkbox(value=value, painter=painter, option=option)
         except TypeError:
             print('got option ', option, ' index=', index.row())
             pass
+
 
     def editorEvent(self, event, model, option, index):
         """
