@@ -10,7 +10,7 @@ from os import environ
 import time
 from weakref import ref
 
-from cc3d import cc3d_scripts_path
+# from cc3d import cc3d_scripts_path
 
 SIZEOF_UINT16 = 2
 
