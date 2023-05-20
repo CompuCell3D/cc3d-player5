@@ -13,16 +13,15 @@ from cc3d.core.GraphicsUtils.GraphicsFrame import GraphicsFrame
 from .GraphicsWindowData import GraphicsWindowData
 import cc3d.CompuCellSetup
 import sys
-import typing
 from PyQt5.QtWidgets import QApplication
 
 platform = sys.platform
-if platform == 'darwin':
+if platform == "darwin":
     from cc3d.player5.Utilities.QVTKRenderWindowInteractor_mac import QVTKRenderWindowInteractor
 else:
     from cc3d.player5.Utilities.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
-MODULENAME = '---- GraphicsFrameWidget.py: '
+MODULENAME = "---- GraphicsFrameWidget.py: "
 
 
 class QGraphicsFrame(GraphicsFrame):
@@ -47,12 +46,14 @@ class QGraphicsFrame(GraphicsFrame):
         generic_drawer.set_pixelized_cartesian_scene(pg.configuration.getSetting("PixelizedCartesianFields"))
 
         try:
-            generic_drawer.set_field_extractor(field_extractor=pg.persistent_holder['field_extractor'])
+            generic_drawer.set_field_extractor(field_extractor=pg.persistent_holder["field_extractor"])
         except KeyError:
             pass
 
-        super().__init__(generic_drawer=GenericDrawer(pg.simulator.getBoundaryStrategy() if pg.simulator else None),
-                         current_bsd=pg.screenshot_manager.bsd if pg.screenshot_manager is not None else None)
+        super().__init__(
+            generic_drawer=GenericDrawer(pg.simulator.getBoundaryStrategy() if pg.simulator else None),
+            current_bsd=pg.screenshot_manager.bsd if pg.screenshot_manager is not None else None,
+        )
 
     def get_vtk_window(self):
 
@@ -74,8 +75,9 @@ class QGraphicsFrame(GraphicsFrame):
         scr_data.cluster_borders_on = stv.cluster_border_act.isChecked()
         scr_data.cell_glyphs_on = stv.cell_glyphs_act.isChecked()
         scr_data.fpp_links_on = stv.fpp_links_act.isChecked()
-        scr_data.lattice_axes_on = Configuration.getSetting('ShowHorizontalAxesLabels') or Configuration.getSetting(
-            'ShowVerticalAxesLabels')
+        scr_data.lattice_axes_on = Configuration.getSetting("ShowHorizontalAxesLabels") or Configuration.getSetting(
+            "ShowVerticalAxesLabels"
+        )
         scr_data.lattice_axes_labels_on = Configuration.getSetting("ShowAxes")
         scr_data.bounding_box_on = Configuration.getSetting("BoundingBoxOn")
 
@@ -83,7 +85,7 @@ class QGraphicsFrame(GraphicsFrame):
         invisible_types = invisible_types.strip()
 
         if invisible_types:
-            scr_data.invisible_types = list([int(x) for x in invisible_types.split(',')])
+            scr_data.invisible_types = list([int(x) for x in invisible_types.split(",")])
         else:
             scr_data.invisible_types = []
 
@@ -464,21 +466,21 @@ class GraphicsFrameWidget(QtWidgets.QFrame):
         self.qvtkWidget.currentProjection = str(self.proj_combo_box.currentText())
         self.qvtkWidget.projection_position = int(self.proj_spin_box.value())
 
-        if self.qvtkWidget.currentProjection == '3D':
+        if self.qvtkWidget.currentProjection == "3D":
             # disable spinbox
             self.proj_spin_box.setEnabled(False)
             self.set_drawing_style("3D")
             if tvw.completedFirstMCS:
                 tvw.newDrawingUserRequest = True
 
-        elif self.qvtkWidget.currentProjection == 'xy':
-            self.update_projection_spin_box(spin_box_value=self.qvtkWidget.xyPlane)
+        elif self.qvtkWidget.currentProjection == "xy":
+            self.update_projection_spin_box(spin_box_value=int(self.qvtkWidget.xyPlane))
 
-        elif self.qvtkWidget.currentProjection == 'xz':
-            self.update_projection_spin_box(spin_box_value=self.qvtkWidget.xzPlane)
+        elif self.qvtkWidget.currentProjection == "xz":
+            self.update_projection_spin_box(spin_box_value=int(self.qvtkWidget.xzPlane))
 
-        elif self.qvtkWidget.currentProjection == 'yz':
-            self.update_projection_spin_box(spin_box_value=self.qvtkWidget.yzPlane)
+        elif self.qvtkWidget.currentProjection == "yz":
+            self.update_projection_spin_box(spin_box_value=int(self.qvtkWidget.yzPlane))
 
         self.qvtkWidget.current_screenshot_data = self.compute_current_screenshot_data()
 
@@ -518,7 +520,7 @@ class GraphicsFrameWidget(QtWidgets.QFrame):
         self.qvtkWidget.currentProjection = str(self.proj_combo_box.currentText())
         self.qvtkWidget.projection_position = int(self.proj_spin_box.value())
 
-        if self.currentProjection == 'xy':
+        if self.currentProjection == "xy":
             if val > self.qvtkWidget.xyMaxPlane:
                 val = self.qvtkWidget.xyMaxPlane
             self.proj_spin_box.setValue(val)
@@ -526,14 +528,14 @@ class GraphicsFrameWidget(QtWidgets.QFrame):
             self.qvtkWidget.set_plane(self.qvtkWidget.currentProjection, val)
             self.qvtkWidget.xyPlane = val
 
-        elif self.qvtkWidget.currentProjection == 'xz':
+        elif self.qvtkWidget.currentProjection == "xz":
             if val > self.qvtkWidget.xzMaxPlane:
                 val = self.qvtkWidget.xzMaxPlane
             self.proj_spin_box.setValue(val)
             self.qvtkWidget.set_plane(self.qvtkWidget.currentProjection, val)
             self.qvtkWidget.xzPlane = val
 
-        elif self.qvtkWidget.currentProjection == 'yz':
+        elif self.qvtkWidget.currentProjection == "yz":
             if val > self.yzMaxPlane:
                 val = self.yzMaxPlane
             self.proj_spin_box.setValue(val)
@@ -597,7 +599,7 @@ class GraphicsFrameWidget(QtWidgets.QFrame):
 
         for p in range(self.proj_combo_box.count()):
 
-            if str(self.proj_combo_box.itemText(p)) == '3D':
+            if str(self.proj_combo_box.itemText(p)) == "3D":
                 self.proj_combo_box.setCurrentIndex(p)
                 # notice: there are two cameras one for 2D and one for 3D  here we set camera for 3D
                 self.qvtkWidget.set_camera_from_graphics_window_data(camera=self.camera3D, gwd=gwd)
@@ -657,7 +659,7 @@ class GraphicsFrameWidget(QtWidgets.QFrame):
         :return: None
         """
         tvw = self.parentWidget()
-        print(MODULENAME, '  _takeShot():  self.renWin.GetSize()=', self.qvtkWidget.renWin.GetSize())
+        print(MODULENAME, "  _takeShot():  self.renWin.GetSize()=", self.qvtkWidget.renWin.GetSize())
 
         if tvw.screenshotManager is not None:
             self.qvtkWidget.field_name = str(self.field_combo_box.currentText())
@@ -693,7 +695,7 @@ class GraphicsFrameWidget(QtWidgets.QFrame):
         self.proj_spin_box.setMaximum(10000)
 
         # If you want to set the value from configuration
-        self.proj_spin_box.setValue(field_dim.z / 2)
+        self.proj_spin_box.setValue(int(field_dim.z / 2))
 
     def update_cross_section(self, basic_simulation_data):
         """
@@ -776,7 +778,7 @@ class GraphicsFrameWidget(QtWidgets.QFrame):
         :param ev:
         :return:
         """
-        print('CHANGE and update closeEvent')
+        print("CHANGE and update closeEvent")
         # cleaning up to release memory - notice that if we do not do this cleanup this widget
         # will not be destroyed and will take sizeable portion of the memory
         # not a big deal for a single simulation but repeated runs can easily exhaust all system memory
