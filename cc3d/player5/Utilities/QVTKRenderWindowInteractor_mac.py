@@ -124,9 +124,12 @@ import os
 import ctypes.util
 from ctypes import *
 
-me = os.path.abspath(os.path.dirname(__file__))
-lib = cdll.LoadLibrary(os.path.join(me,'libcpposxhelper.dylib'))
-lib.cpp_print_hello_long(12)
+try:
+    me = os.path.abspath(os.path.dirname(__file__))
+    lib = cdll.LoadLibrary(os.path.join(me,'libcpposxhelper.dylib'))
+    lib.cpp_print_hello_long(12)
+except OSError:
+    lib = None
 
 
 
@@ -260,7 +263,8 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
         print('win_id=',win_id)
         l_int = c_long(win_id)
         # lib.cpp_disableGLHiDPI(4621918512)
-        lib.cpp_disableGLHiDPI(l_int)
+        if lib is not None:
+            lib.cpp_disableGLHiDPI(l_int)
 
         # # disableGLHiDPI(widget.winId())
 
