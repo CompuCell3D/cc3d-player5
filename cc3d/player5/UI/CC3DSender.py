@@ -9,6 +9,7 @@ import os
 from os import environ
 import time
 from weakref import ref
+from subprocess import Popen
 
 # from cc3d import cc3d_scripts_path
 
@@ -75,7 +76,7 @@ class CC3DSender(QObject):
     def setServerPort(self, port):
         self.port = port
         # port is set externally only when editor is already started -
-        # although will have to find better solution than this...
+        # although we will have to find better solution than this...
         self.editorStarted = True
         self.connectionEstablished = self.establishConnection()
 
@@ -370,24 +371,25 @@ class CC3DSender(QObject):
         self.connectionEstablished = False
 
         print("\t\t\t\t SERVER HAS STOPPED: self.editorStarted=", self.editorStarted, "\n\n\n")
-        self.socket.close()
-        # self.connect(self.socket,SIGNAL("error(QAbstractSocket::SocketError)"),self.serverHasError)         
+        try:
+            self.socket.close()
+        except RuntimeError as e:
+            print(e)
 
-        # import sys
-        # sys.exit()
 
     def startEditor(self):
         self.socket.abort()
-        from subprocess import Popen
+
         print("self.socket.socketDescriptor()=", self.socket.socketDescriptor())
 
         # turns out socket descriptor is not used anywhere
         # sending -1 for now but should eliminate this extra argument altogether
+        popen_args = [sys.executable, "-m", "cc3d.twedit5", f"--port={self.port}"]
+        twedit_process = Popen(popen_args)
 
-        p = Popen(["cc3d-twedit5", "--port=%s " % self.port, "--socket=%s" % str(-1)], shell=True)
+
         print("\n\n\n\n\STARTED TWEDIT++\n\n\n\n\n")
 
-        # self.editorStarted=True
 
     def serverHasError(self, error):
 
@@ -407,10 +409,3 @@ class CC3DSender(QObject):
         else:
             self.socket.close()
 
-        # if not self.editorStarted:
-        #     self.disconnect(self.socket, SIGNAL("error(QAbstractSocket::SocketError)"), self.serverHasError)
-        #     self.startEditor()
-        #     self.socket.connectToHost(QHostAddress("127.0.0.1"), self.port)
-        #     self.connect(self.socket, SIGNAL("error(QAbstractSocket::SocketError)"), self.serverHasError)
-        # else:
-        #     self.socket.close()
