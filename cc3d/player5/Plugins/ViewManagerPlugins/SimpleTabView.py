@@ -1136,7 +1136,18 @@ class SimpleTabView(MainArea, SimpleViewManager):
             Configuration.syncPreferences()
             Configuration.writeAllSettings()
             if self.simulation:
+                # pass
                 self.simulation.semPause.release()
+                self.simulation.sem.release()
+                self.simulation.finishMutex.unlock()
+                # the location of  __cleanAfterSimulation is not coincidental - it is called before we release
+                # the last mutex in the simulation thread
+                self.__cleanAfterSimulation(_exitCode=1)
+                self.simulation.drawMutex.unlock()
+
+                # self.sem.release()
+        else:
+            self.__cleanAfterSimulation(_exitCode=1)
 
         self.reset_sim_model()
 
