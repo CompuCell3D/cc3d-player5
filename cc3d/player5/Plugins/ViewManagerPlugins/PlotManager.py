@@ -123,7 +123,7 @@ class PlotManager(QtCore.QObject, PlotManagerBase):
 
         plot_frame_widget = PlotFrameWidget(self.vm, **obj)
 
-        # plot_frame_widget.show()
+        plot_frame_widget.show()
 
         mdi_plot_window = self.vm.addSubWindow(plot_frame_widget)
 
@@ -138,7 +138,7 @@ class PlotManager(QtCore.QObject, PlotManagerBase):
 
         self.vm.lastActiveRealWindow = mdi_plot_window
 
-        # plot_frame_widget.show()
+        plot_frame_widget.show()
 
         plot_window_interface = PlotWindowInterface(plot_frame_widget)
         # store plot window interface in the window list
