@@ -298,12 +298,17 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
 
             self.stopped = True
         finally:
+            self.sem.tryAcquire()
             self.sem.release()
+            self.semPause.tryAcquire()
             self.semPause.release()
             # IMPORTANT - self.finishMutex may be unlocked elsewhere and if we try to unlock unlocked mutes
             # we will get segfault on exit. This is why we do tryLock
             self.finishMutex.tryLock()
             self.finishMutex.unlock()
+            self.drawMutex.tryLock()
+            self.drawMutex.unlock()
+
 
         # self.wait()
 

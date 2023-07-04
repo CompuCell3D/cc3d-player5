@@ -121,13 +121,15 @@ class PlotManager(QtCore.QObject, PlotManagerBase):
         if not self.vm.simulationIsRunning:
             return
 
-        new_window = PlotFrameWidget(self.vm, **obj)
+        plot_frame_widget = PlotFrameWidget(self.vm, **obj)
 
-        new_window.show()
+        plot_frame_widget.show()
 
-        mdi_plot_window = self.vm.addSubWindow(new_window)
+        mdi_plot_window = self.vm.addSubWindow(plot_frame_widget)
 
         mdi_plot_window.setWindowTitle(obj['title'])
+        # this actually resizes the plot window, not calls inside PlotFrameWidget constructor
+        mdi_plot_window.resize(plot_frame_widget.sizeHint())
 
         suggested_win_pos = self.vm.suggested_window_position()
 
@@ -136,9 +138,9 @@ class PlotManager(QtCore.QObject, PlotManagerBase):
 
         self.vm.lastActiveRealWindow = mdi_plot_window
 
-        new_window.show()
+        plot_frame_widget.show()
 
-        plot_window_interface = PlotWindowInterface(new_window)
+        plot_window_interface = PlotWindowInterface(plot_frame_widget)
         # store plot window interface in the window list
         self.plotWindowList.append(plot_window_interface)
 

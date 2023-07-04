@@ -755,7 +755,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.numberOfContoursLinesSpinBox.setEnabled(contours_on)
 
         # Vectors
-        self.vectorsArrowLength.setValue(self.paramCC3D["ArrowLength"])
+        self.vectorsArrowLength.setValue(int(self.paramCC3D["ArrowLength"]))
         self.vectorsScaleArrowCheckBox.setChecked(self.paramCC3D["ScaleArrowsOn"])
         self.vectorsArrowColorCheckBox.setChecked(self.paramCC3D["FixedArrowColorOn"])
         self.vectorsArrowColorClicked()  # enable/disable

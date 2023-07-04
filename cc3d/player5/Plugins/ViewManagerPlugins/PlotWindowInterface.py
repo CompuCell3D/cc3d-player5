@@ -225,7 +225,7 @@ class PlotWindowInterface(QtCore.QObject):
 
         alpha = abs(int(alpha)) % 256
 
-        yd, xd = np.array([], dtype=np.float), np.array([], dtype=np.float)
+        yd, xd = np.array([], dtype=float), np.array([], dtype=float)
 
         color = wc.name_to_rgb(color) + (alpha,)
         plot_obj, set_data_fcn = self.construct_plot_item(xd=xd, yd=yd, color=color, size=size, plot_name=plot_name,
@@ -274,7 +274,7 @@ class PlotWindowInterface(QtCore.QObject):
             plot_obj = pg.PlotCurveItem(y=yd, x=xd, pen=pen, name=plot_name)
 
         elif style.lower() == 'steps':
-            xd, yd = np.array([0, .00001], dtype=np.float), np.array([1], dtype=np.float)
+            xd, yd = np.array([0, .00001], dtype=float), np.array([1], dtype=float)
 
             plot_obj = pg.PlotCurveItem(xd, yd, stepMode=True, fillLevel=0, brush=color, name=plot_name)
 
@@ -434,10 +434,10 @@ class PlotWindowInterface(QtCore.QObject):
         for name, data in self.plotData.items():
             # todo implement special handling for "steps" or switch to bars instead of steps
             if data[0].shape[0] == data[1].shape[0] + 1:  # steps
-                data[0], data[1] = np.array([0, .00001], dtype=np.float), np.array([0], dtype=np.float)
+                data[0], data[1] = np.array([0, .00001], dtype=float), np.array([0], dtype=float)
                 data[4] = False
             else:
-                data[0], data[1] = np.array([], dtype=np.float), np.array([], dtype=np.float)
+                data[0], data[1] = np.array([], dtype=float), np.array([], dtype=float)
             data[self.dirtyFlagIndex] = True
 
     def erase_data(self, plot_name: str):
@@ -447,7 +447,7 @@ class PlotWindowInterface(QtCore.QObject):
         :return:
         """
         plot_type = self.plotData[plot_name][PLOT_TYPE_POSITION]
-        self.plotData[plot_name] = [np.array([], dtype=np.float), np.array([], dtype=np.float), False, plot_type]
+        self.plotData[plot_name] = [np.array([], dtype=float), np.array([], dtype=float), False, plot_type]
 
     @deprecated(version='4.0.0', reason="You should use : add_data_series")
     def addDataSeries(self, _plotName, _x_vec, _y_vec):
@@ -493,8 +493,8 @@ class PlotWindowInterface(QtCore.QObject):
             # processing first first point of the histogram
             if not self.plotData[plot_name][4]:
 
-                x_vec = np.array([x, x + 1], dtype=np.float)
-                y_vec = np.array([y], dtype=np.float)
+                x_vec = np.array([x, x + 1], dtype=float)
+                y_vec = np.array([y], dtype=float)
 
                 self.plotData[plot_name][0] = x_vec
                 self.plotData[plot_name][1] = y_vec

@@ -634,12 +634,13 @@ class SimpleViewManager(QObject):
 
         if encourage_update:
             message = f'New version of CompuCell3D is available - {current_version} rev. {current_revision}. ' \
-                      f'Would you like to upgrade?'
+                      f'Would you like to upgrade? <br> If so click <b>Yes</b>, remove old installation directory ' \
+                      f'and reinstall CC3D using installer from sourceforge.net.'
             title = "New Version Available"
         else:
             message = f'You have latest version - {current_version} rev. {current_revision}. ' \
                       'Here is the list of recent features:'
-            title = "You have latest version. No need to upgrade"
+            title = "You have the latest version. No need to upgrade"
 
         if len(whats_new_list):
             message += '<p><b>New Features:</b></p>'
@@ -658,8 +659,8 @@ class SimpleViewManager(QObject):
             ret = QMessageBox.information(self, title, message, buttons)
 
             if ret == QMessageBox.Yes:
-                self.do_update(package_name='compucell3d', version=current_version)
-                # QDesktopServices.openUrl(QUrl('http://sourceforge.net/projects/cc3d/files/' + current_version))
+                # self.do_update(package_name='compucell3d', version=current_version)
+                QDesktopServices.openUrl(QUrl('http://sourceforge.net/projects/cc3d/files/' + current_version))
 
         elif self.display_no_update_info:
             ret = QMessageBox.information(self, 'Software update check', 'You are running latest version of CC3D.',
