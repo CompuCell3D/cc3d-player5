@@ -22,7 +22,7 @@ class PlotFrameWidget(QtWidgets.QFrame):
         self.tweak_context_menu(plot_item=self.plotWidget.plotItem)
 
         try:
-            bg_color = kwds['background']
+            bg_color = kwds["background"]
         except LookupError:
             bg_color = None
 
@@ -31,7 +31,7 @@ class PlotFrameWidget(QtWidgets.QFrame):
                 bg_color_rgb = wc.name_to_rgb(bg_color)
                 self.plotWidget.setBackground(background=bg_color_rgb)
             except ValueError as e:
-                print('Could not decode the color %s : Exception : %s'%(bg_color, str(e)), file=sys.stderr)
+                print("Could not decode the color %s : Exception : %s" % (bg_color, str(e)), file=sys.stderr)
 
         self.setSizePolicy(QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding))
 
@@ -41,23 +41,27 @@ class PlotFrameWidget(QtWidgets.QFrame):
         layout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.TopToBottom)
         layout.addWidget(self.plotWidget)
 
-        self.plotWidget.setTitle(kwds['title'])
-        self.plotWidget.setLabel(axis='bottom', text=kwds['xAxisTitle'])
-        self.plotWidget.setLabel(axis='left', text=kwds['yAxisTitle'])
+        self.plotWidget.setTitle(kwds["title"])
+        self.plotWidget.setLabel(axis="bottom", text=kwds["xAxisTitle"])
+        self.plotWidget.setLabel(axis="left", text=kwds["yAxisTitle"])
         x_log_flag, y_log_flag = False, False
-        if kwds['xScaleType'].strip().lower() == 'log':
+        if kwds["xScaleType"].strip().lower() == "log":
             x_log_flag = True
 
-        if kwds['yScaleType'].strip().lower() == 'log':
+        if kwds["yScaleType"].strip().lower() == "log":
             y_log_flag = True
 
         self.plotWidget.setLogMode(x=x_log_flag, y=y_log_flag)
-        if kwds['grid']:
+        if kwds["grid"]:
             self.plotWidget.showGrid(x=True, y=True, alpha=1.0)
 
         self.setLayout(layout)
         # needs to be defined to resize smaller than 400x400
         self.setMinimumSize(100, 100)
+
+    def sizeHint(self):
+        # this sizeHint is used in PLotManager to resize mdi window
+        return QtCore.QSize(400, 400)
 
     @property
     def parentWidget(self):
@@ -91,7 +95,7 @@ class PlotFrameWidget(QtWidgets.QFrame):
         :param plot_item:
         :return:
         """
-        pg_version_list = pg.__version__.split('.')
+        pg_version_list = pg.__version__.split(".")
         major_ver = int(pg_version_list[0])
         minor_ver = int(pg_version_list[1])
 
@@ -102,11 +106,6 @@ class PlotFrameWidget(QtWidgets.QFrame):
             plot_item.ctrl.logXCheck.setEnabled(False)
             plot_item.ctrl.logYCheck.setEnabled(False)
             plot_item.ctrl.downsampleCheck.setEnabled(False)
-
-    def resizePlot(self, x, y):
-        self.plotWidget.sizeHint = QtCore.QSize(x, y)
-        self.plotWidget.resize(self.plotWidget.sizeHint)
-        self.resize(self.plotWidget.sizeHint)
 
     def getPlotParams(self):
         """

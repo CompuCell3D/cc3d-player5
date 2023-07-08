@@ -90,6 +90,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
     # stop request
     stopRequestSignal = pyqtSignal()
+    justStopRequestSignal = pyqtSignal()
 
     def __init__(self, parent):
 
@@ -102,6 +103,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.__createStatusBar()
         self.__setConnects()
 
+        self.close_clicked = False
         # holds ptr (stored as long int) to original cerr stream buffer
         self.cerrStreamBufOrig = None
 
@@ -1136,7 +1138,22 @@ class SimpleTabView(MainArea, SimpleViewManager):
             Configuration.syncPreferences()
             Configuration.writeAllSettings()
             if self.simulation:
+                # # the location of  __cleanAfterSimulation is not coincidental - it is called before we release
+                # # the last mutex in the simulation thread
+                self.__cleanAfterSimulation()
+                self.close_clicked = True
+
+                self.simulation.semPause.tryAcquire()
                 self.simulation.semPause.release()
+                self.simulation.sem.tryAcquire()
+                self.simulation.sem.release()
+                self.simulation.finishMutex.tryLock()
+                self.simulation.finishMutex.unlock()
+                self.simulation.drawMutex.tryLock()
+                self.simulation.drawMutex.unlock()
+
+        else:
+            self.__cleanAfterSimulation(_exitCode=1)
 
         self.reset_sim_model()
 
@@ -1433,6 +1450,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :return: None
         """
         print('INSIDE handleSimulationFinishedRegular')
+        # if not self.close_clicked:
         self.__cleanAfterSimulation()
 
     def handleSimulationFinished(self, _flag=False):
