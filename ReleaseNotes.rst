@@ -9,6 +9,7 @@ Version 4.4.1
 New features:
  - Changed the way updates are handled: we are now redirecting users to sourceforge to download new package
  - Added better conda builders that can utilize boa (mamba-based) builder
+ - Added support for all Python versions >= 3.7
 
 Bug fixes:
  - Fixed integration between Twedit and Player
