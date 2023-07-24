@@ -295,7 +295,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.numberOfContoursLinesSpinBox.setValue(val)
 
         val = field_params_dict["ArrowLength"]
-        self.vectorsArrowLength.setValue(val)
+        self.vectorsArrowLength.setValue(int(val))
         val = field_params_dict["ScaleArrowsOn"]
         self.vectorsScaleArrowCheckBox.setChecked(val)
         val = field_params_dict["FixedArrowColorOn"]
