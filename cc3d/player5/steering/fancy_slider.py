@@ -130,7 +130,7 @@ class FancySlider(QtWidgets.QSlider):
             vertical_x_pos = rect.width() - font_width - 5
             vertical_y_pos = rect.height() * 0.75
 
-            painter.drawText(QtCore.QPoint(rect.width() / 2.0 - font_width / 2.0, rect.height() - 5), str(round_value))
+            painter.drawText(QtCore.QPoint(int(rect.width() / 2.0 - font_width / 2.0), rect.height() - 5), str(round_value))
         else:
             pass
 
