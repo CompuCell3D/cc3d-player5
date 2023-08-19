@@ -249,5 +249,5 @@ class QJsonTreeView(QTreeView):
         super(QJsonTreeView, self).__init__(parent)
 
     def resizeEvent(self, event):
-        self.setColumnWidth(0, self.width() / 2)
-        self.setColumnWidth(0, self.width() / 2)
+        self.setColumnWidth(0, int(self.width() / 2))
+        self.setColumnWidth(0, int(self.width() / 2))

@@ -1,4 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtOpenGL, QtWidgets
+from math import floor, ceil
 
 
 class FancySlider(QtWidgets.QSlider):
@@ -63,16 +64,16 @@ class FancySlider(QtWidgets.QSlider):
         self.decimal_precision = int(round(decimal_precision))
 
     def setMinimum(self, min_val):
-        super(FancySlider, self).setMinimum(min_val * self.precision_factor)
+        super(FancySlider, self).setMinimum(int(min_val * self.precision_factor))
 
     def setMaximum(self, max_val):
-        super(FancySlider, self).setMaximum(max_val * self.precision_factor)
+        super(FancySlider, self).setMaximum(int(max_val * self.precision_factor))
 
     def setValue(self, val):
-        super(FancySlider, self).setValue(val * self.precision_factor)
+        super(FancySlider, self).setValue(int(val * self.precision_factor))
 
     def setTickInterval(self, tick_interval):
-        super(FancySlider, self).setTickInterval(tick_interval * self.precision_factor)
+        super(FancySlider, self).setTickInterval(int(floor(tick_interval * self.precision_factor)))
 
     def setSingleStep(self, step):
         super(FancySlider, self).setSingleStep(int(step * self.precision_factor))
@@ -123,13 +124,13 @@ class FancySlider(QtWidgets.QSlider):
             horizontal_x_pos = rect.width() - font_width - 5
             horizontal_y_pos = rect.height() * 0.75
 
-            painter.drawText(QtCore.QPoint(horizontal_x_pos, horizontal_y_pos), str(round_value))
+            painter.drawText(QtCore.QPoint(int(horizontal_x_pos), int(horizontal_y_pos)), str(round_value))
 
         elif self.orientation() == QtCore.Qt.Vertical:
             vertical_x_pos = rect.width() - font_width - 5
             vertical_y_pos = rect.height() * 0.75
 
-            painter.drawText(QtCore.QPoint(rect.width() / 2.0 - font_width / 2.0, rect.height() - 5), str(round_value))
+            painter.drawText(QtCore.QPoint(int(rect.width() / 2.0 - font_width / 2.0), rect.height() - 5), str(round_value))
         else:
             pass
 
