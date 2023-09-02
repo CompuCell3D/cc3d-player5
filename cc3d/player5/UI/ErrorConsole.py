@@ -1,9 +1,8 @@
 # todo - fix hide/open erro console
 # class FindDock
-import sys
 from PyQt5.Qsci import *
 from PyQt5.QtCore import *
-from PyQt5 import QtCore
+
 
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -13,6 +12,7 @@ from PyQt5 import Qsci
 from PyQt5 import QtGui
 
 from cc3d.player5.Messaging import stdMsg, dbgMsg, pd, errMsg, setDebugging
+
 # NOTICE: complete scintilla documentation can be found here:
 # http://www.scintilla.org/ScintillaDoc.htm
 from . import CC3DSender
@@ -24,21 +24,18 @@ from .ConsoleWidgetBase import ConsoleWidgetBase
 
 # setDebugging(0)
 
+
 class ErrorConsole(ConsoleWidgetBase, QsciScintilla):
     """
     Class providing a specialized text edit for displaying logging information.
     """
-    # __pyqtSignals__ = ("closeCC3D()",)
+
     closeCC3D = pyqtSignal()
-
-    # @QtCore.pyqtSignature("closeCC3D()")
-    # @QtCore.pyqtSlot("closeCC3D()")
-
 
     def __init__(self, parent=None):
         """
         Constructor
-        
+
         @param parent reference to the parent widget (QWidget) - here it is EditorWindow class
         """
         self.editorWindow = parent
@@ -48,7 +45,7 @@ class ErrorConsole(ConsoleWidgetBase, QsciScintilla):
         QsciScintilla.__init__(self, parent)
         # # self.setFolding(5)
         self.setFolding(QsciScintilla.BoxedTreeFoldStyle)
-        # self.setMarginSensitivity(3,True) 
+        # self.setMarginSensitivity(3,True)
         lexer = QsciLexerPython()
         dbgMsg(lexer.keywords(1), "\n\n\n\n")
         syntaxErrorLexer = SyntaxErrorLexer(self)
@@ -61,14 +58,15 @@ class ErrorConsole(ConsoleWidgetBase, QsciScintilla):
         # font=self.font()
         font = QFont("Courier New", 10)
 
-        if sys.platform.startswith('da'):
+        if sys.platform.startswith("da"):
             font = QFont("Courier New", 12)
         # font.setFixedPitch(True)
         self.setFont(font)
 
-        self.setCaretLineBackgroundColor(QtGui.QColor('#E0E0F8'))  # current line has this color
+        self.setCaretLineBackgroundColor(QtGui.QColor("#E0E0F8"))  # current line has this color
         self.setSelectionBackgroundColor(
-            QtGui.QColor('#E0E0F8'))  # any selection in the current line due to double click has the same color too
+            QtGui.QColor("#E0E0F8")
+        )  # any selection in the current line due to double click has the same color too
         # connecting SCN_DOUBLECLICK(int,int,int) to editor double-click
         # notice  QsciScintilla.SCN_DOUBLECLICK(int,int,int) is not the right name
         # self.connect(self, SIGNAL("SCN_DOUBLECLICK(int,int,int)"), self.onDoubleClick)
@@ -86,10 +84,10 @@ class ErrorConsole(ConsoleWidgetBase, QsciScintilla):
 
         # self.SendScintilla(QsciScintilla.SCI_SETCARETSTYLE, QsciScintilla.CARETSTYLE_INVISIBLE) # make caret invisible
 
-        self.lineNumberExtractRegex = re.compile('^[\s\S]*[L|l]ine:[\s]*([0-9]*)')
-        self.colNumberExtractRegex = re.compile('^[\s\S]*[C|c]ol:[\s]*([0-9]*)')
+        self.lineNumberExtractRegex = re.compile("^[\s\S]*[L|l]ine:[\s]*([0-9]*)")
+        self.colNumberExtractRegex = re.compile("^[\s\S]*[C|c]ol:[\s]*([0-9]*)")
 
-        self.fileNameExtractRegex = re.compile('^[\s]*File:[\s]*([\S][\s\S]*)')
+        self.fileNameExtractRegex = re.compile("^[\s]*File:[\s]*([\S][\s\S]*)")
 
         # self.zoomRange=self.editorWindow.configuration.setting("ZoomRangeFindDisplayWidget")
         # self.zoomTo(self.zoomRange)
@@ -101,6 +99,7 @@ class ErrorConsole(ConsoleWidgetBase, QsciScintilla):
     def set_player_main_widget(self, _playerMainWidget):
 
         self.playerMainWidget = _playerMainWidget
+
     def connect_close_cc3d_signal(self, callback):
         self.closeCC3D.connect(callback)
 
@@ -144,8 +143,6 @@ class ErrorConsole(ConsoleWidgetBase, QsciScintilla):
         except TypeError:
             self._playerMainWidget = _i
 
-
-
     def addNewFindInFilesResults(self, _str):
         self.setFolding(QsciScintilla.BoxedTreeFoldStyle)  # stray fold character workaround
         self.insertAt(_str, 0, 0)
@@ -173,7 +170,7 @@ class ErrorConsole(ConsoleWidgetBase, QsciScintilla):
                 # self.zoomRange+=1
             else:
                 self.zoomOut()
-                # self.zoomRange-=1                
+                # self.zoomRange-=1
                 # self.editorWindow.configuration.setSetting("ZoomRangeFindDisplayWidget",self.zoomRange)
         else:
             # # calling wheelEvent from base class - regular scrolling
@@ -193,10 +190,10 @@ class ErrorConsole(ConsoleWidgetBase, QsciScintilla):
             dbgMsg("Clicked Fold Header")
             self.SendScintilla(QsciScintilla.SCI_TOGGLEFOLD, lineClick)
 
-    # to prevent QScintilla from selecting words on double click we implement mouseDoubleClisk event - 
+    # to prevent QScintilla from selecting words on double click we implement mouseDoubleClisk event -
     # in fact this is only necessary when using popup window (which we do)
     def mouseDoubleClickEvent(self, event):
-        # self.setCursorPosition(0,0)                
+        # self.setCursorPosition(0,0)
         x = event.x()
         y = event.y()
         position = self.SendScintilla(QsciScintilla.SCI_POSITIONFROMPOINT, x, y)
@@ -243,7 +240,9 @@ class ErrorConsole(ConsoleWidgetBase, QsciScintilla):
                 try:
                     fileName = fileNameGroups.group(1)
                     fileName = fileName.strip()  # removing trailing white spaces
-                    fileNameOrig = fileName  # store original file name as found by regex - it is used to locate unsaved files
+                    fileNameOrig = (
+                        fileName  # store original file name as found by regex - it is used to locate unsaved files
+                    )
                     # "normalizing" file name to make sure \ and / are used in a consistent manner
                     fileName1 = os.path.abspath(fileNameOrig)
                     # dbgMsg("FILE NAME :",fileName)
@@ -259,7 +258,7 @@ class ErrorConsole(ConsoleWidgetBase, QsciScintilla):
 
     def findTabWithMatchingTabText(self, _tabText):
         """
-            Looks for a tab in self.editorWindow with tab label matchin _tabText. returns this tab or None
+        Looks for a tab in self.editorWindow with tab label matchin _tabText. returns this tab or None
         """
 
         for i in range(self.editorWindow.editTab.count()):
@@ -279,19 +278,14 @@ class ErrorConsole(ConsoleWidgetBase, QsciScintilla):
 # have to make sure that Search,Line, File at the beginning of the line do not have to include certain number fo leading spaces
 # to make lexer work properly
 
-# IMPORTANT. by default Lexer will process only visible text so if there is a state you want to pas from line to line you 
-# have to store it in class variable or have a way to restore previous state  (here we use self.searchText) as a state variable to hold value of the searched text for each line. 
+# IMPORTANT. by default Lexer will process only visible text so if there is a state you want to pas from line to line you
+# have to store it in class variable or have a way to restore previous state  (here we use self.searchText) as a state variable to hold value of the searched text for each line.
+
 
 class SyntaxErrorLexer(QsciLexerCustom):
     def __init__(self, parent):
         Qsci.QsciLexerCustom.__init__(self, parent)
-        self._styles = {
-            0: 'Default',
-            1: 'ErrorInfo',
-            2: 'FileInfo',
-            3: 'LineInfo',
-            4: 'TextToFind'
-        }
+        self._styles = {0: "Default", 1: "ErrorInfo", 2: "FileInfo", 3: "LineInfo", 4: "TextToFind"}
         for key, value in self._styles.items():
             setattr(self, value, key)
 
@@ -299,7 +293,7 @@ class SyntaxErrorLexer(QsciLexerCustom):
         self.colorizeEntireLineStates = [self.ErrorInfo, self.FileInfo]
 
         self.baseFont = QFont("Courier New", 10)
-        if sys.platform.startswith('darwin'):
+        if sys.platform.startswith("darwin"):
             self.baseFont = QFont("Courier New", 14)
 
         self.baseFont = Qsci.QsciLexerCustom.setDefaultFont(self, self.baseFont)
@@ -320,20 +314,20 @@ class SyntaxErrorLexer(QsciLexerCustom):
         self._editorWidget = ref(_i)
 
     def description(self, style):
-        return self._styles.get(style, '')
+        return self._styles.get(style, "")
 
     # used by QsciLexer to style font colors
     def defaultColor(self, style):
         if style == self.Default:
-            return QtGui.QColor('#000000')
+            return QtGui.QColor("#000000")
         elif style == self.ErrorInfo:
-            return QtGui.QColor('#FFFFFF')
+            return QtGui.QColor("#FFFFFF")
         elif style == self.FileInfo:
-            return QtGui.QColor('#04B404')
+            return QtGui.QColor("#04B404")
         elif style == self.LineInfo:
-            return QtGui.QColor('#000000')
+            return QtGui.QColor("#000000")
         elif style == self.TextToFind:
-            return QtGui.QColor('#FF0000')
+            return QtGui.QColor("#FF0000")
 
         return Qsci.QsciLexerCustom.defaultColor(self, style)
 
@@ -355,13 +349,13 @@ class SyntaxErrorLexer(QsciLexerCustom):
     def defaultPaper(self, style):
 
         if style == self.Default:
-            return QtGui.QColor('#FFFFFF')
+            return QtGui.QColor("#FFFFFF")
         elif style == self.ErrorInfo:
-            return QtGui.QColor('#DF0101')
+            return QtGui.QColor("#DF0101")
         elif style == self.FileInfo:
-            return QtGui.QColor('#E0F8E0')
+            return QtGui.QColor("#E0F8E0")
         elif style == self.TextToFind:
-            return QtGui.QColor('#F2F5A9')
+            return QtGui.QColor("#F2F5A9")
 
         return Qsci.QsciLexerCustom.defaultPaper(self, style)
 
@@ -381,20 +375,20 @@ class SyntaxErrorLexer(QsciLexerCustom):
         # scintilla works with encoded bytes, not decoded characters.
         # this matters if the source contains non-ascii characters and
         # a multi-byte encoding is used (e.g. utf-8)
-        source = ''
+        source = ""
         if end > editor.length():
             end = editor.length()
         if end > start:
             if sys.hexversion >= 0x02060000:
                 # faster when styling big files, but needs python 2.6
                 source = bytearray(end - start)
-                editor.SendScintilla(
-                    editor.SCI_GETTEXTRANGE, start, end, source)
+                editor.SendScintilla(editor.SCI_GETTEXTRANGE, start, end, source)
             else:
                 # source = unicode(editor.text()
                 # ).encode('utf-8')[start:end]
                 source = str(editor.text()).encode(
-                    'utf-8')  # scanning entire text is way more efficient that doing it on demand especially when folding top level text (Search)
+                    "utf-8"
+                )  # scanning entire text is way more efficient that doing it on demand especially when folding top level text (Search)
         if not source:
             return
 
@@ -402,14 +396,13 @@ class SyntaxErrorLexer(QsciLexerCustom):
         index = editor.SendScintilla(editor.SCI_LINEFROMPOSITION, start)
         if index > 0:
             # the previous state may be needed for multi-line styling
-            pos = editor.SendScintilla(
-                editor.SCI_GETLINEENDPOSITION, index - 1)
+            pos = editor.SendScintilla(editor.SCI_GETLINEENDPOSITION, index - 1)
             state = editor.SendScintilla(editor.SCI_GETSTYLEAT, pos)
         else:
             state = self.Default
 
         set_style = self.setStyling
-        self.startStyling(start, 0x1f)
+        self.startStyling(start, 0x1F)
 
         # SCI = self.SendScintilla
         SCI = self.editorWidget.SendScintilla
@@ -423,24 +416,23 @@ class SyntaxErrorLexer(QsciLexerCustom):
 
         for line in source.splitlines(True):
             # todo - make sure this decoding is enought to convert bytearray to str
-            line = line.decode('utf-8')
+            line = line.decode("utf-8")
             length = len(line)
             # dbgMsg("line=",line)
             # dbgMsg(line)
-            if line.startswith('\n'):
+            if line.startswith("\n"):
                 style = self.Default
                 dbgMsg("GOT EMPTY LINE")
                 # sys.exit()
             else:
-                if line.startswith('Error'):
+                if line.startswith("Error"):
                     state = self.ErrorInfo
 
                     # searchGroups =re.search('"([\s\S]*)"', line) # we have to use search instead of match - match matches onle beginning of the string , search searches through entire string
 
-
                     # # dbgMsg("searchGroups=",searchGroups)
 
-                    # try: 
+                    # try:
 
                     # if searchGroups:
                     # # dbgMsg(searchGroups.group(1))
@@ -452,11 +444,11 @@ class SyntaxErrorLexer(QsciLexerCustom):
                     # dbgMsg("COULD NOT EXTRACT TEXT")
 
                 # elif line.startswith('  File'):
-                elif line.startswith('  F'):
+                elif line.startswith("  F"):
                     state = self.FileInfo
 
-                # elif line.startswith('    Line'):    
-                elif line.startswith('   '):
+                # elif line.startswith('    Line'):
+                elif line.startswith("   "):
 
                     if self.searchText != "":
                         # dbgMsg("self.searchText=",self.searchText)
@@ -481,7 +473,9 @@ class SyntaxErrorLexer(QsciLexerCustom):
                             state = self.LineInfo
 
                         state = self.LineInfo
-                        length = length - startPos  # last value startPos if startPos point to the location right after last found searchText - to continue styling we tell lexer to style reminder of the line (length-startPos) with LineInfo style
+                        length = (
+                            length - startPos
+                        )  # last value startPos if startPos point to the location right after last found searchText - to continue styling we tell lexer to style reminder of the line (length-startPos) with LineInfo style
                     else:
                         dbgMsg("DID NOT FIND SEARCH TEXT")
                         # state = self.Default
@@ -511,13 +505,16 @@ class SyntaxErrorLexer(QsciLexerCustom):
             if state == self.ErrorInfo:
                 SCI(SETFOLDLEVEL, index, headerLevel)
             elif state == self.FileInfo:
-                SCI(SETFOLDLEVEL, index,
-                    headerLevel + 1)  # this subheader - inside header for ErrorInfo style - have to add +1 to folding level
+                SCI(
+                    SETFOLDLEVEL, index, headerLevel + 1
+                )  # this subheader - inside header for ErrorInfo style - have to add +1 to folding level
             elif state == self.LineInfo:
-                SCI(SETFOLDLEVEL, index,
-                    LEVELBASE + 2)  # this is non-header fold line - since it is inside header level and headerLevel +1 i had to add +3 to the  LEVELBASE+2
+                SCI(
+                    SETFOLDLEVEL, index, LEVELBASE + 2
+                )  # this is non-header fold line - since it is inside header level and headerLevel +1 i had to add +3 to the  LEVELBASE+2
             else:
-                SCI(SETFOLDLEVEL, index,
-                    LEVELBASE + 2)  # this is non-header fold line - since it is inside header level and headerLevel +1 i had to add +3 to the  LEVELBASE+2
+                SCI(
+                    SETFOLDLEVEL, index, LEVELBASE + 2
+                )  # this is non-header fold line - since it is inside header level and headerLevel +1 i had to add +3 to the  LEVELBASE+2
 
             index += 1

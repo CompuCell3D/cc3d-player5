@@ -12,8 +12,6 @@ try:
 except ImportError:
     qsci_error_console_exits = False
 
-from .ConsoleWidgetBase import ConsoleWidgetBase
-
 
 class Console(CTabWidget):
     def __init__(self, parent):
@@ -39,33 +37,32 @@ class Console(CTabWidget):
 
         self.__errorIndex = self.addTab(self.__errorConsole, "Errors")
         self.__menu = QMenu(self)
-        self.__menu.addAction("Clear", self.__handleClear)
-        self.__menu.addAction("Copy", self.__handleCopy)
+        self.__menu.addAction("Clear", self.__handle_clear)
+        self.__menu.addAction("Copy", self.__handle_copy)
         self.__menu.addSeparator()
-        self.__menu.addAction("Select All", self.__handleSelectAll)
+        self.__menu.addAction("Select All", self.__handle_select_all)
 
         self.setTabContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.__handleShowContextMenu)
+        self.customContextMenuRequested.connect(self.__handle_show_context_menu)
 
         # self.setSizePolicy(
         #     QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
         # self.connect(self,SIGNAL('customTabContextMenuRequested(const QPoint &, int)'),
         #              self.__handleShowContextMenu)
 
-
-    def getStdErrConsole(self):
+    def get_std_err_console(self):
         return self.__stdout
 
-    def getSyntaxErrorConsole(self):
+    def get_syntax_error_console(self):
         return self.__errorConsole
 
-    def bringUpSyntaxErrorConsole(self):
+    def bring_up_syntax_error_console(self):
         self.setCurrentWidget(self.__errorConsole)
 
-    def bringUpOutputConsole(self):
+    def bring_up_output_console(self):
         self.setCurrentWidget(self.__stdout)
 
-    def __handleShowContextMenu(self, coord, index):
+    def __handle_show_context_menu(self, coord, index):
         """
         Private slot to show the tab context menu.
 
@@ -76,25 +73,25 @@ class Console(CTabWidget):
         coord = self.mapToGlobal(coord)
         self.__menu.popup(coord)
 
-    def __handleClear(self):
+    def __handle_clear(self):
         """
         Private slot to handle the clear tab menu entry.
         """
         self.widget(self.__menuIndex).clear()
 
-    def __handleCopy(self):
+    def __handle_copy(self):
         """
         Private slot to handle the copy tab menu entry.
         """
         self.widget(self.__menuIndex).copy()
 
-    def __handleSelectAll(self):
+    def __handle_select_all(self):
         """
         Private slot to handle the select all tab menu entry.
         """
         self.widget(self.__menuIndex).selectAll()
 
-    def showLogTab(self, tabname):
+    def show_log_tab(self, tabname):
         """
         Public method to show a particular Log-Viewer tab.
 
@@ -115,7 +112,7 @@ class Console(CTabWidget):
         self.__errorConsole.setTextColor(self.std_out_text_color)
         self.__errorConsole.setText(txt)
 
-    def appendToStdout(self, txt):
+    def append_to_stdout(self, txt):
         """
         Public slot to appand text to the "stdout" tab.
 
@@ -124,94 +121,19 @@ class Console(CTabWidget):
 
         self.__stdout.setTextColor(self.std_out_text_color)
 
-        # self.__stdout.appendText(txt)
         self.__stdout.insertPlainText(txt)
         self.__stdout.ensureCursorVisible()
 
         # QApplication.processEvents() #this is causing application crash
 
-    def appendToStderr(self, txt):
+    def append_to_stderr(self, txt):
         """
         Public slot to appand text to the "stderr" tab.
 
         @param txt text to be appended (string or QString)
         """
         return
-        # self.__stderr.appendText(txt)
-        # QApplication.processEvents()
 
     # Changes the initial size of the console
     def sizeHint(self):
         return QSize(self.width(), 100)
-
-
-# class ConsoleWidget(ConsoleWidgetBase, QTextEdit):
-#     """
-#     Class providing a specialized text edit for displaying logging information.
-#     """
-#
-#     def __init__(self, text_color=QColor("black"), parent=None):
-#         """
-#         Constructor
-#
-#         @param parent reference to the parent widget (QWidget)
-#         """
-#         QTextEdit.__init__(self, parent)
-#         self.text_color = text_color
-#         self.setAcceptRichText(False)
-#         self.setLineWrapMode(QTextEdit.NoWrap)
-#         self.setReadOnly(True)
-#         self.setFrameStyle(QFrame.NoFrame)
-#
-#         # Why do I need this? create the context menu
-#         self.__menu = QMenu(self)
-#         self.__menu.addAction("Clear", self.clear)
-#         self.__menu.addAction("Copy", self.copy)
-#         self.__menu.addSeparator()
-#         self.__menu.addAction("Select All", self.selectAll)
-#
-#         self.setContextMenuPolicy(Qt.CustomContextMenu)
-#         self.customContextMenuRequested.connect(self.__handleShowContextMenu)
-#         # self.connect(self, SIGNAL("customContextMenuRequested(const QPoint &)"),
-#         #     self.__handleShowContextMenu)
-#         #
-#         # self.setSizePolicy(
-#         #     QSizePolicy(QSizePolicy.Expanding,
-#         #                           QSizePolicy.Expanding))
-#
-#     def connect_close_cc3d_signal(self, callback):
-#         pass
-#
-#     def emitCloseCC3D(self):
-#         pass
-#
-#     def set_service_port_cc3d_sender(self, port: int):
-#         pass
-#
-#     def is_qsci_based(self):
-#         return False
-#
-#     def __handleShowContextMenu(self, coord):
-#         """
-#         Private slot to show the context menu.
-#
-#         @param coord the position of the mouse pointer (QPoint)
-#         """
-#         coord = self.mapToGlobal(coord)
-#         self.__menu.popup(coord)
-#
-#     def appendText(self, txt):
-#         """
-#         Public method to append text to the end.
-#
-#         @param txt text to insert (QString)
-#         """
-#         tc = self.textCursor()
-#         tc.movePosition(QTextCursor.End)
-#         self.setTextCursor(tc)
-#         self.insertPlainText(txt)
-#         self.ensureCursorVisible()
-#
-#     def setText(self, txt):
-#         self.setTextColor(self.text_color)
-#         super(ConsoleWidget, self).setText(txt)

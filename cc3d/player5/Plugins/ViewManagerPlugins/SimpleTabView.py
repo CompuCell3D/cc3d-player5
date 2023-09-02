@@ -578,18 +578,15 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if cml_args.maxNumberOfConsecutiveRuns:
             self.maxNumberOfConsecutiveRuns = cml_args.maxNumberOfConsecutiveRuns
 
-        syntax_error_console = self.UI.console.getSyntaxErrorConsole()
+        syntax_error_console = self.UI.console.get_syntax_error_console()
         syntax_error_console.set_player_main_widget(self)
 
-        # self.UI.console.getSyntaxErrorConsole().closeCC3D.connect(qApp.closeAllWindows)
         syntax_error_console.connect_close_cc3d_signal(qApp.closeAllWindows)
 
-        # establishConnection starts twedit and hooks it up via sockets to player5
         if syntax_error_console.is_qsci_based():
             self.twedit_act.triggered.connect(syntax_error_console.cc3dSender.establishConnection)
 
         if port != -1:
-            # self.UI.console.getSyntaxErrorConsole().cc3dSender.setServerPort(port)
             syntax_error_console.set_service_port_cc3d_sender(port)
 
         # checking if file path needs to be remapped to point to files in the directories
@@ -795,7 +792,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         self.__cleanAfterSimulation()
         print('errorType=', _errorType)
-        syntax_error_console = self.UI.console.getSyntaxErrorConsole()
+        syntax_error_console = self.UI.console.get_syntax_error_console()
         # console = self.UI.console
         text = "Search \"file.xml\"\n"
         text += "    file.xml\n"
@@ -813,12 +810,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
         CompuCellSetup.error_code = 1
 
         self.__cleanAfterSimulation()
-        syntax_error_console = self.UI.console.getSyntaxErrorConsole()
-        # console = self.UI.console
+        syntax_error_console = self.UI.console.get_syntax_error_console()
 
         syntax_error_console.setText(_errorMessage)
-        # console.set_stderr_content(_errorMessage)
-        self.UI.console.bringUpSyntaxErrorConsole()
+        self.UI.console.bring_up_syntax_error_console()
 
         if self.cml_args.testOutputDir:
             with open(os.path.join(self.cml_args.testOutputDir, 'error_output.txt'), 'w') as fout:
@@ -916,7 +911,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         file_name = str(self.__sim_file_name)
         CompuCellSetup.persistent_globals.simulation_file_name = self.__sim_file_name
-        self.UI.console.bringUpOutputConsole()
+        self.UI.console.bring_up_output_console()
 
         # have to connect error handler to the signal emitted from self.simulation object
         # TODO changing signals
@@ -1331,7 +1326,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
                 # we use __stdout console (see UI/Consile.py) as main output console for both
                 # stdout and std err from C++ and Python - sort of internal system console
-                stdErrConsole = self.UI.console.getStdErrConsole()
+                stdErrConsole = self.UI.console.get_std_err_console()
                 stdErrConsole.clear()
                 addr = sip.unwrapinstance(stdErrConsole)
 

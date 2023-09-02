@@ -3,6 +3,7 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from .ConsoleWidgetBase import ConsoleWidgetBase
 
+
 class ConsoleWidget(ConsoleWidgetBase, QTextEdit):
     """
     Class providing a specialized text edit for displaying logging information.
@@ -30,16 +31,13 @@ class ConsoleWidget(ConsoleWidgetBase, QTextEdit):
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__handleShowContextMenu)
-        # self.connect(self, SIGNAL("customContextMenuRequested(const QPoint &)"),
-        #     self.__handleShowContextMenu)
-        #
         # self.setSizePolicy(
         #     QSizePolicy(QSizePolicy.Expanding,
         #                           QSizePolicy.Expanding))
 
-
     def set_player_main_widget(self, main_player_widget):
         pass
+
     def connect_close_cc3d_signal(self, callback):
         pass
 
