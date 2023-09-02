@@ -13,8 +13,6 @@ from PyQt5 import Qsci
 from PyQt5 import QtGui
 
 from cc3d.player5.Messaging import stdMsg, dbgMsg, pd, errMsg, setDebugging
-# from QsciScintillaCustom import QsciScintillaCustom
-# from PyQt4.Qsci.QsciScintilla import *
 # NOTICE: complete scintilla documentation can be found here:
 # http://www.scintilla.org/ScintillaDoc.htm
 from . import CC3DSender
