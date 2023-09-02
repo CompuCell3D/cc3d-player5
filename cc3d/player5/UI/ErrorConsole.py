@@ -19,11 +19,12 @@ from . import CC3DSender
 import os
 import sys
 from weakref import ref
+from .ConsoleWidgetBase import ConsoleWidgetBase
 
 
 # setDebugging(0)
 
-class ErrorConsole(QsciScintilla):
+class ErrorConsole(ConsoleWidgetBase, QsciScintilla):
     """
     Class providing a specialized text edit for displaying logging information.
     """
@@ -32,9 +33,7 @@ class ErrorConsole(QsciScintilla):
 
     # @QtCore.pyqtSignature("closeCC3D()")
     # @QtCore.pyqtSlot("closeCC3D()")
-    def emitCloseCC3D(self):
-        self.closeCC3D.emit()
-        # self.emit(SIGNAL("closeCC3D()") )
+
 
     def __init__(self, parent=None):
         """
@@ -99,6 +98,22 @@ class ErrorConsole(QsciScintilla):
 
         self.cc3dSender = CC3DSender.CC3DSender(self)
 
+    def set_player_main_widget(self, _playerMainWidget):
+
+        self.playerMainWidget = _playerMainWidget
+    def connect_close_cc3d_signal(self, callback):
+        self.closeCC3D.connect(callback)
+
+    def emitCloseCC3D(self):
+        self.closeCC3D.emit()
+        # self.emit(SIGNAL("closeCC3D()") )
+
+    def set_service_port_cc3d_sender(self, port: int):
+        self.cc3dSender.setServerPort(port)
+
+    def is_qsci_based(self):
+        return True
+
     @property
     def editorWindow(self):
         try:
@@ -129,9 +144,7 @@ class ErrorConsole(QsciScintilla):
         except TypeError:
             self._playerMainWidget = _i
 
-    def setPlayerMainWidget(self, _playerMainWidget):
 
-        self.playerMainWidget = _playerMainWidget
 
     def addNewFindInFilesResults(self, _str):
         self.setFolding(QsciScintilla.BoxedTreeFoldStyle)  # stray fold character workaround

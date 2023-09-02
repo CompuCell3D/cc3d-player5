@@ -3,7 +3,16 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from cc3d.player5.CustomGui.CTabWidget import CTabWidget
 from cc3d.player5.styles import tab_bar_style
-from .ErrorConsole import ErrorConsole
+from .ConsoleWidget import ConsoleWidget
+
+try:
+    from .ErrorConsole import ErrorConsole
+
+    qsci_error_console_exits = True
+except ImportError:
+    qsci_error_console_exits = False
+
+from .ConsoleWidgetBase import ConsoleWidgetBase
 
 
 class Console(CTabWidget):
@@ -15,24 +24,25 @@ class Console(CTabWidget):
         # self.__errorConsole.setText("Error: XML Error \n  File: cellsort_2D_error.xml\n
         # Line: 23 Col: 1 has the following problem not well-formed (invalid token) \n\n\n\n")
 
-        self.__stdout = ConsoleWidget()
+        self.std_out_text_color = QColor("black")
+        self.std_err_text_color = QColor("red")
+
+        self.__stdout = ConsoleWidget(text_color=self.std_out_text_color)
         self.__stdout.ensureCursorVisible()
         self.__stdoutIndex = self.addTab(self.__stdout, "Output")
 
-        self.stdOutTextColor = QColor("black")
-        self.stdErrTextColor = QColor("red")
+        if qsci_error_console_exits:
+            self.__errorConsole = ErrorConsole(self)
+        else:
+            self.__errorConsole = ConsoleWidget(text_color=self.std_err_text_color)
+            self.__errorConsole.ensureCursorVisible()
 
-        # self.__stderr = ConsoleWidget()
-        # self.__stderr.ensureCursorVisible()
-        # self.__stderrIndex = self.addTab(self.__stderr, self.trUtf8("Errors"))
-
-        self.__errorConsole = ErrorConsole(self)
         self.__errorIndex = self.addTab(self.__errorConsole, "Errors")
         self.__menu = QMenu(self)
-        self.__menu.addAction('Clear', self.__handleClear)
-        self.__menu.addAction('Copy', self.__handleCopy)
+        self.__menu.addAction("Clear", self.__handleClear)
+        self.__menu.addAction("Copy", self.__handleCopy)
         self.__menu.addSeparator()
-        self.__menu.addAction('Select All', self.__handleSelectAll)
+        self.__menu.addAction("Select All", self.__handleSelectAll)
 
         self.setTabContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__handleShowContextMenu)
@@ -41,6 +51,7 @@ class Console(CTabWidget):
         #     QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
         # self.connect(self,SIGNAL('customTabContextMenuRequested(const QPoint &, int)'),
         #              self.__handleShowContextMenu)
+
 
     def getStdErrConsole(self):
         return self.__stdout
@@ -57,7 +68,7 @@ class Console(CTabWidget):
     def __handleShowContextMenu(self, coord, index):
         """
         Private slot to show the tab context menu.
-        
+
         @param coord the position of the mouse pointer (QPoint)
         @param index index of the tab the menu is requested for (integer)
         """
@@ -86,7 +97,7 @@ class Console(CTabWidget):
     def showLogTab(self, tabname):
         """
         Public method to show a particular Log-Viewer tab.
-        
+
         @param tabname string naming the tab to be shown ("stdout", "stderr")
         """
         if tabname == "stdout":
@@ -96,14 +107,22 @@ class Console(CTabWidget):
         else:
             raise RuntimeError("wrong tabname given")
 
+    def set_stdout_content(self, txt):
+        self.__stdout.setTextColor(self.std_out_text_color)
+        self.__stdout.setText(txt)
+
+    def set_stderr_content(self, txt):
+        self.__errorConsole.setTextColor(self.std_out_text_color)
+        self.__errorConsole.setText(txt)
+
     def appendToStdout(self, txt):
         """
         Public slot to appand text to the "stdout" tab.
-        
+
         @param txt text to be appended (string or QString)
         """
 
-        self.__stdout.setTextColor(self.stdOutTextColor)
+        self.__stdout.setTextColor(self.std_out_text_color)
 
         # self.__stdout.appendText(txt)
         self.__stdout.insertPlainText(txt)
@@ -114,7 +133,7 @@ class Console(CTabWidget):
     def appendToStderr(self, txt):
         """
         Public slot to appand text to the "stderr" tab.
-        
+
         @param txt text to be appended (string or QString)
         """
         return
@@ -126,56 +145,73 @@ class Console(CTabWidget):
         return QSize(self.width(), 100)
 
 
-class ConsoleWidget(QTextEdit):
-    """
-    Class providing a specialized text edit for displaying logging information.
-    """
-
-    def __init__(self, parent=None):
-        """
-        Constructor
-
-        @param parent reference to the parent widget (QWidget)
-        """
-        QTextEdit.__init__(self, parent)
-        self.setAcceptRichText(False)
-        self.setLineWrapMode(QTextEdit.NoWrap)
-        self.setReadOnly(True)
-        self.setFrameStyle(QFrame.NoFrame)
-
-        # Why do I need this? create the context menu
-        self.__menu = QMenu(self)
-        self.__menu.addAction('Clear', self.clear)
-        self.__menu.addAction('Copy', self.copy)
-        self.__menu.addSeparator()
-        self.__menu.addAction('Select All', self.selectAll)
-
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.customContextMenuRequested.connect(self.__handleShowContextMenu)
-        # self.connect(self, SIGNAL("customContextMenuRequested(const QPoint &)"),
-        #     self.__handleShowContextMenu)
-        #
-        # self.setSizePolicy(
-        #     QSizePolicy(QSizePolicy.Expanding,
-        #                           QSizePolicy.Expanding))
-
-    def __handleShowContextMenu(self, coord):
-        """
-        Private slot to show the context menu.
-
-        @param coord the position of the mouse pointer (QPoint)
-        """
-        coord = self.mapToGlobal(coord)
-        self.__menu.popup(coord)
-
-    def appendText(self, txt):
-        """
-        Public method to append text to the end.
-
-        @param txt text to insert (QString)
-        """
-        tc = self.textCursor()
-        tc.movePosition(QTextCursor.End)
-        self.setTextCursor(tc)
-        self.insertPlainText(txt)
-        self.ensureCursorVisible()
+# class ConsoleWidget(ConsoleWidgetBase, QTextEdit):
+#     """
+#     Class providing a specialized text edit for displaying logging information.
+#     """
+#
+#     def __init__(self, text_color=QColor("black"), parent=None):
+#         """
+#         Constructor
+#
+#         @param parent reference to the parent widget (QWidget)
+#         """
+#         QTextEdit.__init__(self, parent)
+#         self.text_color = text_color
+#         self.setAcceptRichText(False)
+#         self.setLineWrapMode(QTextEdit.NoWrap)
+#         self.setReadOnly(True)
+#         self.setFrameStyle(QFrame.NoFrame)
+#
+#         # Why do I need this? create the context menu
+#         self.__menu = QMenu(self)
+#         self.__menu.addAction("Clear", self.clear)
+#         self.__menu.addAction("Copy", self.copy)
+#         self.__menu.addSeparator()
+#         self.__menu.addAction("Select All", self.selectAll)
+#
+#         self.setContextMenuPolicy(Qt.CustomContextMenu)
+#         self.customContextMenuRequested.connect(self.__handleShowContextMenu)
+#         # self.connect(self, SIGNAL("customContextMenuRequested(const QPoint &)"),
+#         #     self.__handleShowContextMenu)
+#         #
+#         # self.setSizePolicy(
+#         #     QSizePolicy(QSizePolicy.Expanding,
+#         #                           QSizePolicy.Expanding))
+#
+#     def connect_close_cc3d_signal(self, callback):
+#         pass
+#
+#     def emitCloseCC3D(self):
+#         pass
+#
+#     def set_service_port_cc3d_sender(self, port: int):
+#         pass
+#
+#     def is_qsci_based(self):
+#         return False
+#
+#     def __handleShowContextMenu(self, coord):
+#         """
+#         Private slot to show the context menu.
+#
+#         @param coord the position of the mouse pointer (QPoint)
+#         """
+#         coord = self.mapToGlobal(coord)
+#         self.__menu.popup(coord)
+#
+#     def appendText(self, txt):
+#         """
+#         Public method to append text to the end.
+#
+#         @param txt text to insert (QString)
+#         """
+#         tc = self.textCursor()
+#         tc.movePosition(QTextCursor.End)
+#         self.setTextCursor(tc)
+#         self.insertPlainText(txt)
+#         self.ensureCursorVisible()
+#
+#     def setText(self, txt):
+#         self.setTextColor(self.text_color)
+#         super(ConsoleWidget, self).setText(txt)

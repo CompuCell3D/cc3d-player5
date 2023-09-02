@@ -578,15 +578,19 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if cml_args.maxNumberOfConsecutiveRuns:
             self.maxNumberOfConsecutiveRuns = cml_args.maxNumberOfConsecutiveRuns
 
-        self.UI.console.getSyntaxErrorConsole().setPlayerMainWidget(self)
+        syntax_error_console = self.UI.console.getSyntaxErrorConsole()
+        syntax_error_console.set_player_main_widget(self)
 
-        self.UI.console.getSyntaxErrorConsole().closeCC3D.connect(qApp.closeAllWindows)
+        # self.UI.console.getSyntaxErrorConsole().closeCC3D.connect(qApp.closeAllWindows)
+        syntax_error_console.connect_close_cc3d_signal(qApp.closeAllWindows)
 
         # establishConnection starts twedit and hooks it up via sockets to player5
-        self.twedit_act.triggered.connect(self.UI.console.getSyntaxErrorConsole().cc3dSender.establishConnection)
+        if syntax_error_console.is_qsci_based():
+            self.twedit_act.triggered.connect(syntax_error_console.cc3dSender.establishConnection)
 
         if port != -1:
-            self.UI.console.getSyntaxErrorConsole().cc3dSender.setServerPort(port)
+            # self.UI.console.getSyntaxErrorConsole().cc3dSender.setServerPort(port)
+            syntax_error_console.set_service_port_cc3d_sender(port)
 
         # checking if file path needs to be remapped to point to files in the directories
         # from which run script was called
@@ -789,19 +793,15 @@ class SimpleTabView(MainArea, SimpleViewManager):
                                   QMessageBox.Ok,
                                   QMessageBox.Ok)
 
-        # import ParameterScanEnums
-        #
-        # if _errorType == 'Assertion Error' and _traceback_message.startswith(
-        #         'Parameter Scan ERRORCODE=' + str(ParameterScanEnums.SCAN_FINISHED_OR_DIRECTORY_ISSUE)):
-        #     self.__cleanAfterSimulation(_exitCode=ParameterScanEnums.SCAN_FINISHED_OR_DIRECTORY_ISSUE)
-        # else:
         self.__cleanAfterSimulation()
         print('errorType=', _errorType)
-        syntaxErrorConsole = self.UI.console.getSyntaxErrorConsole()
+        syntax_error_console = self.UI.console.getSyntaxErrorConsole()
+        # console = self.UI.console
         text = "Search \"file.xml\"\n"
         text += "    file.xml\n"
         text += _traceback_message
-        syntaxErrorConsole.setText(text)
+        syntax_error_console.setText(text)
+        # console.set_stderr_content(text)
 
     def handleErrorFormatted(self, _errorMessage):
         """
@@ -813,9 +813,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
         CompuCellSetup.error_code = 1
 
         self.__cleanAfterSimulation()
-        syntaxErrorConsole = self.UI.console.getSyntaxErrorConsole()
+        syntax_error_console = self.UI.console.getSyntaxErrorConsole()
+        # console = self.UI.console
 
-        syntaxErrorConsole.setText(_errorMessage)
+        syntax_error_console.setText(_errorMessage)
+        # console.set_stderr_content(_errorMessage)
         self.UI.console.bringUpSyntaxErrorConsole()
 
         if self.cml_args.testOutputDir:
@@ -1570,7 +1572,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.simulation.sem.tryAcquire()
         self.simulation.sem.release()
 
-        output_console = self.UI.console.getStdErrConsole()
+        # output_console = self.UI.console.getStdErrConsole()
+        output_console = self.UI.console
         if persistent_globals.simulator is not None:
             single_step_output = persistent_globals.simulator.get_step_output()
 
@@ -1588,7 +1591,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
             out_str = ''
             for s in self.step_output_list:
                 out_str += s
-            output_console.setText(out_str)
+            output_console.set_stdout_content(out_str)
+            # output_console.setText(out_str)
 
     def handleCompletedStep(self, mcs: int) -> None:
         """
