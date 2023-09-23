@@ -43,7 +43,6 @@ requirements:
     - python={{ python }}
     # - numpy=1.18 # when building with conda mambabuild
     - cc3d={{ version }}
-    - qscintilla2
     - webcolors
     - requests
     - pyqt=5
