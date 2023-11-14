@@ -48,6 +48,7 @@ from cc3d.player5.Utilities.unzipper import Unzipper
 from weakref import ref
 from subprocess import Popen
 from cc3d.player5.Utilities.terminal import Terminal
+from cc3d.core.GraphicsUtils.MovieCreator import makeMovieWithSettings
 
 
 MODULENAME = '---- SimpleTabView.py: '
@@ -735,6 +736,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.simulation.simulationFinished.connect(self.handleSimulationFinished)
             self.simulation.completedStep.connect(self.handleCompletedStep)
             self.simulation.finishRequest.connect(self.handleFinishRequest)
+            self.simulation.makeMovieRequest.connect(self.handleAutomaticMovie)
             self.redoCompletedStepSignal.connect(self.simulation.redoCompletedStep)
             self.stopRequestSignal.connect(self.simulation.stop)
 
@@ -1635,6 +1637,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # this releases finish mutex which is a signal to simulation thread that is is OK to finish
         self.simulation.finishMutex.unlock()
+
+    def handleAutomaticMovie(self):
+        if Configuration.getSetting("AutomaticMovie"):
+            makeMovieWithSettings()
 
     def init_simulation_control_vars(self):
         """
