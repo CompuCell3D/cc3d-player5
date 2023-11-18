@@ -24,6 +24,10 @@
       <e Name="Screenshot_X" Type="int">600</e>
       <e Name="Screenshot_Y" Type="int">600</e>
       <e Name="TabIndex" Type="int">2</e>
+      <e Name="FrameRate" Type="int">4</e>
+      <e Name="Quality" Type="int">7</e>
+      <e Name="AutomaticMovie" Type="bool">True</e>
+      <e Name="FfmpegLocation" Type="str"></e>
    </Settings>
    <Settings Type="float">
       <e Name="ArrowLength" Type="float">1</e>
