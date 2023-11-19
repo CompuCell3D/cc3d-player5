@@ -48,7 +48,7 @@ from cc3d.player5.Utilities.unzipper import Unzipper
 from weakref import ref
 from subprocess import Popen
 from cc3d.player5.Utilities.terminal import Terminal
-from cc3d.core.GraphicsUtils.MovieCreator import makeMovieWithSettings
+from cc3d.player5.Plugins.ViewManagerPlugins.MovieMediator import makeMovieWithSettings
 
 
 MODULENAME = '---- SimpleTabView.py: '
