@@ -190,12 +190,13 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
         self.createMovieResultLabel.setText("Generating movies...")
 
-        frameRate = min(self.frameRateSpinBox.value(), 1);
+        frameRate = min(self.frameRateSpinBox.value(), 1)
         quality = float(self.movieQualitySpinBox.value())
         # Convert from 1-10 domain to 0-51 domain
-        quality = int((1.0 - (quality / 10.0)) * 52.0) - 1;
+        quality = int((1.0 - (quality / 10.0)) * 52.0) - 1
+        enableDrawingMCS = self.writeMCSCheckbox.isChecked
 
-        movieCount = makeMovie(simulationPath, frameRate, quality)
+        movieCount = makeMovie(simulationPath, frameRate, quality, enableDrawingMCS)
 
         self.displayMovieResult(movieCount)
 
@@ -686,6 +687,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         Configuration.setSetting("FrameRate", self.frameRateSpinBox.value())
         Configuration.setSetting("Quality", self.movieQualitySpinBox.value())
         Configuration.setSetting("AutomaticMovie", self.automaticMovieCheckBox.isChecked())
+        Configuration.setSetting("WriteMovieMCS", self.writeMCSCheckbox.isChecked())
         Configuration.setSetting("FfmpegLocation", self.ffmpegLocationLineEdit.text())
 
         if str(self.outputLocationLineEdit.text()).rstrip() == '':
@@ -796,6 +798,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.frameRateSpinBox.setValue(Configuration.getSetting("FrameRate"))
         self.movieQualitySpinBox.setValue(Configuration.getSetting("Quality"))
         self.automaticMovieCheckBox.setChecked(Configuration.getSetting("AutomaticMovie"))
+        self.writeMCSCheckbox.setChecked(Configuration.getSetting("WriteMovieMCS"))
         self.createMovieResultLabel.setText("")
         ffmpegLocation = Configuration.getSetting("FfmpegLocation")
         if not ffmpegLocation:

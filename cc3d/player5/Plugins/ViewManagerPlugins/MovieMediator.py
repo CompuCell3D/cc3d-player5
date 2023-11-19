@@ -16,5 +16,6 @@ def makeMovieWithSettings():
 
     frameRate = Configuration.getSetting("FrameRate")
     quality = Configuration.getSetting("Quality")
+    writeText = Configuration.getSetting("WriteMovieMCS")
 
-    return makeMovie(simulationPath, frameRate, quality)
+    return makeMovie(simulationPath, frameRate, quality, writeText)
