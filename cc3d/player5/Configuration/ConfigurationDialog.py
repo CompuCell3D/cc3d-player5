@@ -145,7 +145,9 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
     # -------- Movie widgets CBs
 
     def chooseMovieDirectory(self):
-        currentProjectDir = Configuration.getSetting('ProjectLocation')
+        currentProjectDir = Configuration.getSetting('OutputLocation')
+        if not currentProjectDir or not os.path.exists(currentProjectDir):
+            currentProjectDir = "/"
         dirName = QFileDialog.getExistingDirectory(self, "Specify CC3D Project Directory", currentProjectDir,
                                                     QFileDialog.ShowDirsOnly)
         dirName = str(dirName)
@@ -192,11 +194,12 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
         self.createMovieResultLabel.setText("Generating movies...")
 
-        frameRate = min(self.frameRateSpinBox.value(), 1)
+        frameRate = max(self.frameRateSpinBox.value(), 1)
         quality = float(self.movieQualitySpinBox.value())
+        quality = max(quality, 1)
         # Convert from 1-10 domain to 0-51 domain
         quality = int((1.0 - (quality / 10.0)) * 52.0) - 1
-        enableDrawingMCS = self.writeMCSCheckbox.isChecked
+        enableDrawingMCS = self.writeMCSCheckbox.isChecked()
 
         movieCount, moviePath = makeMovie(simulationPath, frameRate, quality, enableDrawingMCS)
 

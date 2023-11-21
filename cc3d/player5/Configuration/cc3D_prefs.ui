@@ -656,6 +656,9 @@
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;How quickly the movie will play, as measured in frames per second (FPS)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
+               <property name="minimum">
+                <number>1</number>
+               </property>
                <property name="maximum">
                 <number>360</number>
                </property>
@@ -688,8 +691,11 @@
                <property name="toolTip">
                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Video quality&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                </property>
+               <property name="minimum">
+                <number>1</number>
+               </property>
                <property name="maximum">
-                <number>51</number>
+                <number>10</number>
                </property>
               </widget>
              </item>
