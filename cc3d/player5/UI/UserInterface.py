@@ -86,8 +86,8 @@ class UserInterface(QMainWindow):
 
             self.stdout.appendStdout.connect(self.appendToStdout)
             self.stderr.appendStderr.connect(self.appendToStderr)
-            self.appendStdoutSignal.connect(self.console.appendToStdout)
-            self.appendStderrSignal.connect(self.console.appendToStderr)
+            self.appendStdoutSignal.connect(self.console.append_to_stdout)
+            self.appendStderrSignal.connect(self.console.append_to_stderr)
 
         # I don't know why I need this
         cc3dApp().registerObject("UserInterface", self)
@@ -266,7 +266,7 @@ class UserInterface(QMainWindow):
 
         @param tabname string naming the tab to be shown (string)
         """
-        self.console.showLogTab(tabname)
+        self.console.show_log_tab(tabname)
 
     def getMenusDictionary(self):
         return self.__menus
