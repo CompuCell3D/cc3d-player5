@@ -8,7 +8,7 @@ from cc3d import CompuCellSetup
 from cc3d.CompuCellSetup.sim_runner import run_cc3d_project
 from cc3d.CompuCellSetup.SimulationThread import SimulationThread as SimulationThreadBase
 from cc3d.player5.enums import PlayerType
-from cc3d.core.GraphicsUtils.MovieCreator import makeMovieWithSettings
+from cc3d.player5.Plugins.ViewManagerPlugins.MovieMediator import makeMovieWithSettings
 
 
 class SimulationThread(QtCore.QThread, SimulationThreadBase):
