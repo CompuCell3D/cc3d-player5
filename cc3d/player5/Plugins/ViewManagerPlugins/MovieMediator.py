@@ -23,7 +23,8 @@ def makeMovieWithSettings():
 
     numMoviesMade, moviePath = makeMovie(simulationPath, frameRate, quality, writeText)
 
-    Configuration.setSetting("RecentMoviePath", moviePath)
+    if numMoviesMade > 0 and moviePath:
+        Configuration.setSetting("RecentMoviePath", moviePath)
 
     return numMoviesMade, moviePath
 
