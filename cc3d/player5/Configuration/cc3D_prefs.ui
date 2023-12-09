@@ -13,14 +13,14 @@
   <property name="windowTitle">
    <string>CC3D Preferences</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_27">
+  <layout class="QVBoxLayout" name="verticalLayout_20">
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="toolTip">
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tab_output">
       <attribute name="title">
@@ -30,9 +30,9 @@
        <item>
         <widget class="QGroupBox" name="groupBox_17">
          <property name="title">
-          <string>Output Specs</string>
+          <string>Console Output</string>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_14">
+         <layout class="QVBoxLayout" name="verticalLayout_27">
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_35">
             <item>
@@ -84,10 +84,10 @@
             </item>
             <item>
              <layout class="QGridLayout" name="gridLayout_9">
-              <item row="0" column="0">
-               <widget class="QLabel" name="label_25">
+              <item row="1" column="0" colspan="2">
+               <widget class="QCheckBox" name="write_log_CB">
                 <property name="text">
-                 <string>Log Level</string>
+                 <string>Write Log To File</string>
                 </property>
                </widget>
               </item>
@@ -143,14 +143,54 @@
                 </item>
                </widget>
               </item>
-              <item row="1" column="0" colspan="2">
-               <widget class="QCheckBox" name="write_log_CB">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_25">
                 <property name="text">
-                 <string>Write Log To File</string>
+                 <string>Log Level</string>
                 </property>
                </widget>
               </item>
              </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_34">
+            <item>
+             <widget class="QLabel" name="label_22">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Controls how output steps will be displayed at a time in Player&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="text">
+               <string>Number of step outputs to display in player</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QSpinBox" name="numberOfStepOutputsSB">
+              <property name="toolTip">
+               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of recent MCS steps for which the operating system console output will be also displayed in the Player console&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+              </property>
+              <property name="maximum">
+               <number>1000</number>
+              </property>
+              <property name="value">
+               <number>10</number>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_21">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -608,68 +648,14 @@
             </item>
            </layout>
           </item>
-          <item>
-           <widget class="Line" name="line_2">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_34">
-            <item>
-             <widget class="QLabel" name="label_19">
-              <property name="text">
-               <string>Workspace Dir</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="outputLocationLineEdit">
-              <property name="maximumSize">
-               <size>
-                <width>16777215</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Directory where simulation outputs will be written to&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="outputLocationButton">
-              <property name="maximumSize">
-               <size>
-                <width>150</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Output</string>
-              </property>
-              <property name="autoDefault">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="outputToProjectCheckBox">
-              <property name="text">
-               <string>=Project</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <widget class="Line" name="line">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-           </widget>
-          </item>
          </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="Line" name="line_1">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
         </widget>
        </item>
        <item>
@@ -746,26 +732,6 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="0">
-               <widget class="QCheckBox" name="automaticMovieCheckBox">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When you click the Stop button or run a simulation until completion, a video will be saved with these settings&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="text">
-                 <string>Save movie automatically every time a simulation stops</string>
-                </property>
-               </widget>
-              </item>
-              <item row="3" column="0">
-               <widget class="QCheckBox" name="writeMCSCheckbox">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Displays the current Monte Carlo Step in the video (recommended, but movies take longer to create)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="text">
-                 <string>Write MCS on each frame</string>
-                </property>
-               </widget>
-              </item>
              </layout>
             </item>
             <item>
@@ -784,60 +750,24 @@
            </layout>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_38">
-            <item>
-             <widget class="QLabel" name="label_28">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The absolute path to your ffmpeg.exe file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>FFMPEG Executable</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer_31">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Fixed</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>20</height>
-               </size>
-              </property>
-             </spacer>
-            </item>
-            <item>
-             <widget class="QLineEdit" name="ffmpegLocationLineEdit">
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The absolute path to your ffmpeg.exe file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="resetFfmpegLocationButton">
-              <property name="maximumSize">
-               <size>
-                <width>150</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="toolTip">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click here to auto-detect FFMPEG&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-              <property name="text">
-               <string>Reset</string>
-              </property>
-              <property name="autoDefault">
-               <bool>false</bool>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QCheckBox" name="automaticMovieCheckBox">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When you click the Stop button or run a simulation until completion, a video will be saved with these settings&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Save movie automatically every time a simulation stops</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="writeMCSCheckbox">
+            <property name="toolTip">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Displays the current Monte Carlo Step in the video (recommended, but movies take longer to create)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+            <property name="text">
+             <string>Write MCS on each frame</string>
+            </property>
+           </widget>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_40">
@@ -943,17 +873,197 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_7">
+     <widget class="QWidget" name="tab_setup">
       <attribute name="title">
-       <string>Movie</string>
+       <string>Setup</string>
       </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_19"/>
-     </widget>
-     <widget class="QWidget" name="tab_2">
-      <attribute name="title">
-       <string>General Settings</string>
-      </attribute>
-      <layout class="QVBoxLayout" name="verticalLayout_20">
+      <layout class="QVBoxLayout" name="verticalLayout_19">
+       <item>
+        <widget class="QLabel" name="label_30">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Project Setup</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="projectLocationButton">
+           <property name="maximumSize">
+            <size>
+             <width>150</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Project Location</string>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="projectLocationLineEdit">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Optional: Choose a parent directory for your projects to make it easier to open simulations each time you launch Player&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QPushButton" name="outputLocationButton">
+           <property name="maximumSize">
+            <size>
+             <width>150</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Workspace Dir</string>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QLineEdit" name="outputLocationLineEdit">
+           <property name="maximumSize">
+            <size>
+             <width>16777215</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Directory where simulation outputs will be written to&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QCheckBox" name="outputToProjectCheckBox">
+           <property name="text">
+            <string>=Project</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="Line" name="line_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_28">
+         <property name="font">
+          <font>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Movie Setup</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_19">
+         <property name="text">
+          <string>We use FFMPEG to make movies</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout_12">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="pushButton">
+           <property name="text">
+            <string>FFMPEG Executable</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="ffmpegLocationLineEdit">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The absolute path to your ffmpeg.exe file&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QPushButton" name="resetFfmpegLocationButton">
+           <property name="maximumSize">
+            <size>
+             <width>150</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Click here to auto-detect FFMPEG&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
+           <property name="text">
+            <string>Reset</string>
+           </property>
+           <property name="autoDefault">
+            <bool>false</bool>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_6">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>5</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="Line" name="line_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>5</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
        <item>
         <widget class="QGroupBox" name="groupBox_5">
          <property name="title">
@@ -966,42 +1076,15 @@
              <layout class="QGridLayout" name="gridLayout_6">
               <item row="0" column="0">
                <widget class="QLabel" name="label_23">
+                <property name="toolTip">
+                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of recent simulations to display in the &amp;quot;Recent Simulation&amp;quot; menu&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                </property>
                 <property name="text">
                  <string>Number of recent simulations</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="0">
-               <widget class="QCheckBox" name="floatingWindowsCB">
-                <property name="toolTip">
-                 <string>Checking it switches from Multi Document interface to flowting windows one. The change will take place after Player restart</string>
-                </property>
-                <property name="text">
-                 <string>Use Floating Windows</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="0" colspan="2">
-               <widget class="QLabel" name="label_22">
-                <property name="text">
-                 <string>Number of step outputs to display in player</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="2">
-               <widget class="QSpinBox" name="numberOfStepOutputsSB">
-                <property name="toolTip">
-                 <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of recent MCS steps for which the operating system console output will be also displayed in the Player console&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                </property>
-                <property name="maximum">
-                 <number>1000</number>
-                </property>
-                <property name="value">
-                 <number>10</number>
-                </property>
-               </widget>
-              </item>
-              <item row="0" column="2">
+              <item row="0" column="1">
                <widget class="QSpinBox" name="numberOfRecentSimulationsSB">
                 <property name="toolTip">
                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Number of recent simulations to display in the &amp;quot;Recent Simulation&amp;quot; menu&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -1011,6 +1094,16 @@
                 </property>
                 <property name="value">
                  <number>8</number>
+                </property>
+               </widget>
+              </item>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="floatingWindowsCB">
+                <property name="toolTip">
+                 <string>Re-organizes the interface so that some windows will show as pop-ups.</string>
+                </property>
+                <property name="text">
+                 <string>Use Floating Windows (restart required)</string>
                 </property>
                </widget>
               </item>
@@ -1035,55 +1128,6 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_14">
-         <item>
-          <widget class="QLineEdit" name="projectLocationLineEdit">
-           <property name="maximumSize">
-            <size>
-             <width>16777215</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;directory where most of your projects are stored&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="projectLocationButton">
-           <property name="maximumSize">
-            <size>
-             <width>150</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Project Location</string>
-           </property>
-           <property name="autoDefault">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_23">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item>
         <spacer name="verticalSpacer_4">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
@@ -1091,7 +1135,7 @@
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>304</height>
+           <height>232</height>
           </size>
          </property>
         </spacer>
@@ -1104,8 +1148,8 @@
       </attribute>
       <layout class="QHBoxLayout" name="horizontalLayout_24">
        <item>
-        <widget class="QGroupBox" name="groupBox_13">
-         <property name="title">
+        <widget class="QFrame" name="frame_1">
+         <property name="title" stdset="0">
           <string/>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_13">
@@ -1117,6 +1161,12 @@
             <layout class="QVBoxLayout" name="verticalLayout_16">
              <item>
               <widget class="QLabel" name="selectCellColorLabel">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="text">
                 <string>Select a row in the table to change that cell type color.   Type        Name           Color</string>
                </property>
@@ -1148,7 +1198,7 @@
                <property name="minimumSize">
                 <size>
                  <width>200</width>
-                 <height>0</height>
+                 <height>200</height>
                 </size>
                </property>
                <property name="horizontalScrollBarPolicy">
@@ -1287,6 +1337,19 @@
                </item>
               </layout>
              </item>
+             <item>
+              <spacer name="verticalSpacer_7">
+               <property name="orientation">
+                <enum>Qt::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>10</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
             </layout>
            </widget>
           </item>
@@ -1298,7 +1361,7 @@
                <string>Aditional colors</string>
               </property>
               <layout class="QFormLayout" name="formLayout">
-               <item row="0" column="0">
+               <item row="1" column="0">
                 <widget class="QLabel" name="borderColorLabel">
                  <property name="text">
                   <string>Cell border color</string>
@@ -1308,7 +1371,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="0" column="1">
+               <item row="1" column="1">
                 <widget class="QToolButton" name="cellBorderColorButton">
                  <property name="minimumSize">
                   <size>
@@ -1330,7 +1393,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="0">
+               <item row="2" column="0">
                 <widget class="QLabel" name="clusterBorderColorLabel">
                  <property name="text">
                   <string>Cluster border color</string>
@@ -1340,7 +1403,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="1" column="1">
+               <item row="2" column="1">
                 <widget class="QToolButton" name="clusterBorderColorButton">
                  <property name="minimumSize">
                   <size>
@@ -1362,7 +1425,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="2" column="0">
+               <item row="3" column="0">
                 <widget class="QLabel" name="contourColorLabel">
                  <property name="text">
                   <string>Contour color</string>
@@ -1372,7 +1435,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="2" column="1">
+               <item row="3" column="1">
                 <widget class="QToolButton" name="contourColorButton">
                  <property name="minimumSize">
                   <size>
@@ -1394,7 +1457,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="3" column="0">
+               <item row="4" column="0">
                 <widget class="QLabel" name="windowColorLabel">
                  <property name="text">
                   <string>Window color</string>
@@ -1404,7 +1467,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="3" column="1">
+               <item row="4" column="1">
                 <widget class="QToolButton" name="windowColorButton">
                  <property name="enabled">
                   <bool>true</bool>
@@ -1429,7 +1492,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="4" column="0">
+               <item row="5" column="0">
                 <widget class="QLabel" name="windowColorLabel_4">
                  <property name="text">
                   <string>FPP Link Color</string>
@@ -1439,7 +1502,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="4" column="1">
+               <item row="5" column="1">
                 <widget class="QToolButton" name="fppColorButton">
                  <property name="enabled">
                   <bool>true</bool>
@@ -1464,7 +1527,7 @@
                  </property>
                 </widget>
                </item>
-               <item row="5" column="0" colspan="2">
+               <item row="6" column="0" colspan="2">
                 <widget class="QCheckBox" name="windowColorSameAsMediumCB">
                  <property name="text">
                   <string>Window color same as Medium</string>
@@ -1478,6 +1541,22 @@
              </widget>
             </item>
             <item>
+             <spacer name="verticalSpacer_9">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Fixed</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>5</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
              <widget class="QGroupBox" name="groupBox_4">
               <property name="title">
                <string>Cell Glyphs</string>
@@ -1488,7 +1567,7 @@
                  <item>
                   <widget class="QCheckBox" name="cellGlyphScaleByVolumeCheckBox">
                    <property name="toolTip">
-                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When drawing cells as spheres (glyphs) this setting allows scaling of the size of the sphere based on actual cell volume&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When drawing cells as spheres (glyphs), this setting allows scaling of the size of the sphere based on actual cell volume&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                    </property>
                    <property name="text">
                     <string>scale by volume</string>
@@ -1543,8 +1622,34 @@
                  </item>
                 </layout>
                </item>
+               <item>
+                <spacer name="verticalSpacer_10">
+                 <property name="orientation">
+                  <enum>Qt::Vertical</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>20</width>
+                   <height>5</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
               </layout>
              </widget>
+            </item>
+            <item>
+             <spacer name="verticalSpacer_8">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -2355,7 +2460,7 @@
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab">
+     <widget class="QWidget" name="tab_axes">
       <attribute name="title">
        <string>Axes'n'Decor</string>
       </attribute>

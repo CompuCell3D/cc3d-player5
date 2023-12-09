@@ -6,22 +6,15 @@ tab_bar_style = """
 }
 
 QDialog { 
-    background-color: rgb(37, 37, 37);
+    background-color: rgb(17, 17, 17);
 }
 
 QPushButton {
     text-align: left;
-    border-left: none;
-    border-right: none;
-    border-top: none;
-    border-bottom: 4px solid red;
+    border: none;
     padding:  4px 12px 4px 12px;
     background-color: rgb(74, 74, 74);
     border-radius: 6px;
-}
-
-QPushButton:active {
-    border-bottom: none;
 }
 
 QSpinBox, QLineEdit {
@@ -35,8 +28,8 @@ QSpinBox:focus, QLineEdit:focus {
 }
 
 QTabWidget::pane {
-    /*background-color: rgb(64, 64, 64);*/
-    background-color: rgb(124, 124, 124);
+    background-color: rgb(62, 57, 57);
+    border: 1px solid gray;
 }
 
 QTabBar::tab {
@@ -52,8 +45,9 @@ QTabBar::tab:selected {
     margin-top: 1px;
 }
 
-#line_4, #line_5, #line_3 {
+#line_1, #line_2, #line_3, #line_4 {
     background-color: rgb(104, 104, 104);
 }
+
 """
 
