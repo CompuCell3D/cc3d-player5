@@ -1,6 +1,18 @@
 Release Notes
 =============
 
+Version 4.5.0
+-------------
+**2022-12-09**
+
+New features:
+ - Added support for generation of simulation movies
+ - Made Qscintilla Optional - it is not longer required to run Player.
+ - Change license to MIT
+
+Bug fixes:
+ - Minor bug fixes
+
 
 Version 4.4.1
 -------------
