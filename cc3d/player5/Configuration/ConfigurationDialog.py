@@ -25,6 +25,8 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         QDialog.__init__(self, parent)
         self.setModal(modal)
 
+        self.setStyleSheet(tab_bar_style)
+
         # dict for ALL parameters on CC3D Preferences dialog
         self.paramCC3D = {}
 
@@ -183,6 +185,14 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
 
     def createMovieButtonClicked(self):
+        # self.createMovieButton.setStyleSheet("""
+        #     QPushButton {
+        #         text-align: left;
+        #         border: none;
+        #         background-color: red;
+        #     }
+        # """)
+
         self.createMovieResultLabel.setText("")
         if not os.path.exists(Configuration.getSetting('FfmpegLocation')):
             self.showFfmpegWarning()

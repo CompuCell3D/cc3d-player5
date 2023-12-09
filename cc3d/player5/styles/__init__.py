@@ -17,6 +17,7 @@ QPushButton {
     border-bottom: 4px solid red;
     padding:  4px 12px 4px 12px;
     background-color: rgb(74, 74, 74);
+    border-radius: 6px;
 }
 
 QPushButton:active {
@@ -34,7 +35,8 @@ QSpinBox:focus, QLineEdit:focus {
 }
 
 QTabWidget::pane {
-    background-color: rgb(64, 64, 64);
+    /*background-color: rgb(64, 64, 64);*/
+    background-color: rgb(124, 124, 124);
 }
 
 QTabBar::tab {
@@ -45,7 +47,7 @@ QTabBar::tab {
 }
 
 QTabBar::tab:selected {
-    background-color: rgb(116, 205, 207);
+    background-color: rgb(116, 195, 207);
     margin-bottom: -1px;
     margin-top: 1px;
 }
