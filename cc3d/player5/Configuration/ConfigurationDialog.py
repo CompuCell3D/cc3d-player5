@@ -119,9 +119,14 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
     def outputImagesClicked(self):
         if self.outputImagesCheckBox.isChecked():
             self.saveImageSpinBox.setEnabled(True)
-
+            self.screenshot_X_SB.setEnabled(True)
+            self.screenshot_Y_SB.setEnabled(True)
+            self.automaticMovieCheckBox.setEnabled(True)
         else:
             self.saveImageSpinBox.setEnabled(False)
+            self.screenshot_X_SB.setEnabled(False)
+            self.screenshot_Y_SB.setEnabled(False)
+            self.automaticMovieCheckBox.setEnabled(False)
 
     def outputLatticeDataClicked(self):
         if self.outputLatticeDataCheckBox.isChecked():
