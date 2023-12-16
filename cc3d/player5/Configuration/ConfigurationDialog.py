@@ -544,6 +544,22 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         Configuration.setSetting('OutputLocation', dir_name)
 
     @pyqtSlot()
+    def on_ffmpegLocationButton_clicked(self):
+        old_dir = Configuration.getSetting('FfmpegLocation')
+        new_path = QFileDialog.getOpenFileName(self, "Specify ffmpeg.exe File", old_dir)
+        if len(new_path) < 1 or len(new_path[0]) < 1:
+            return
+
+        new_path = str(new_path[0])
+        new_path.rstrip()
+
+        if new_path == "":
+            return
+        new_path = os.path.abspath(new_path)
+        self.ffmpegLocationLineEdit.setText(new_path)
+        Configuration.setSetting('FfmpegLocation', new_path)
+
+    @pyqtSlot()
     def on_documentationButton_clicked(self):
         DOCUMENTATION_HOMEPAGE = "https://pythonscriptingmanual.readthedocs.io/en/latest/"
         try:

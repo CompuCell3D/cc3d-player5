@@ -2803,7 +2803,7 @@
        <item>
         <layout class="QGridLayout" name="gridLayout_12">
          <item row="0" column="0">
-          <widget class="QPushButton" name="pushButton">
+          <widget class="QPushButton" name="ffmpegLocationButton">
            <property name="text">
             <string>FFMPEG Executable</string>
            </property>
