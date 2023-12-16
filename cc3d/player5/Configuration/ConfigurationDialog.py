@@ -544,6 +544,17 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         Configuration.setSetting('OutputLocation', dir_name)
 
     @pyqtSlot()
+    def on_documentationButton_clicked(self):
+        DOCUMENTATION_HOMEPAGE = "https://pythonscriptingmanual.readthedocs.io/en/latest/"
+        try:
+            import webbrowser
+            webbrowser.open(DOCUMENTATION_HOMEPAGE)
+        except:
+            QMessageBox.information(None, "Tip",
+                    "Visit our web page: " + DOCUMENTATION_HOMEPAGE,
+                    QMessageBox.Ok)
+
+    @pyqtSlot()
     def on_addCellTypeButton_clicked(self):
         last_row_idx = self.typeColorTable.rowCount() - 1
 
