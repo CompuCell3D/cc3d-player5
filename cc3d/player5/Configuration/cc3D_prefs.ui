@@ -2624,6 +2624,9 @@
          </item>
          <item>
           <widget class="QPushButton" name="documentationButton">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Opens your web browser&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
             <string>View the Documentation</string>
            </property>
@@ -2744,6 +2747,9 @@
              <height>16777215</height>
             </size>
            </property>
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Directory where simulation outputs will be written to&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
             <string>Workspace Dir</string>
            </property>
@@ -2767,6 +2773,9 @@
          </item>
          <item row="1" column="2">
           <widget class="QCheckBox" name="outputToProjectCheckBox">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;When checked, makes the workspace directory the same as the project directory&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
             <string>=Project</string>
            </property>
@@ -2804,6 +2813,9 @@
         <layout class="QGridLayout" name="gridLayout_12">
          <item row="0" column="0">
           <widget class="QPushButton" name="ffmpegLocationButton">
+           <property name="toolTip">
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Select your ffmpeg.exe file, or click Reset to let us find it for you&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+           </property>
            <property name="text">
             <string>FFMPEG Executable</string>
            </property>
