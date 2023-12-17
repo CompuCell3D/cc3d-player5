@@ -1,197 +1,56 @@
 """
-This class manages color schemes for Player.
+This class manages color schemes for Player by loading in CSS files.
 """
-from PyQt5.QtGui import QColor
-
-from .DOMUtils import DOMBase
-# from cc3d.twedit5.twedit.utils.global_imports import *
-# from cc3d.twedit5 import twedit
-from cc3d.player5.styles import *
-import os
 from pathlib import Path
-from xml.dom.minidom import parse, parseString
 import glob
-
-
-class ComponentStyle(DOMBase):
-
-    def __init__(self, _name=''):
-        DOMBase.__init__(self, _name='ComponentStyle')
-
-        self.attrNameToTypeDict = {
-                'target': (str, ''), 'fgColor': (str, '000000'), 'bgColor': (str, 'FF0000'),
-                'fontName': (str, ''), 'fontStyle': (int, 0), 'fontSize': (int, -1)
-        }
-
-class Theme(object):
-
-    def __init__(self, _name='GENERAL THEME'):
-
-        self.name = _name
-
-        self.themeFileName = ''
-
-        # {name: style}
-        self.globalStyle = {}
-
-    def addGlobalStyle(self, _style):
-
-        self.globalStyle[_style.target] = _style
-        print("Set addGlobalStyle: ",_style.target,"...",_style)
-
-    def getGlobalStyle(self, _name):
-        try:
-            return self.globalStyle[_name]
-        except LookupError:
-            return ComponentStyle()
-
 
 
 class StyleManager(object):
 
     def __init__(self):
-
-        self.themeDict = {}
-
-        self.themeDir = os.path.join(os.path.dirname(__file__), 'themes')
+        if len(Path(__file__).parents) <= 1:
+            print('StyleManager error: Something is wrong with the source code directory')
+        styleManagerPath = Path(__file__).parents[0]
+        self.themeDir = styleManagerPath.joinpath('themes')
+        print("self.themeDir",self.themeDir)
+        if not Path.exists(self.themeDir):
+            print('StyleManager error: Could not find the `themes` directory in', self.themeDir)
 
     def getThemeNames(self):
-
-        themesSorted = sorted(self.themeDict.keys())
-
-        return themesSorted
-
-    def readThemes(self):
-
-        theme_file_list = glob.glob(self.themeDir + "/*.xml")
-
+        theme_file_list = glob.glob(str(self.themeDir) + "/*.css")
+        themeNames = []
         for themeFileName in theme_file_list:
-            print("themeFileName",themeFileName)
-            core_theme_name, ext = os.path.splitext(os.path.basename(themeFileName))
+            themeNames.append(Path(themeFileName).stem)
 
-            theme = Theme(core_theme_name)
+        return themeNames
 
-            theme.themeFileName = themeFileName
 
-            self.parseTheme(_theme=theme)
-            self.themeDict[core_theme_name] = theme
+    def getBaseStylesheet(self):
+        themePath = Path(self.themeDir).joinpath("BaseStyles.css")
+        if Path.exists(themePath):
+            with open(themePath, 'r') as baseStylesFile:
+                return baseStylesFile.read().replace('\n', '')
+        else:
+            print('Could not find the BaseStyles.css file.')
+            return ""
 
-    def parseTheme(self, _theme):
 
-        dom = parse(_theme.themeFileName)
-
-        qt_style_elems = dom.getElementsByTagName('QtStyles')
-        for qtStyleElem in qt_style_elems:
-            components_style_elems = qtStyleElem.getElementsByTagName('ComponentStyle')
-
-            for componentStyleElem in components_style_elems:
-                component_style = ComponentStyle()
-                component_style.fromDOMElem(componentStyleElem)
-                print("Parsed word_style",component_style)
-                print("from",componentStyleElem)
-                _theme.addGlobalStyle(component_style)
-
-    def npStrToQColor(self, _str):
-
-        r = int(_str[0:2], 16)
-
-        g = int(_str[2:4], 16)
-
-        b = int(_str[4:6], 16)
-
-        try:
-            return QColor(int(_str[0:2], 16), int(_str[2:4], 16), int(_str[4:6], 16))
-        except ValueError:
-            return None
-
-    def npStrToSciColor(self, _str):
-
-        try:
-            return (int(_str[4:6], 16) << 16) + (int(_str[2:4], 16) << 8) + (int(_str[0:2], 16))
-        except ValueError:
-            return None
-
+    """
+    Returns a combination of BaseStyles.css and the 
+    given CSS file contents.
+    :_themeName: the name of a .css file without its extension, such as "LightTheme"
+    """
     def getStylesheet(self, _themeName):
-        try:
-            theme = self.themeDict[_themeName]
-        except LookupError:
+        themePath = Path(self.themeDir).joinpath(_themeName)
+        themePath = themePath.with_suffix(".css")
+        if Path.exists(themePath):
+            with open(themePath, 'r') as themeFile:
+                customStyles = themeFile.read().replace('\n', '')
+                # Just a concatenation between stylesheets...
+                # it is slow but effective.
+                return customStyles + self.getBaseStylesheet()
+        else:
             print(type(_themeName))
-            print('Could not find theme: ' + _themeName + ' in StyleManager')
-            print('got these themes=', list(self.themeDict.keys()))
-            return None
-
-        print("theme.getGlobalStyle(QDialog)",theme.getGlobalStyle("QDialog"))
-        print("theme.getGlobalStyle(QDialog).bgColor",theme.getGlobalStyle("QDialog").bgColor)
-
-        return """
-            * {
-                font-family: Verdana;
-            }
-            
-            QWidget {
-                color: white;
-                background-color: rgb(37, 37, 37);
-            }
-            
-            QPushButton:enabled, QLineEdit:enabled, QSpinBox:enabled {
-                background-color: rgb(64, 64, 64);
-                color: rgb(255, 255, 255);
-            }
-            QPushButton:disabled, QLineEdit:disabled, QSpinBox:disabled {
-                /*Make semi-transparent and grayed out*/
-                background-color: rgba(255, 255, 255, 100);
-                color: rgba(255, 255, 255, 150);
-            }
-            QPushButton:focus, QLineEdit:focus, QSpinBox:focus {
-                background-color: rgb(17, 17, 17);
-                color: white;
-            }
-            
-            QDialog { 
-                background-color: #"""+ theme.getGlobalStyle("QDialog").bgColor +""";
-            }
-            
-            QDialog { 
-                border: 10px solid red;
-            }
-            
-            QPushButton {
-                text-align: left;
-                border: none;
-                padding:  4px 12px 4px 12px;
-                border-radius: 6px;
-                background-color: rgb(74, 74, 74);
-            }
-            
-            QSpinBox, QLineEdit {
-                border-radius: 3px;
-                border: 1px solid #AAAAAA;
-            }
-            
-            QTabWidget::pane {
-                background-color: rgb(62, 57, 57);
-                border: 1px solid gray;
-            }
-            
-            QTabBar::tab {
-                background-color: rgb(54, 54, 54);
-                border: 1px solid rgb(74, 74, 74);
-                padding: 4px;
-                border-radius: 2px;
-            }
-            
-            QTabBar::tab:selected {
-                background-color: rgb(116, 195, 207);
-                margin-bottom: -1px;
-                margin-top: 1px;
-            }
-            
-            /*
-              All QLine instances must be written here since that tag is broken
-            */
-            #line_1, #line_2, #line_3, #line_4, #line_5, #line_6 {
-                background-color: rgb(104, 104, 104);
-            }
-            
-            """
+            print('Could not find theme: ' + _themeName + ' in the styles directory.')
+            return ""
 
