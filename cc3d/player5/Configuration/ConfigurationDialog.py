@@ -534,10 +534,6 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.outputLocationLineEdit.setText(dir_name)
         Configuration.setSetting('OutputLocation', dir_name)
 
-    def on_tempButton_clicked(self):
-        print("calling updateStylesheet")
-        self.updateStylesheet()
-
     @pyqtSlot()
     def on_ffmpegLocationButton_clicked(self):
         old_dir = Configuration.getSetting('FfmpegLocation')
@@ -734,6 +730,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         Configuration.setSetting("WriteMovieMCS", self.writeMCSCheckbox.isChecked())
         Configuration.setSetting("FfmpegLocation", self.ffmpegLocationLineEdit.text())
 
+        # Miscellany/Setup
         if str(self.outputLocationLineEdit.text()).rstrip() == '':
             Configuration.setSetting("OutputLocation", os.path.join(os.path.expanduser('~'), 'CC3DWorkspace'))
 
@@ -741,6 +738,8 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         Configuration.setSetting("NumberOfRecentSimulations", self.numberOfRecentSimulationsSB.value())
         Configuration.setSetting("NumberOfStepOutputs", self.numberOfStepOutputsSB.value())
         Configuration.setSetting("FloatingWindows", self.floatingWindowsCB.isChecked())
+
+        self.themeComboxBox.currentIndexChanged.connect(self.themeComboxBoxClicked)
 
         Configuration.setSetting("WindowColorSameAsMedium", self.windowColorSameAsMediumCB.isChecked())
 
@@ -801,6 +800,14 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         stylesheet = styleManager.getStylesheet("LightTheme")
 
         self.setStyleSheet(stylesheet)
+
+    def themeComboxBoxClicked(self):
+        chosenTheme = self.themeComboxBox.currentText()
+
+        field_index = self.themeComboxBox.currentIndex()
+        # Configuration.setSetting("FieldIndex", field_index)
+        # self.lastSelectedField = field_index
+        print("chosenTheme",chosenTheme)
 
 
     def updateUI(self):
