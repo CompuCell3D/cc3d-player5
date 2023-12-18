@@ -11,8 +11,9 @@ class StyleManager(object):
         if len(Path(__file__).parents) <= 1:
             print('StyleManager error: Something is wrong with the source code directory')
         styleManagerPath = Path(__file__).parents[0]
+
         self.themeDir = styleManagerPath.joinpath('themes')
-        print("self.themeDir",self.themeDir)
+
         if not Path.exists(self.themeDir):
             print('StyleManager error: Could not find the `themes` directory in', self.themeDir)
 

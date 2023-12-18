@@ -3,26 +3,26 @@
 }
 
 QWidget {
-    color: white;
-    background-color: rgb(37, 37, 37);
+    color: rgb(0, 0, 0);
+    background-color: rgb(218, 218, 218);
 }
 
 QPushButton:enabled, QLineEdit:enabled, QSpinBox:enabled {
-    background-color: rgb(64, 64, 64);
-    color: rgb(255, 255, 255);
+    background-color: rgb(201, 201, 201);
+    color: rgb(0, 0, 0);
 }
 QPushButton:disabled, QLineEdit:disabled, QSpinBox:disabled {
     /*Make semi-transparent and grayed out*/
-    background-color: rgba(255, 255, 255, 100);
-    color: rgba(255, 255, 255, 150);
+    background-color: rgba(0, 0, 0, 100);
+    color: rgba(0, 0, 0, 150);
 }
 QPushButton:focus, QLineEdit:focus, QSpinBox:focus {
-    background-color: rgb(17, 17, 17);
-    color: white;
+    background-color: rgb(238, 238, 238);
+    color: rgb(0, 0, 0);
 }
 
 QDialog {
-    border: 10px solid red;
+    background-color: rgb(238, 238, 238);
 }
 
 QPushButton {
@@ -30,22 +30,22 @@ QPushButton {
     border: none;
     padding:  4px 12px 4px 12px;
     border-radius: 6px;
-    background-color: rgb(74, 74, 74);
+    background-color: rgb(181, 181, 181);
 }
 
 QSpinBox, QLineEdit {
     border-radius: 3px;
-    border: 1px solid #AAAAAA;
+    border: 1px solid rgb(105, 105, 105);
 }
 
 QTabWidget::pane {
-    background-color: rgb(62, 57, 57);
+    background-color: rgb(193, 188, 188);
     border: 1px solid gray;
 }
 
 QTabBar::tab {
-    background-color: rgb(54, 54, 54);
-    border: 1px solid rgb(74, 74, 74);
+    background-color: rgb(201, 201, 201);
+    border: 1px solid rgb(181, 181, 181);
     padding: 4px;
     border-radius: 2px;
 }
@@ -60,5 +60,5 @@ QTabBar::tab:selected {
   All QLine instances must be written here since that tag is broken
 */
 #line_1, #line_2, #line_3, #line_4, #line_5, #line_6 {
-    background-color: rgb(104, 104, 104);
+    background-color: rgb(151, 151, 151);
 }
