@@ -245,6 +245,11 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
         row = self.typeColorTable.currentRow()
         col = self.typeColorTable.currentColumn()
+        # if len(self.paramCC3D["TypeColorMap"]) < self.typeColorTable.rowCount():
+        #     # we have fewer entries in self.paramCC3D["TypeColorMap"] than the number of colors listed in the table
+        #     start_idx = len(self.paramCC3D["TypeColorMap"])
+        #     for row_idx in range(start_idx, self.typeColorTable.rowCount()):
+        #         self.paramCC3D["TypeColorMap"][row_idx] = self.typeColorTable.item(row_idx, 2).background().color()
 
         # highlight the left column cell (cell #), not cell w/ the color
         self.typeColorTable.setCurrentCell(row, 0)

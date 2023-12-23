@@ -59,6 +59,10 @@ class CellTypeColorMapModel(QtCore.QAbstractTableModel):
                                                                  setting_types_invisible=setting_types_invisible
                                                                  )
 
+        for idx, (cell_type_id, cell_type_color_props) in enumerate(type_id_to_type_name_color_map.items()):
+            setting_type_color_map[idx] = cell_type_color_props.color
+
+        Configuration.setSetting('TypeColorMap', setting_type_color_map)
         self.item_data = OrderedDict()
         for type_id, type_color_props in type_id_to_type_name_color_map.items():
             color = type_color_props.color
