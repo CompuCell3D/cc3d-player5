@@ -1,22 +1,15 @@
 * {
     font-family: Verdana;
+    color: white;
 }
 
 QWidget {
 }
 
-QPushButton:enabled, QLineEdit:enabled, QSpinBox:enabled {
-    background-color: rgb(64, 64, 64);
-    color: rgb(255, 255, 255);
-}
 QPushButton:disabled, QLineEdit:disabled, QSpinBox:disabled {
     /*Make semi-transparent and grayed out*/
     background-color: rgba(255, 255, 255, 100);
     color: rgba(255, 255, 255, 150);
-}
-QPushButton:focus, QLineEdit:focus, QSpinBox:focus {
-    background-color: rgb(17, 17, 17);
-    color: rgb(255, 255, 255);
 }
 
 QDialog {
@@ -28,12 +21,19 @@ QPushButton {
     border: none;
     padding:  4px 12px 4px 12px;
     border-radius: 6px;
-    background-color: rgb(74, 74, 74);
+    color: rgb(255, 255, 255);
+    background-color: rgb(46, 90, 101);
 }
 
-QSpinBox, QLineEdit, QTableWidget {
+
+QSpinBox, QLineEdit, QTableWidget, QComboBox {
     border-radius: 3px;
     border: 1px solid rgb(170, 170, 170);
+    color: rgb(255, 255, 255);
+    background-color: rgb(37, 37, 37);
+}
+
+QComboBox QAbstractItemView {
     color: rgb(255, 255, 255);
     background-color: rgb(37, 37, 37);
 }
@@ -54,6 +54,7 @@ QTabBar::tab:selected {
     background-color: rgb(116, 195, 207);
     margin-bottom: -1px;
     margin-top: 1px;
+    color: black;
 }
 
 /*

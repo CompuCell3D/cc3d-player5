@@ -4,6 +4,8 @@ This class manages color schemes for Player by loading in CSS files.
 from pathlib import Path
 import glob
 
+BASE_STYLES_FNAME = "BaseStyles"
+
 
 class StyleManager(object):
 
@@ -21,18 +23,20 @@ class StyleManager(object):
         theme_file_list = glob.glob(str(self.themeDir) + "/*.css")
         themeNames = []
         for themeFileName in theme_file_list:
-            themeNames.append(Path(themeFileName).stem)
+            stem = Path(themeFileName).stem
+            if stem != BASE_STYLES_FNAME:
+                themeNames.append(stem)
 
         return themeNames
 
 
     def getBaseStylesheet(self):
-        themePath = Path(self.themeDir).joinpath("BaseStyles.css")
+        themePath = Path(self.themeDir).joinpath(BASE_STYLES_FNAME + ".css")
         if Path.exists(themePath):
             with open(themePath, 'r') as baseStylesFile:
                 return baseStylesFile.read().replace('\n', '')
         else:
-            print('Could not find the BaseStyles.css file.')
+            print('Could not find the ' + BASE_STYLES_FNAME + '.css file.')
             return ""
 
 
@@ -49,7 +53,7 @@ class StyleManager(object):
                 customStyles = themeFile.read().replace('\n', '')
                 # Just a concatenation between stylesheets...
                 # it is slow but effective.
-                return customStyles + self.getBaseStylesheet()
+                return self.getBaseStylesheet() + customStyles
         else:
             print(type(_themeName))
             print('Could not find theme: ' + _themeName + ' in the styles directory.')

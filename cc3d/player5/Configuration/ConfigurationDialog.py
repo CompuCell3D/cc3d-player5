@@ -32,6 +32,8 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         # read params from QSession file
         self.initParams()
 
+        self.updateStylesheet(Configuration.getSetting("ThemeName"))
+
         # in ui_configurationdlg.Ui_CC3DPrefs
         self.setupUi(self)
 
@@ -46,6 +48,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.tabWidget.currentChanged.connect(self.currentTabChanged)
         comma_separated_list_validator = QRegExpValidator(QRegExp('(\d+)(,\d+)*'))
 
+        self.themeComboBox.currentIndexChanged.connect(self.themeComboBoxClicked)
 
         # Output tab
         self.outputImagesCheckBox.clicked.connect(self.outputImagesClicked)
@@ -109,10 +112,11 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
     def currentTabChanged(self):
 
         Configuration.setSetting("TabIndex", self.tabWidget.currentIndex())
-        if self.tabWidget.currentIndex() == 2:
+        if self.tabWidget.currentIndex() == 3: #select Field tab
 
             if self.lastSelectedField >= 0:
                 self.fieldComboBox.setCurrentIndex(self.lastSelectedField)
+
 
     # -------- Output widgets CBs
     def outputImagesClicked(self):
@@ -734,12 +738,13 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         if str(self.outputLocationLineEdit.text()).rstrip() == '':
             Configuration.setSetting("OutputLocation", os.path.join(os.path.expanduser('~'), 'CC3DWorkspace'))
 
+        Configuration.setSetting("ThemeIndex", self.themeComboBox.currentIndex())
+        Configuration.setSetting("ThemeName", self.themeComboBox.currentText())
+
         Configuration.setSetting("OutputToProjectOn", self.outputToProjectCheckBox.isChecked())
         Configuration.setSetting("NumberOfRecentSimulations", self.numberOfRecentSimulationsSB.value())
         Configuration.setSetting("NumberOfStepOutputs", self.numberOfStepOutputsSB.value())
         Configuration.setSetting("FloatingWindows", self.floatingWindowsCB.isChecked())
-
-        self.themeComboxBox.currentIndexChanged.connect(self.themeComboxBoxClicked)
 
         Configuration.setSetting("WindowColorSameAsMedium", self.windowColorSameAsMediumCB.isChecked())
 
@@ -795,25 +800,19 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         Configuration.setSetting("RestartOutputFrequency", self.restart_freq_SB.value())
         Configuration.setSetting("RestartAllowMultipleSnapshots", self.multiple_restart_snapshots_CB.isChecked())
 
-    def updateStylesheet(self):
+    def updateStylesheet(self, themeName):
         styleManager = StyleManager()
-        stylesheet = styleManager.getStylesheet("LightTheme")
+        stylesheet = styleManager.getStylesheet(themeName)
 
         self.setStyleSheet(stylesheet)
 
-    def themeComboxBoxClicked(self):
-        chosenTheme = self.themeComboxBox.currentText()
-
-        field_index = self.themeComboxBox.currentIndex()
-        # Configuration.setSetting("FieldIndex", field_index)
-        # self.lastSelectedField = field_index
-        print("chosenTheme",chosenTheme)
+    def themeComboBoxClicked(self):
+        themeName = self.themeComboBox.currentText()
+        self.updateStylesheet(themeName)
 
 
     def updateUI(self):
         """called whenever Prefs dialog is open"""
-
-        self.updateStylesheet()
 
         self.tabWidget.setCurrentIndex(Configuration.getSetting("TabIndex"))
 
