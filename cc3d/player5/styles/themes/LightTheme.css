@@ -21,7 +21,7 @@ QPushButton {
     background-color: rgb(114, 180, 194);
 }
 
-QSpinBox, QLineEdit, QTableWidget, QComboBox {
+QSpinBox, QLineEdit, QTableWidget, QComboBox, QPlainTextEdit {
     border-radius: 3px;
     border: 1px solid rgb(105, 105, 105);
     color: rgb(0, 0, 0);

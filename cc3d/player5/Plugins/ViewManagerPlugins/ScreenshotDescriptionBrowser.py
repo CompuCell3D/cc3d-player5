@@ -11,6 +11,7 @@ from typing import Optional
 from pathlib import Path
 import shutil
 
+from cc3d.player5.styles.StyleManager import subscribeToStylesheet
 
 class ScreenshotDescriptionBrowser(QDialog, ui_screenshot_description_browser.Ui_screenshotDescriptionDialog):
 
@@ -26,6 +27,7 @@ class ScreenshotDescriptionBrowser(QDialog, ui_screenshot_description_browser.Ui
 
         self.projectPath = ""
 
+        subscribeToStylesheet(self)
         self.setupUi(self)
 
         self.updateUi()

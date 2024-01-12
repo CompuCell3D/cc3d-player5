@@ -24,6 +24,7 @@ from cc3d.player5.Utilities.LatticeDataModel import LatticeDataModel
 from cc3d.player5.Utilities.SimDelegate import SimDelegate
 from cc3d.player5 import Configuration
 from cc3d.player5 import DefaultData
+from cc3d.player5.styles.StyleManager import subscribeToStylesheet
 
 cc3dApp = QCoreApplication.instance
 
@@ -44,6 +45,8 @@ class DockWidget(QDockWidget):
         features = QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable
         self.setFeatures(features)
         self.toggleFcn = None
+
+        # subscribeToStylesheet(self)
 
     def setToggleFcn(self, fcn): self.toggleFcn = fcn
 
@@ -132,6 +135,9 @@ class UserInterface(QMainWindow):
             # in order to have all dock widgets expand (i.e. fill all available space)
             # we hide central widget when graphics windows are floating
             self.centralWidget().hide()
+
+        subscribeToStylesheet(self)
+
 
     def initialize_gui_geometry(self, allow_main_window_move:bool=True):
         """
@@ -288,6 +294,11 @@ class UserInterface(QMainWindow):
 
         self.__menus["view"] = QMenu("&View", self)
         mb.addMenu(self.__menus["view"])
+        
+        # styleManager = StyleManager()
+        # stylesheet = styleManager.getStylesheet(Configuration.getSetting("ThemeName"))
+
+        # self.__menus["view"].setStyleSheet(getStylesheet())
 
         self.__menus["view"].aboutToShow.connect(self.__showViewMenu)
 
@@ -305,6 +316,10 @@ class UserInterface(QMainWindow):
         mb.addMenu(self.__menus["visualization"])
         self.__menus["tools"] = self.viewmanager.init_tools_menu()
         mb.addMenu(self.__menus["tools"])
+
+        # self.__menus["simulation"].setStyleSheet("""
+        #     background-color: purple;
+        # """)
 
         self.__menus["window"] = self.viewmanager.init_window_menu()
         mb.addMenu(self.__menus["window"])

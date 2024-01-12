@@ -11,7 +11,7 @@ from cc3d.player5.Utilities.utils import assign_cell_type_colors
 from cc3d.core.GraphicsUtils.MovieCreator import makeMovie
 from cc3d.player5.Plugins.ViewManagerPlugins.MovieMediator import showMovieInFileExplorer
 
-from cc3d.player5.styles.StyleManager import StyleManager
+from cc3d.player5.styles.StyleManager import publishStylesheet, subscribeToStylesheet
 
 import shutil
 
@@ -32,7 +32,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         # read params from QSession file
         self.initParams()
 
-        self.updateStylesheet(Configuration.getSetting("ThemeName"))
+        subscribeToStylesheet(self)
 
         # in ui_configurationdlg.Ui_CC3DPrefs
         self.setupUi(self)
@@ -107,6 +107,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.buttonBox.clicked.connect(self.buttonBoxClicked)
 
         self.updateUI()
+    
 
     # ----------- following methods are callbacks from the above "connect"s  ------------
     def currentTabChanged(self):
@@ -740,6 +741,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
         Configuration.setSetting("ThemeIndex", self.themeComboBox.currentIndex())
         Configuration.setSetting("ThemeName", self.themeComboBox.currentText())
+        publishStylesheet(self.themeComboBox.currentText())
 
         Configuration.setSetting("OutputToProjectOn", self.outputToProjectCheckBox.isChecked())
         Configuration.setSetting("NumberOfRecentSimulations", self.numberOfRecentSimulationsSB.value())
@@ -800,15 +802,10 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         Configuration.setSetting("RestartOutputFrequency", self.restart_freq_SB.value())
         Configuration.setSetting("RestartAllowMultipleSnapshots", self.multiple_restart_snapshots_CB.isChecked())
 
-    def updateStylesheet(self, themeName):
-        styleManager = StyleManager()
-        stylesheet = styleManager.getStylesheet(themeName)
-
-        self.setStyleSheet(stylesheet)
-
     def themeComboBoxClicked(self):
         themeName = self.themeComboBox.currentText()
-        self.updateStylesheet(themeName)
+        Configuration.setSetting("ThemeName", themeName)
+        publishStylesheet(themeName)
 
 
     def updateUI(self):
