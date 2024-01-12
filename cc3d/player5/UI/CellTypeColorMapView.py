@@ -12,7 +12,7 @@ class CellTypeColorMapView(QTableView):
         QTableView.__init__(self, parent)
         self.setFrameStyle(QFrame.NoFrame)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.setAlternatingRowColors(True)
+        self.setAlternatingRowColors(False)
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.horizontalHeader().setStretchLastSection(True)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)

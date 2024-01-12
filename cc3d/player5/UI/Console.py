@@ -20,7 +20,7 @@ class Console(CTabWidget):
         self.setTabPosition(QTabWidget.South)
         
         subscribeToStylesheet(self)
-        # subscribeToStylesheet(self.tabBar())
+        subscribeToStylesheet(self.tabBar())
 
         # self.__errorConsole.setText("Error: XML Error \n  File: cellsort_2D_error.xml\n
         # Line: 23 Col: 1 has the following problem not well-formed (invalid token) \n\n\n\n")

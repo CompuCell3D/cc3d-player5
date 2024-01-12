@@ -1,20 +1,3 @@
-/* * {
-    font-family: Verdana;
-} */
-
-/* QWidget {
-}
-
-QPushButton:enabled, QLineEdit:enabled, QSpinBox:enabled {
-}
-QPushButton:disabled, QLineEdit:disabled, QSpinBox:disabled {
-}
-QPushButton:focus, QLineEdit:focus, QSpinBox:focus {
-}
-
-QDialog {
-} */
-
 QPushButton {
     text-align: left;
     border: none;
@@ -26,9 +9,6 @@ QSpinBox, QLineEdit {
     border-radius: 3px;
 }
 
-QTabWidget::pane {
-}
-
 QTabBar::tab {
     padding: 4px;
     border-radius: 2px;
@@ -38,9 +18,3 @@ QTabBar::tab:selected {
     margin-bottom: -1px;
     margin-top: 1px;
 }
-
-/*
-  All QLine instances must be written here since that tag is broken
-*/
-/* #line_1, #line_2, #line_3, #line_4, #line_5, #line_6 {
-} */

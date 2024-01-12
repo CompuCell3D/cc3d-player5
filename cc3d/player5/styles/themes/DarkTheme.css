@@ -3,15 +3,6 @@
     color: white;
 }
 
-QWidget {
-}
-
-QPushButton:disabled, QLineEdit:disabled, QSpinBox:disabled {
-    /*Make semi-transparent and grayed out*/
-    background-color: rgba(255, 255, 255, 100);
-    color: rgba(255, 255, 255, 150);
-}
-
 QDialog {
     background-color: rgb(17, 17, 17);
 }
@@ -25,12 +16,28 @@ QPushButton {
     background-color: rgb(46, 90, 101);
 }
 
+QPushButton:disabled, QLineEdit:disabled, QSpinBox:disabled {
+    /*Make semi-transparent and grayed out*/
+    background-color: rgba(255, 255, 255, 100);
+    color: rgba(255, 255, 255, 150);
+}
 
-QSpinBox, QLineEdit, QTableWidget, QComboBox, QPlainTextEdit {
+QSpinBox, QLineEdit, QComboBox, QPlainTextEdit {
     border-radius: 3px;
     border: 1px solid rgb(170, 170, 170);
     color: rgb(255, 255, 255);
     background-color: rgb(37, 37, 37);
+}
+
+QTableWidget {
+    border-radius: 3px;
+    border: 1px solid rgb(170, 170, 170);
+}
+QHeaderView::section, QTableCornerButton::section { /* Table header */
+    border-radius: 0px;
+    border: 1px solid rgb(70, 70, 70);
+    color: rgb(255, 255, 255);
+    background-color: rgb(7, 7, 7);
 }
 
 QComboBox QAbstractItemView {
@@ -39,44 +46,62 @@ QComboBox QAbstractItemView {
 }
 
 QTabWidget::pane {
-    background-color: rgb(62, 57, 57);
-    border: 1px solid gray;
+    background-color: rgb(42, 42, 42);
+    border: none;
+    border-radius: 3px;
 }
 
-/*DockWidgetArea, Qt.DockWidgetArea, Qt.LeftDockWidgetArea, LeftDockWidgetArea, QHBoxLayout, QVBoxLayout, */
-
-DockWidgetArea, LeftDockWidgetArea, BottomDockWidgetArea, QDockWidget, QMainWindow, QApplication, QCoreApplication, QGraphicsFrame, QMenu, QToolBar{
+QMainWindow, QApplication, QCoreApplication, QGraphicsFrame {
     background-color: rgb(44, 44, 44);
     border: 1px solid rgb(64, 64, 64);
     border-radius: 2px;
 }
 
-QMenuBar::item, QAction  {
-    background-color: rgb(64, 64, 64);
-    border: 1px solid rgb(84, 84, 84);
-    border-radius: 2px;
-}
 
-/* * {
+QFrame { /*Applies to QDockWidget center area*/
     background-color: rgb(44, 44, 44);
-    border-radius: 2px;
-    padding: 2px;
+}
+QDockWidget::title {
+    background-color: rgb(17, 17, 17);
+    color: white;
+}
+QDockWidget::close-button, QDockWidget::float-button {
+    background-color: rgb(17, 17, 17);
+    color: white;
+}
+QDockWidget::close-button:selected, QDockWidget::float-button:selected {
+    background: rgb(64, 64, 64);;
+}
+QDockWidget::close-button:pressed, QDockWidget::float-button:pressed {
+    padding: 1px -1px -1px 1px;
 }
 
-DockWidget {
-    background-color: rgb(66, 66, 66);
-    border-radius: 2px;
-    padding: 2px;
-}
 
-QLabel {
-    background-color: none;
+QMenu, QToolBar, QMenuBar {
+    background-color: rgb(24, 24, 24);
     border: none;
-    padding-top: 4px;
-    padding-bottom: 4px;
-} */
+}
+QMenuBar::item {
+    color: rgb(255, 255, 255);
+    background-color: rgb(44, 44, 44);
+}
+QMenu::item {
+    color: rgb(255, 255, 255);
+    background-color: none;
+}
+QMenuBar::item:selected:enabled, QMenu::item:selected:enabled {
+    color: rgb(0, 0, 0);;
+    background-color: rgb(116, 195, 207);
+}
+QMenuBar::item:disabled, QMenu::item:disabled {
+    color: rgba(255, 255, 255, 150);
+}
+QMenuBar::item:selected:disabled, QMenu::item:selected:disabled {
+    color: rgba(255, 255, 255, 170);
+}
 
 QTabBar::tab {
+    color: white;
     background-color: rgb(54, 54, 54);
     border: 1px solid rgb(74, 74, 74);
     padding: 4px;
@@ -84,10 +109,15 @@ QTabBar::tab {
 }
 
 QTabBar::tab:selected {
-    background-color: rgb(116, 195, 207);
-    margin-bottom: -1px;
-    margin-top: 1px;
     color: black;
+    background-color: rgb(116, 195, 207);
+}
+
+QToolTip {
+    background-color: rgb(104, 104, 104);
+    border: 1px solid rgb(84, 84, 84);
+    border-radius: 2px;
+    color: white;
 }
 
 /*

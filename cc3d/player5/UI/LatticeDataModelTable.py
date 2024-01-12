@@ -12,7 +12,7 @@ class LatticeDataModelTable(QTableView):
         self.setFrameStyle(QFrame.NoFrame)
         self.setSelectionBehavior(QAbstractItemView.SelectRows)
         self.setColumnWidth(0, 100)
-        self.setAlternatingRowColors (True)
+        self.setAlternatingRowColors (False)
         self.horizontalHeader().setStretchLastSection(True)        
         
         import sys
@@ -42,7 +42,7 @@ class LatticeDataModelTable(QTableView):
 
         self.setColumnWidth(0, 130)
         #self.cplugins.setColumnWidth(1, 200)
-        self.setAlternatingRowColors (True)
+        self.setAlternatingRowColors (False)
         self.horizontalHeader().setStretchLastSection(True)
 
         self.clicked.connect(self.__pickAndAdvanceMCSDirect)
