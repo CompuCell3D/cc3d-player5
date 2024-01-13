@@ -10,9 +10,6 @@ New features:
  - Made Qscintilla Optional - it is not longer required to run Player.
  - Change license to MIT
 
-Changes:
- - All Gillespie solvers are now initialized with random seed. You can still fix the seed using self.set_gillespie_integrator_seed
-
 Bug fixes:
  - Minor bug fixes
 
