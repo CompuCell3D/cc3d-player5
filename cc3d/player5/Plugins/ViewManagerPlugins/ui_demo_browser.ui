@@ -37,7 +37,7 @@
           <x>0</x>
           <y>0</y>
           <width>519</width>
-          <height>150</height>
+          <height>192</height>
          </rect>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -59,9 +59,6 @@
         </layout>
        </widget>
       </widget>
-     </item>
-     <item>
-      <widget class="QTreeView" name="demoTreeView"/>
      </item>
      <item>
       <widget class="QLabel" name="demoDescriptionLabel">
