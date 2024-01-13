@@ -1,10 +1,23 @@
 Release Notes
 =============
 
+Version 4.5.0
+-------------
+**2024-01-06**
+
+New features:
+ - Added support for generation of simulation movies
+ - Made Qscintilla Optional - it is not longer required to run Player.
+ - Change license to MIT
+
+Bug fixes:
+ - Minor bug fixes
+
+
 
 Version 4.4.1
 -------------
-**2022-07-01**
+**2023-07-01**
 
 New features:
  - Changed the way updates are handled: we are now redirecting users to sourceforge to download new package
@@ -18,7 +31,7 @@ Bug fixes:
 
 Version 4.4.0
 -------------
-**2022-03-26**
+**2023-03-26**
 
 New features:
  - Restored better glyph visualization (including replay mode)
