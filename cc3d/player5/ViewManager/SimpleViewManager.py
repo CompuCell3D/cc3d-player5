@@ -10,6 +10,7 @@ import cc3d.player5.Configuration as Configuration
 from cc3d.player5 import DefaultData
 import cc3d
 import datetime
+from cc3d.player5.Plugins.ViewManagerPlugins.DemoBrowser import DemoBrowser
 from cc3d.player5.Utilities.WebFetcher import WebFetcher
 from cc3d.player5.Utilities import update_cc3d
 from os import environ
@@ -93,6 +94,7 @@ class SimpleViewManager(QObject):
         self.tutor_act = None
         self.ref_man_act = None
         self.about_act = None
+        self.demo_menu_act = None
         self.check_update_act = None
         self.whats_this_act = None
 
@@ -220,6 +222,8 @@ class SimpleViewManager(QObject):
         menu.addAction(self.quick_act)
         menu.addAction(self.tutor_act)
         menu.addAction(self.ref_man_act)
+        menu.addSeparator()
+        menu.addAction(self.demo_menu_act)
         menu.addSeparator()
         menu.addAction(self.check_update_act)
         menu.addSeparator()
@@ -455,6 +459,10 @@ class SimpleViewManager(QObject):
         self.about_act = QAction(QIcon(gip("cc3d_64x64_logo.png")), "&About CompuCell3D", self)
         self.about_act.triggered.connect(self.__about)
 
+        #TODO translate other QActions?
+        self.demo_menu_act = QAction(QApplication.translate('ViewManager', "Open Demo..."), self)
+        self.demo_menu_act.triggered.connect(self.__open_demo_menu)
+
         self.check_update_act = QAction("Check for CC3D Updates", self)
         self.check_update_act.triggered.connect(self.__check_update)
         self.display_no_update_info = False
@@ -673,6 +681,10 @@ class SimpleViewManager(QObject):
         """
 
         self.check_version(check_interval=-1, display_no_update_info=True)
+
+    def __open_demo_menu(self):
+        self.demo_browser = DemoBrowser(parent=self)
+        self.demo_browser.exec_()
 
     def do_update(self, package_name: str, version: str) -> None:
         """
