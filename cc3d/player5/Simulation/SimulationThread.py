@@ -8,6 +8,7 @@ from cc3d import CompuCellSetup
 from cc3d.CompuCellSetup.sim_runner import run_cc3d_project
 from cc3d.CompuCellSetup.SimulationThread import SimulationThread as SimulationThreadBase
 from cc3d.player5.enums import PlayerType
+from cc3d.player5.Plugins.ViewManagerPlugins.MovieMediator import makeMovieWithSettings
 
 
 class SimulationThread(QtCore.QThread, SimulationThreadBase):
@@ -25,6 +26,7 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
     errorOccuredDetailed = pyqtSignal(str, str,int,int,str)
     visFieldCreatedSignal = pyqtSignal(str, int)
     pauseRequest = pyqtSignal(bool)
+    makeMovieRequest = pyqtSignal()
 
     #
     # CONSTRUCTOR
@@ -91,6 +93,9 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
 
     def emit_pause_request(self, flag=True):
         self.pauseRequest.emit(flag)
+
+    def emit_make_movie_request(self):
+        self.makeMovieRequest.emit()
 
     def redoCompletedStep(self):
         self.sem.tryAcquire()
