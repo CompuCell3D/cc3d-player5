@@ -7,6 +7,7 @@ import weakref
 import re
 from pathlib import Path
 import time
+from collections import Counter
 
 from cc3d.player5.styles.StyleManager import subscribeToStylesheet
 
@@ -37,22 +38,24 @@ def formatDemoName(name):
         i += 1
     return outStr
 
-def scanFileForKeyWords(searchTerm, filePath):
-    score = 0
-    print("filePath",filePath)
-    with open(filePath) as fp:
-        for ln in fp.readlines():
-            ln = ln.lower()
-            if searchTerm in ln:
-                score += 1
 
-    return score
+def splitByUppercase(word):
+    #Extract individual words from camel/pascal case tokens.
+    #Example: "lambdaVolume" splits into "lambda" and "Volume".
+    start = 0
+    i = 1
+    while i <= len(word):
+        if word[i-1].islower() and (i == len(word) or word[i].isupper()):
+            if i - start < len(word):
+                yield word[start:i]
+            start = i
+        i += 1
 
 
 def tokenizeAllFiles(demoAbsPath):
     methods = (
         ('*.py', tokenizePython), 
-        # ('*.xml', tokenizeXml)
+        ('*.xml', tokenizeXml),
     )
     for fileType, tokenizer in methods:
         for filePath in demoAbsPath.parent.rglob(fileType):
@@ -61,17 +64,21 @@ def tokenizeAllFiles(demoAbsPath):
                     for word in tokenizer(line):
                         if word:
                             yield word.lower()
+                            for subword in splitByUppercase(word):
+                                yield subword.lower()
+
 
 def tokenizePython(line):
     for word in line.split():
         if "." in word:
-            word = re.sub('[^a-zA-Z \n\.]', '', word) #Remove numbers and special chars
+            word = re.sub('[^a-zA-Z \n\.]', '.', word) #Remove numbers and special chars
             for varName in word.split("."):
                 yield varName
 
 def tokenizeXml(line):
+    if "!--" in line: #exclude comments, even if they have useful tags
+        return
     for word in re.split('[^a-zA-Z]', line):
-        # word = re.sub('[^a-zA-Z0-9 \n\.]', '', word) #Remove special chars
         yield word
 
 
@@ -82,49 +89,52 @@ def preIndexSearchResults():
 
     rootPath = Path("C:\\Users\\Pete\\Documents\\cc3d\\CompuCell3D\\CompuCell3D\\core\\Demos")  
     demoList = list(getDemoList())
-
-    for demoPath in demoList:
-        fullPath = rootPath.joinpath(demoPath)
-
-        for word in tokenizeAllFiles(fullPath):
-            if word not in allFreq:
-                allFreq[word] = 1
-            else:
-                allFreq[word] += 1
                 
     for demoPath in demoList:
         fullPath = rootPath.joinpath(demoPath)
         
-        freqByFile = {}
-        for word in tokenizeAllFiles(fullPath):
-            if word not in freqByFile:
-                freqByFile[word] = 1
-            else:
-                freqByFile[word] += 1
+        # freqByFile = {}
+        # for word in tokenizeAllFiles(fullPath):
+        #     if word not in freqByFile:
+        #         freqByFile[word] = 1
+        #     else:
+        #         freqByFile[word] += 1
+            
+        # for (word, freq) in freqByFile:
+        #     if word not in allFreq:
+        #         allFreq[word] = 1
+        #     else:
+        #         allFreq[word] += 1
         
         #Find how frequently each word in `freqByFile` occurred across all files (allFreq).
-        keywords = [(word, allFreq[word]) for word in freqByFile.keys()]
-        keywords = sorted(keywords, key=lambda x: x[1])
-        keywords = [row[0] for row in keywords]
+        # keywords = [(word, allFreq[word]) for word in freqByFile.keys()]
+        # keywords = sorted(keywords, key=lambda x: x[1])
+        # keywords = [row[0] for row in keywords]
                 
         # keywords = list(freqByFile.keys())
 
-        searchIndex[fullPath] = keywords
+        wordsSeen = set()
 
-for i in range(10):
-    start_time = time.time()
-    preIndexSearchResults()
-    print("--- %s seconds ---" % (time.time() - start_time))
+        for word in tokenizeAllFiles(fullPath):
+            if word not in wordsSeen:
+                smallPath = str(demoPath) #conserve memory by converting object to str
+                if word in searchIndex and len(searchIndex[word]) < 5:
+                    searchIndex[word].append(smallPath)
+                else:
+                    searchIndex[word] = [smallPath]
+                wordsSeen.add(word)
+            
 
-k = 0
-for entry in searchIndex.keys():
-    # print(entry, searchIndex[entry][:10])
-    print(entry, searchIndex[entry])
-    print("----------------------------------------------\n\n")
-    k += 1
-    if k > 13:
-        break
-import sys
+# for i in range(1):
+#     start_time = time.time()
+#     preIndexSearchResults()
+#     print("--- %s seconds ---" % (time.time() - start_time))
+
+preIndexSearchResults()
+print("Done indexing demos.")
+
+# for keyword in sorted(list(searchIndex.keys())):
+#     print(keyword)
 
 
 
@@ -157,7 +167,6 @@ def getsize(obj):
     return size
 print("SIZEOF: ",getsize(searchIndex)) #139342
 
-exit(0)
 
 
 
@@ -174,8 +183,9 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
         self.model = None
         self.view = None
 
+        print("init")
         if sys.platform.startswith('win'):
-            # dialogs without context help - only close button exists
+            #Display dialog without context help - only close button exists
             self.setWindowFlags(Qt.Drawer)
 
         self.projectPath = ""
@@ -185,12 +195,14 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
         
         self.searchLineEdit.textChanged.connect(self.filterByKeyWord)
 
+        print("Registering")
         self.filterByKeyWord() #TEMP
+        print("Registered")
 
     def filterByKeyWord(self):
         searchText = str(self.searchLineEdit.text())
-        # if not searchText:
-        #     searchText = "tu" #TEMP
+        if not searchText:
+            searchText = "cartesian" #TEMP
         searchText = searchText.strip().lower()
         print("searchText",searchText)
 
@@ -199,37 +211,44 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
         demoList = list(getDemoList())
 
         if searchText:
-            scores = [0] * len(demoList)
-            for i in range(len(scores)):
-                prettyName = formatDemoName(str(demoList[i].stem)).lower()
-                for word in searchText.split():
-                    if word in str(demoList[i]).lower() or word in prettyName:
-                        scores[i] += 2
+            searchKeywords = [w for w in splitByUppercase(searchText)]
+            searchKeywords.extend(searchText.split())
+            #list(dict.fromkeys(mylist))
+            print("searchKeywords ------>",searchKeywords)
 
-                fullPath = rootPath.joinpath(demoList[i])
-                globResult = [fullPath]
-                for fileType in ('*.py', '*.xml'):
-                    globResult.extend(fullPath.parent.rglob(fileType))
+            goodPaths = []
+            for word in searchKeywords:
+                if word in searchIndex:
+                    print("found via searchIndex:",searchIndex[word])
+                    goodPaths.extend(searchIndex[word])
+            print('goodPaths',goodPaths)
+            goodPaths = Counter(goodPaths)
+            scores = dict(goodPaths)
 
-                for filePath in globResult:
-                    scores[i] += scanFileForKeyWords(searchText, filePath)
+            for demoName in demoList:
+                prettyName = formatDemoName(str(demoName.stem)).lower()
+                for word in searchKeywords:
+                    if word in str(demoName).lower() or prettyName.startswith(word):
+                        if demoName in scores:
+                            scores[demoName] += 1
+                        else:
+                            scores[demoName] = 1
                 
-                print("Score",scores[i],"+++++++++++++++++++++++++++++++++++++++")
-
-                print(fullPath.joinpath("Simulation`"))
-                
-            relativePaths = [p for _, p in sorted(zip(scores, demoList), reverse=True)]
-            self.absPaths = [rootPath.joinpath(p) for _, p in sorted(zip(scores, demoList), reverse=True)]
+            print("scores",scores)
         else:
             #Default to alphabetical
             demoNames = [x.stem for x in demoList]
             
+            #FIXME
             relativePaths = [p for _, p in sorted(zip(demoNames, demoList))]
             self.absPaths = [rootPath.joinpath(p) for _, p in sorted(zip(demoNames, demoList))]
 
         #Render the filtered results
         model = QStringListModel()
-        model.setStringList([formatDemoName(item.stem) for item in relativePaths])
+        # model.setStringList([formatDemoName(item.stem) for item in relativePaths])
+        stringModel = [formatDemoName(Path(key).stem) for key, value in scores.items() if value > 0]
+        print(stringModel)
+        model.setStringList(stringModel)
 
         self.demoListView.setModel(model)
         self.model = model
