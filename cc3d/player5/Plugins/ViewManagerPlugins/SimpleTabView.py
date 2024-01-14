@@ -3308,11 +3308,12 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.dlg.fieldComboBox.addItem(field_name)  # this is where we set the combobox of field names in Prefs
 
         allThemeNames = getThemeNames()
-        for themeName in allThemeNames:
+        savedTheme = Configuration.getSetting("ThemeName")
+        for i, themeName in enumerate(allThemeNames):
             self.dlg.themeComboBox.addItem(themeName)
-
-        themeIndex = Configuration.getSetting("ThemeIndex")
-        self.dlg.themeComboBox.setCurrentIndex(themeIndex)
+            if themeName == savedTheme:
+                self.dlg.themeComboBox.setCurrentIndex(i)
+                
 
         # TODO - fix this - figure out if config dialog has configsChanged signal
         # self.connect(dlg, SIGNAL('configsChanged'), self.__configsChanged)

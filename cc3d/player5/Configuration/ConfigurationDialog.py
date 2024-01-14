@@ -739,7 +739,6 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         if str(self.outputLocationLineEdit.text()).rstrip() == '':
             Configuration.setSetting("OutputLocation", os.path.join(os.path.expanduser('~'), 'CC3DWorkspace'))
 
-        Configuration.setSetting("ThemeIndex", self.themeComboBox.currentIndex())
         Configuration.setSetting("ThemeName", self.themeComboBox.currentText())
         publishStylesheet(self.themeComboBox.currentText())
 
