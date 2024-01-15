@@ -1080,7 +1080,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.restore_default_settings_act.triggered.connect(self.restore_default_settings)
         self.restore_default_global_settings_act.triggered.connect(self.restore_default_global_settings)
 
-        self.open_act.triggered.connect(self.__openSim)
+        self.open_act.triggered.connect(self.__openSimDialog)
         self.open_lds_act.triggered.connect(self.__openLDSFile)
 
         # qApp is a member of QtGui. closeAllWindows will cause closeEvent and closeEventSimpleTabView will be called
@@ -2950,12 +2950,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         return param_scan_flag
 
-    def __openSim(self, fileName=None):
+    def __openSimDialog(self):
         """
         This function is called when open file is triggered.
         Displays File open dialog to open new simulation
 
-        :param fileName: str - unused
         :return: None
         """
 
@@ -2990,6 +2989,14 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         self.__sim_file_name = os.path.abspath(str(self.__sim_file_name))
 
+        print('Selected simulation file:', self.__sim_file_name)
+        self.openSim(self.__sim_file_name)
+
+    def openSim(self, fileName=None):
+        print('Opening simulation file:', fileName)
+        
+        self.__sim_file_name = fileName
+
         sim_extension = os.path.splitext(self.__sim_file_name)[1].lower()
         if sim_extension not in ['.cc3d', '.dml', '.zip']:
             print('Not a .cc3d of .dml file. Ignoring ')
@@ -3005,8 +3012,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if self.__sim_file_name is None or str(self.__sim_file_name) == '':
             return
 
-        print('__openSim: self.__fileName=', self.__sim_file_name)
-
         # setting text for main window (self.UI) title bar
         self.set_title_window_from_sim_fname(widget=self.UI, abs_sim_fname=self.__sim_file_name)
 
@@ -3017,6 +3022,9 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # each loaded simulation has to be passed to a function which updates list of recent files
         Configuration.setSetting("RecentSimulations", self.__sim_file_name)
+
+        self.__simulationStop()
+
 
     def __checkCells(self, checked):
         """

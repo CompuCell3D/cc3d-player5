@@ -116,7 +116,7 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
 
     def __init__(self, parent=None):
         super(DemoBrowser, self).__init__(parent)
-        self.stv = weakref.ref(parent)
+        self.simpleTabView = weakref.ref(parent)
         self.model = None
         self.view = None
 
@@ -185,8 +185,10 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
             treeIndex = selected.indexes()[0]
             relPath = self.bestDemoPaths[treeIndex.row()]
             absPath = getDemoRootPath().joinpath(relPath)
+            absPath = str(absPath)
+            
+            if self.simpleTabView():
+                self.simpleTabView().openSim(absPath)
+                self.close()
         except KeyError:
             print("Error: Could not select that demo")
-
-        print("Clicked on ",absPath)
-        
