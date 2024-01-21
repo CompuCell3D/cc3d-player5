@@ -32,7 +32,7 @@ from cc3d.player5.Plugins.ViewManagerPlugins.ScreenshotDescriptionBrowser import
 from cc3d.core.GraphicsUtils.utils import extract_address_int_from_vtk_object
 from cc3d.player5 import Graphics
 from cc3d.core import XMLUtils
-from cc3d.player5.styles.StyleManager import getThemeNames
+from cc3d.player5.styles.StyleManager import get_theme_names
 
 from .PlotManagerSetup import create_plot_manager
 from .PopupWindowManagerSetup import create_popup_window_manager
@@ -3308,12 +3308,16 @@ class SimpleTabView(MainArea, SimpleViewManager):
         for field_name in active_field_names_list:
             self.dlg.fieldComboBox.addItem(field_name)  # this is where we set the combobox of field names in Prefs
 
-        allThemeNames = getThemeNames()
+        allThemeNames = get_theme_names()
+        if not Configuration.check_if_setting_exists("ThemeName"):
+            Configuration.setSetting("ThemeName", "DefaultTheme")
         savedTheme = Configuration.getSetting("ThemeName")
+        
         for i, themeName in enumerate(allThemeNames):
             self.dlg.themeComboBox.addItem(themeName)
             if themeName == savedTheme:
                 self.dlg.themeComboBox.setCurrentIndex(i)
+        self.dlg.enableThemeChanges()
                 
 
         # TODO - fix this - figure out if config dialog has configsChanged signal

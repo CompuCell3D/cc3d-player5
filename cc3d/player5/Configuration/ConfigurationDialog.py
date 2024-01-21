@@ -11,7 +11,7 @@ from cc3d.player5.Utilities.utils import assign_cell_type_colors
 from cc3d.core.GraphicsUtils.MovieCreator import makeMovie
 from cc3d.player5.Plugins.ViewManagerPlugins.MovieMediator import showMovieInFileExplorer
 
-from cc3d.player5.styles.StyleManager import publishStylesheet, subscribeToStylesheet
+from cc3d.player5.styles.StyleManager import publish_style_sheet
 
 import shutil
 
@@ -32,8 +32,6 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         # read params from QSession file
         self.initParams()
 
-        subscribeToStylesheet(self)
-
         # in ui_configurationdlg.Ui_CC3DPrefs
         self.setupUi(self)
 
@@ -48,6 +46,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.tabWidget.currentChanged.connect(self.currentTabChanged)
         comma_separated_list_validator = QRegExpValidator(QRegExp('(\d+)(,\d+)*'))
 
+        self.canChangeTheme = False #wait for SimpleTabView to populate it.
         self.themeComboBox.currentIndexChanged.connect(self.themeComboBoxClicked)
 
         # Output tab
@@ -740,7 +739,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
             Configuration.setSetting("OutputLocation", os.path.join(os.path.expanduser('~'), 'CC3DWorkspace'))
 
         Configuration.setSetting("ThemeName", self.themeComboBox.currentText())
-        publishStylesheet(self.themeComboBox.currentText())
+        publish_style_sheet(self.themeComboBox.currentText())
 
         Configuration.setSetting("OutputToProjectOn", self.outputToProjectCheckBox.isChecked())
         Configuration.setSetting("NumberOfRecentSimulations", self.numberOfRecentSimulationsSB.value())
@@ -801,10 +800,16 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         Configuration.setSetting("RestartOutputFrequency", self.restart_freq_SB.value())
         Configuration.setSetting("RestartAllowMultipleSnapshots", self.multiple_restart_snapshots_CB.isChecked())
 
+    def enableThemeChanges(self):
+        self.canChangeTheme = True
+
     def themeComboBoxClicked(self):
+        if not self.canChangeTheme:
+            return
+
         themeName = self.themeComboBox.currentText()
         Configuration.setSetting("ThemeName", themeName)
-        publishStylesheet(themeName)
+        publish_style_sheet(themeName)
 
 
     def updateUI(self):
