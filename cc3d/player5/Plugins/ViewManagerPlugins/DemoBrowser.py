@@ -2,6 +2,7 @@ import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
+from cc3d.player5 import Configuration
 from cc3d.player5.Plugins.ViewManagerPlugins import ui_demo_browser
 import weakref
 import re
@@ -12,7 +13,7 @@ from cc3d.player5.styles.StyleManager import subscribeToStylesheet
 
 
 def getDemoRootPath():
-    return Path("C:\\Users\\Pete\\Documents\\cc3d\\CompuCell3D\\CompuCell3D\\core\\Demos")
+    return Path(r"C:\Users\Pete\Documents\cc3d\CompuCell3D\CompuCell3D\core\Demos")
 
 def getDemoList():
     rootPath = getDemoRootPath()
@@ -61,7 +62,7 @@ def tokenizeAllFiles(demoAbsPath):
     )
     for fileType, tokenizer in methods:
         for filePath in demoAbsPath.parent.rglob(fileType):
-            with open(filePath) as fp:
+            with open(filePath, "r") as fp:
                 for line in fp.readlines():
                     for word in tokenizer(line):
                         if word:
@@ -104,7 +105,26 @@ def preIndexSearchResults():
                 else:
                     searchIndex[word] = [smallPath]
                 wordsSeen.add(word)
-            
+
+def checkForDemoUpdates():
+    rootPath = getDemoRootPath()
+    lastEditTime = 0
+    for file in rootPath.rglob():
+        if file.lstat().st_mtime > lastEditTime:
+            lastEditTime = file.lstat().st_mtime
+    
+    modified = False
+    if Configuration.check_if_setting_exists("LastDemoEditTime"):
+        if lastEditTime > Configuration.getSetting("LastDemoEditTime"):
+            modified = True
+    else:
+        modified = True
+    
+    if modified:
+        Configuration.setSetting("LastDemoEditTime", lastEditTime)
+    
+    return modified
+
 
 preIndexSearchResults()
 print("Done indexing demos.")
@@ -117,7 +137,6 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
     def __init__(self, parent=None):
         super(DemoBrowser, self).__init__(parent)
         self.simpleTabView = weakref.ref(parent)
-        self.model = None
         self.view = None
 
         if sys.platform.startswith('win'):
@@ -128,8 +147,13 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
 
         subscribeToStylesheet(self)
         self.setupUi(self)
+
+        self.openDemoButton.hide()
+        self.demoTabView.hide()
+        self.selectedDemoNameLabel.hide()
         
         self.searchLineEdit.textChanged.connect(self.filterByKeyWord)
+        self.openDemoButton.clicked.connect(self.openDemo)
 
         self.filterByKeyWord()
 
@@ -176,19 +200,47 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
         model.setStringList(bestDemoNames)
 
         self.demoListView.setModel(model)
-        self.model = model
         self.demoListView.selectionModel().selectionChanged.connect(self.selectDemo)
 
-    
+    def previewFile(self, absPath, globExtension, label):
+        MAX_PREVIEW_BYTES = 16000
+        for filePath in absPath.rglob(globExtension):
+            with open(filePath, "r") as fp:
+                label.setText(fp.read(MAX_PREVIEW_BYTES))
+            return #Only use first glob result
+        #Else...
+        label.setText("This demo doesn't have that kind of file available to preview.")
+
     def selectDemo(self, selected):
         try:
-            treeIndex = selected.indexes()[0]
-            relPath = self.bestDemoPaths[treeIndex.row()]
+            selectedIndex = selected.indexes()[0]
+            relPath = self.bestDemoPaths[selectedIndex.row()]
             absPath = getDemoRootPath().joinpath(relPath)
-            absPath = str(absPath)
-            
-            if self.simpleTabView():
-                self.simpleTabView().openSim(absPath)
-                self.close()
+
+            self.selectedPath = absPath
+
+            parentDir = absPath.parent
+            self.previewFile(parentDir, "*Steppables.py", self.pythonPreviewLabel)
+            self.previewFile(parentDir, "*.xml", self.xmlPreviewLabel)
+
+            self.openDemoButton.show()
+            self.demoTabView.show()
+
+            #itemData is a dictionary (for some reason), and the text is at key 0
+            demoName = self.demoListView.model().itemData(selectedIndex)[0]
+            self.selectedDemoNameLabel.setText(demoName)
+            self.selectedDemoNameLabel.show()
         except KeyError:
             print("Error: Could not select that demo")
+
+    def openDemo(self):
+        #Sanity check. 
+        #The button to trigger this should be invisible anyway.
+        if not self.selectedPath or not self.selectedPath.exists():
+            print("Error: Could not open the demo with path", self.selectedPath)
+            return
+        
+        if self.simpleTabView():
+            self.simpleTabView().openSim(str(self.selectedPath))
+            self.close()
+        

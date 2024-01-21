@@ -45,7 +45,7 @@ QComboBox QAbstractItemView {
     background-color: rgb(37, 37, 37);
 }
 
-QTabWidget::pane {
+QTabWidget::pane, QScrollArea {
     background-color: rgb(42, 42, 42);
     border: none;
     border-radius: 3px;

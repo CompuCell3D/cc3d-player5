@@ -75,6 +75,8 @@ def subscribeToStylesheet(widget):
     ref = weakref.ref(widget)
     subscribers.append(ref)
     
+    if not Configuration.check_if_setting_exists("ThemeName"):
+        Configuration.setSetting("ThemeName", "DefaultTheme")
     widget.setStyleSheet(_getStyleSheet(Configuration.getSetting("ThemeName")))
 
 
