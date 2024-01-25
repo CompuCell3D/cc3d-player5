@@ -120,6 +120,10 @@ QToolTip {
     color: white;
 }
 
+QLabel {
+    background: none;
+}
+
 /*
   All QLine instances must be written here since that tag is broken
 */

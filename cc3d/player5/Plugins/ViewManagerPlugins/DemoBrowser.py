@@ -8,12 +8,15 @@ import weakref
 import re
 from pathlib import Path
 from collections import Counter
-
-from cc3d.player5.styles.StyleManager import subscribeToStylesheet
+from cc3d.player5.styles.SyntaxHighligher import *
 
 
 def getDemoRootPath():
     return Path(r"C:\Users\Pete\Documents\cc3d\CompuCell3D\CompuCell3D\core\Demos")
+    # out = Path(__file__).joinpath('Demos')
+    # print("DEMO ROOT PATH:",out)
+    # exit(0)
+    return out
 
 def getDemoList():
     rootPath = getDemoRootPath()
@@ -106,6 +109,7 @@ def preIndexSearchResults():
                     searchIndex[word] = [smallPath]
                 wordsSeen.add(word)
 
+
 def checkForDemoUpdates():
     rootPath = getDemoRootPath()
     lastEditTime = 0
@@ -145,15 +149,21 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
 
         self.projectPath = ""
 
-        subscribeToStylesheet(self)
         self.setupUi(self)
 
         self.openDemoButton.hide()
         self.demoTabView.hide()
         self.selectedDemoNameLabel.hide()
+        self.noSelectionPlaceholder.show()
         
         self.searchLineEdit.textChanged.connect(self.filterByKeyWord)
         self.openDemoButton.clicked.connect(self.openDemo)
+
+        self.pythonHighlighter = PythonHighlighter(self.plainTextEdit.document())
+
+        self.descriptionLabel.setStyleSheet("QLabel { background-color: rgb(30, 30, 40); }")
+        self.plainTextEdit.setStyleSheet("QPlainTextEdit { background-color: rgb(30, 30, 40); font-family: Courier; }")
+        self.xmlPreviewLabel.setStyleSheet("QLabel { background-color: rgb(30, 30, 40); font-family: Courier; }")
 
         self.filterByKeyWord()
 
@@ -202,14 +212,14 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
         self.demoListView.setModel(model)
         self.demoListView.selectionModel().selectionChanged.connect(self.selectDemo)
 
-    def previewFile(self, absPath, globExtension, label):
+    def getFilePreview(self, parentDir, globExtension) -> str:
         MAX_PREVIEW_BYTES = 16000
-        for filePath in absPath.rglob(globExtension):
+        for filePath in parentDir.rglob(globExtension):
             with open(filePath, "r") as fp:
-                label.setText(fp.read(MAX_PREVIEW_BYTES))
-            return #Only use first glob result
+                #Only use first glob result
+                return fp.read(MAX_PREVIEW_BYTES)
         #Else...
-        label.setText("This demo doesn't have that kind of file available to preview.")
+        return "This demo doesn't have that kind of file available to preview."
 
     def selectDemo(self, selected):
         try:
@@ -220,8 +230,11 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
             self.selectedPath = absPath
 
             parentDir = absPath.parent
-            self.previewFile(parentDir, "*Steppables.py", self.pythonPreviewLabel)
-            self.previewFile(parentDir, "*.xml", self.xmlPreviewLabel)
+
+            self.plainTextEdit.setPlainText(self.getFilePreview(parentDir, "*Steppables.py"))
+            self.pythonHighlighter.highlightBlock(self.plainTextEdit.toPlainText())
+            
+            self.xmlPreviewLabel.setText(self.getFilePreview(parentDir, "*.xml"))
 
             self.openDemoButton.show()
             self.demoTabView.show()
@@ -230,6 +243,8 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
             demoName = self.demoListView.model().itemData(selectedIndex)[0]
             self.selectedDemoNameLabel.setText(demoName)
             self.selectedDemoNameLabel.show()
+
+            self.noSelectionPlaceholder.hide()
         except KeyError:
             print("Error: Could not select that demo")
 
