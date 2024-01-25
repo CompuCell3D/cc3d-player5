@@ -69,10 +69,9 @@ class Ui_demoDialog(object):
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout(self.descriptionTab)
         self.horizontalLayout_4.setContentsMargins(9, 9, 9, 9)
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        self.descriptionLabel = QtWidgets.QLabel(self.descriptionTab)
-        self.descriptionLabel.setAlignment(QtCore.Qt.AlignLeading|QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
-        self.descriptionLabel.setObjectName("descriptionLabel")
-        self.horizontalLayout_4.addWidget(self.descriptionLabel)
+        self.descriptionText = QtWidgets.QPlainTextEdit(self.descriptionTab)
+        self.descriptionText.setObjectName("descriptionText")
+        self.horizontalLayout_4.addWidget(self.descriptionText)
         self.demoTabView.addTab(self.descriptionTab, "")
         self.pythonPreviewTab = QtWidgets.QWidget()
         self.pythonPreviewTab.setObjectName("pythonPreviewTab")
@@ -121,14 +120,14 @@ class Ui_demoDialog(object):
         self.verticalLayout.addLayout(self.horizontalLayout_3)
 
         self.retranslateUi(demoDialog)
-        self.demoTabView.setCurrentIndex(2)
+        self.demoTabView.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(demoDialog)
 
     def retranslateUi(self, demoDialog):
         _translate = QtCore.QCoreApplication.translate
         demoDialog.setWindowTitle(_translate("demoDialog", "Demo Browser"))
         self.searchLineEdit.setPlaceholderText(_translate("demoDialog", "Search..."))
-        self.descriptionLabel.setText(_translate("demoDialog", "We\'re still working on the description for this demo. Thanks for your patience."))
+        self.descriptionText.setPlainText(_translate("demoDialog", "We\'re still working on the description for this demo. Thanks for your patience."))
         self.demoTabView.setTabText(self.demoTabView.indexOf(self.descriptionTab), _translate("demoDialog", "Description"))
         self.pythonPreviewText.setPlainText(_translate("demoDialog", "This demo has no Python Steppables file."))
         self.demoTabView.setTabText(self.demoTabView.indexOf(self.pythonPreviewTab), _translate("demoDialog", "Python"))

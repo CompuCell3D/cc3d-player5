@@ -10,13 +10,33 @@ from pathlib import Path
 from collections import Counter
 from cc3d.player5.styles.SyntaxHighligher import *
 
+MISSING_FILE_MESSAGE = "This demo doesn't have that kind of file available to preview."
+DESCRIPTION_FNAME = 'README.txt'
+
 
 def getDemoRootPath():
-    return Path(r"C:\Users\Pete\Documents\cc3d\CompuCell3D\CompuCell3D\core\Demos")
-    # out = Path(__file__).joinpath('Demos')
-    # print("DEMO ROOT PATH:",out)
-    # exit(0)
-    return out
+    """
+    Credit to https://stackoverflow.com/a/74532549/16519580 user Chris.
+    """
+
+    if Configuration.check_if_setting_exists("DemosPath"):
+        demosPath = Configuration.getSetting("DemosPath")
+        demosPath = Path(demosPath)
+        #Ensure path is not the root dir
+        if len(list(demosPath.parents)) > 1 and demosPath.exists():
+            return demosPath
+
+    #Start at location of python.exe and check in every
+    #parent directory for Demos until we hit the root.
+    startDir = Path(__file__)
+
+    for currPath in [startDir] + list(startDir.parents):
+        demosPath = currPath.joinpath('CompuCell3D/Demos')
+        if demosPath.exists():
+            Configuration.setSetting("DemosPath", str(demosPath))
+            return demosPath
+
+    return None #No demos here!
 
 def getDemoList():
     rootPath = getDemoRootPath()
@@ -62,6 +82,7 @@ def tokenizeAllFiles(demoAbsPath):
     methods = (
         ('*.py', tokenizePython), 
         ('*.xml', tokenizeXml),
+        (DESCRIPTION_FNAME, tokenizeText)
     )
     for fileType, tokenizer in methods:
         for filePath in demoAbsPath.parent.rglob(fileType):
@@ -87,11 +108,19 @@ def tokenizeXml(line):
     for word in re.split('[^a-zA-Z]', line):
         yield word
 
+def tokenizeText(line):
+    for word in re.split('[^a-zA-Z]', line):
+        yield word
 
-searchIndex = {} #maps key words to lists of paths to demos
+
 
 def preIndexSearchResults():
+    """
+    Returns a map of key words to lists of paths to demos.
+    """
     MAX_MATCHES = 7 #how many demos each keyword can map to
+    
+    searchIndex = {}
 
     rootPath = getDemoRootPath()  
     demoList = list(getDemoList())
@@ -108,30 +137,33 @@ def preIndexSearchResults():
                 else:
                     searchIndex[word] = [smallPath]
                 wordsSeen.add(word)
+    return searchIndex
 
 
-def checkForDemoUpdates():
-    rootPath = getDemoRootPath()
-    lastEditTime = 0
-    for file in rootPath.rglob():
-        if file.lstat().st_mtime > lastEditTime:
-            lastEditTime = file.lstat().st_mtime
+"""
+checkForDemoUpdates is unnecessary since we reset
+the search index every time the demo browser is opened.
+However, it would be useful for optimzing the menu in the future
+so that searchIndex can be saved to an external file (e.g. txt or sqlite). 
+"""
+# def checkForDemoUpdates():
+#     rootPath = getDemoRootPath()
+#     lastEditTime = 0
+#     for file in rootPath.rglob():
+#         if file.lstat().st_mtime > lastEditTime:
+#             lastEditTime = file.lstat().st_mtime
     
-    modified = False
-    if Configuration.check_if_setting_exists("LastDemoEditTime"):
-        if lastEditTime > Configuration.getSetting("LastDemoEditTime"):
-            modified = True
-    else:
-        modified = True
+#     modified = False
+#     if Configuration.check_if_setting_exists("LastDemoEditTime"):
+#         if lastEditTime > Configuration.getSetting("LastDemoEditTime"):
+#             modified = True
+#     else:
+#         modified = True
     
-    if modified:
-        Configuration.setSetting("LastDemoEditTime", lastEditTime)
+#     if modified:
+#         Configuration.setSetting("LastDemoEditTime", lastEditTime)
     
-    return modified
-
-
-preIndexSearchResults()
-print("Done indexing demos.")
+#     return modified
 
 
 
@@ -147,7 +179,9 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
             #Display dialog without context help - only close button exists
             self.setWindowFlags(Qt.Drawer)
 
-        self.projectPath = ""
+        if not getDemoRootPath():
+            self.exitWithWarning()
+            return
 
         self.setupUi(self)
 
@@ -161,19 +195,38 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
 
         self.pythonHighlighter = PythonHighlighter(self.pythonPreviewText.document())
 
-        self.descriptionLabel.setStyleSheet("QLabel { background-color: rgb(30, 30, 40); }")
-        self.pythonPreviewText.setStyleSheet("QPlainTextEdit { background-color: rgb(30, 30, 40); font-family: Courier; }")
-        self.xmlPreviewText.setStyleSheet("QPlainTextEdit { background-color: rgb(30, 30, 40); font-family: Courier; }")
+        CODE_STYLES = """
+            QPlainTextEdit { 
+                background-color: rgb(30, 30, 40); 
+                color: white; 
+                font-family: Courier; 
+            }      
+        """
+        self.pythonPreviewText.setStyleSheet(CODE_STYLES)
+        self.xmlPreviewText.setStyleSheet(CODE_STYLES)
+
+        print("Please wait while we scan the demos for key words...")
+        self.searchIndex = preIndexSearchResults()
+        print("Done indexing demos.")
 
         self.filterByKeyWord()
 
+    def exitWithWarning(self):
+        QMessageBox.warning(None, "Warning",
+                        "We could not find any Demos. "
+                        "Please specify the path to the Demos folder in Configuration → Setup.",
+                        QMessageBox.Ok)
+        self.close()
+
     def filterByKeyWord(self):
         searchText = str(self.searchLineEdit.text())
-        # if not searchText:
-        #     searchText = "chemotaxis" #TEMP
         searchText = searchText.strip().lower()
 
         demoList = list(getDemoList())
+
+        if not demoList:
+            self.exitWithWarning()
+            return
 
         if searchText:
             searchKeywords = [w for w in splitByUppercase(searchText)]
@@ -181,8 +234,8 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
 
             keywordMatchPaths = []
             for word in searchKeywords:
-                if word in searchIndex:
-                    keywordMatchPaths.extend(searchIndex[word])
+                if word in self.searchIndex:
+                    keywordMatchPaths.extend(self.searchIndex[word])
             
             keywordMatchPaths = [Path(x) for x in keywordMatchPaths]
             keywordMatchPaths = Counter(keywordMatchPaths)
@@ -202,13 +255,12 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
             #Default to alphabetical
             demoNames = [x.stem for x in demoList]
             self.bestDemoPaths = [p for _, p in sorted(zip(demoNames, demoList))]
-            
 
         #Render the filtered results
         model = QStringListModel()
         bestDemoNames = [formatDemoName(p.stem) for p in self.bestDemoPaths]
-        model.setStringList(bestDemoNames)
 
+        model.setStringList(bestDemoNames)
         self.demoListView.setModel(model)
         self.demoListView.selectionModel().selectionChanged.connect(self.selectDemo)
 
@@ -219,7 +271,7 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
                 #Only use first glob result
                 return fp.read(MAX_PREVIEW_BYTES)
         #Else...
-        return "This demo doesn't have that kind of file available to preview."
+        return MISSING_FILE_MESSAGE
 
     def selectDemo(self, selected):
         try:
@@ -230,6 +282,12 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
             self.selectedPath = absPath
 
             parentDir = absPath.parent
+
+            description = self.getFilePreview(parentDir, DESCRIPTION_FNAME)
+            if description == MISSING_FILE_MESSAGE:
+                self.descriptionText.setPlainText(str(absPath))
+            else:
+                self.descriptionText.setPlainText(str(absPath) + "\n\n" + description)
 
             self.pythonPreviewText.setPlainText(self.getFilePreview(parentDir, "*Steppables.py"))
             self.pythonHighlighter.highlightBlock(self.pythonPreviewText.toPlainText())

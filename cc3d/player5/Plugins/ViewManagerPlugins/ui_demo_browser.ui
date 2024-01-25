@@ -95,7 +95,7 @@
         </sizepolicy>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>2</number>
        </property>
        <widget class="QWidget" name="descriptionTab">
         <attribute name="title">
@@ -115,12 +115,9 @@
           <number>9</number>
          </property>
          <item>
-          <widget class="QLabel" name="descriptionLabel">
-           <property name="text">
-            <string>We're still working on the description for this demo. Thanks for your patience.</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          <widget class="QPlainTextEdit" name="descriptionText">
+           <property name="plainText">
+            <string/>
            </property>
           </widget>
          </item>
@@ -146,7 +143,7 @@
          <item>
           <widget class="QPlainTextEdit" name="pythonPreviewText">
            <property name="plainText">
-            <string>This demo has no Python Steppables file.</string>
+            <string/>
            </property>
           </widget>
          </item>
@@ -175,7 +172,7 @@
          <item>
           <widget class="QPlainTextEdit" name="xmlPreviewText">
            <property name="plainText">
-            <string>This demo has no XML files.</string>
+            <string/>
            </property>
           </widget>
          </item>

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+from pathlib import Path
 from cc3d import CompuCellSetup
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -62,9 +63,6 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
         # Cell Type/Colors tab
         self.typeColorTable.clicked.connect(self.typeColorTableClicked)
-        self.ffmpegLocationLineEdit.textChanged.connect(self.ffmpegLocationLineEditChanged)
-        self.resetFfmpegLocationButton.clicked.connect(self.resetFfmpegLocation)
-
         self.cellBorderColorButton.clicked.connect(self.cellBorderColorClicked)
         self.clusterBorderColorButton.clicked.connect(self.clusterBorderColorClicked)
         self.contourColorButton.clicked.connect(self.contourColorClicked)
@@ -101,6 +99,13 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.boundingBoxColorButton.clicked.connect(self.boundingBoxColorClicked)
 
         # self.axes3DBoxColorButton.clicked.connect(self.axes3DBoxColorClicked)
+        
+        # Setup tab
+        self.ffmpegLocationLineEdit.textChanged.connect(self.ffmpegLocationLineEditChanged)
+        self.resetFfmpegLocationButton.clicked.connect(self.resetFfmpegLocation)
+
+        self.demosLocationLineEdit.textChanged.connect(self.demosLocationLineEditChanged)
+        self.demosLocationButton.clicked.connect(self.chooseDemosLocation)
 
         self.axesColorButton.clicked.connect(self.axesColorClicked)
 
@@ -229,7 +234,8 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.createMovieResultLabel.setVisible(True)
 
     def ffmpegLocationLineEditChanged(self, newText):
-        Configuration.setSetting('FfmpegLocation', newText)
+        if newText and Path(newText).exists:
+            Configuration.setSetting('FfmpegLocation', newText)
 
     def resetFfmpegLocation(self):
         ffmpegLocation = shutil.which("ffmpeg")
@@ -248,6 +254,24 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
                             "Please install FFMPEG or, if you already have it, specify its path manually "
                             "in the FFMPEG Executable box.",
                             QMessageBox.Ok)
+        
+    
+    def chooseDemosLocation(self):
+        currentProjectDir = Configuration.getSetting('OutputLocation')
+        if not currentProjectDir or not os.path.exists(currentProjectDir):
+            currentProjectDir = "/"
+        dirName = QFileDialog.getExistingDirectory(self, "Specify CC3D Demos Directory", currentProjectDir,
+                                                    QFileDialog.ShowDirsOnly)
+        dirName = str(dirName)
+        dirName.rstrip()
+        if dirName == "":
+            return
+        self.demosLocationLineEdit.setText(dirName)
+        Configuration.setSetting("DemosPath", dirName)
+
+    def demosLocationLineEditChanged(self, newText):
+        if newText and Path(newText).exists:
+            Configuration.setSetting("DemosPath", newText)
 
 
     # -------- Cell Type (colors) widgets CBs
@@ -834,10 +858,6 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.useInternalConsoleCheckBox.setChecked(Configuration.getSetting("UseInternalConsole"))
         self.closePlayerCheckBox.setChecked(Configuration.getSetting("ClosePlayerAfterSimulationDone"))
 
-        self.projectLocationLineEdit.setText(str(Configuration.getSetting("ProjectLocation")))
-        self.outputLocationLineEdit.setText(str(Configuration.getSetting("OutputLocation")))
-        self.outputToProjectCheckBox.setChecked(Configuration.getSetting("OutputToProjectOn"))
-
         self.log_level_combo.setCurrentText(str(Configuration.getSetting("LogLevel"))[len("LOG_"):])
         self.write_log_CB.setChecked(Configuration.getSetting("LogToFile"))
 
@@ -966,6 +986,12 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
         self.axesColorButton.setIconSize(pm_axes.size())
         self.axesColorButton.setIcon(QIcon(pm_axes))
+
+        # Setup section
+        self.projectLocationLineEdit.setText(str(Configuration.getSetting("ProjectLocation")))
+        self.outputLocationLineEdit.setText(str(Configuration.getSetting("OutputLocation")))
+        self.outputToProjectCheckBox.setChecked(Configuration.getSetting("OutputToProjectOn"))
+        self.demosLocationLineEdit.setText(str(Configuration.getSetting("DemosPath")))
 
         # restart section
         enable_restart = Configuration.getSetting("RestartOutputEnable")
