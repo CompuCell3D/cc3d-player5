@@ -159,11 +159,11 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
         self.searchLineEdit.textChanged.connect(self.filterByKeyWord)
         self.openDemoButton.clicked.connect(self.openDemo)
 
-        self.pythonHighlighter = PythonHighlighter(self.plainTextEdit.document())
+        self.pythonHighlighter = PythonHighlighter(self.pythonPreviewText.document())
 
         self.descriptionLabel.setStyleSheet("QLabel { background-color: rgb(30, 30, 40); }")
-        self.plainTextEdit.setStyleSheet("QPlainTextEdit { background-color: rgb(30, 30, 40); font-family: Courier; }")
-        self.xmlPreviewLabel.setStyleSheet("QLabel { background-color: rgb(30, 30, 40); font-family: Courier; }")
+        self.pythonPreviewText.setStyleSheet("QPlainTextEdit { background-color: rgb(30, 30, 40); font-family: Courier; }")
+        self.xmlPreviewText.setStyleSheet("QPlainTextEdit { background-color: rgb(30, 30, 40); font-family: Courier; }")
 
         self.filterByKeyWord()
 
@@ -231,10 +231,10 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
 
             parentDir = absPath.parent
 
-            self.plainTextEdit.setPlainText(self.getFilePreview(parentDir, "*Steppables.py"))
-            self.pythonHighlighter.highlightBlock(self.plainTextEdit.toPlainText())
+            self.pythonPreviewText.setPlainText(self.getFilePreview(parentDir, "*Steppables.py"))
+            self.pythonHighlighter.highlightBlock(self.pythonPreviewText.toPlainText())
             
-            self.xmlPreviewLabel.setText(self.getFilePreview(parentDir, "*.xml"))
+            self.xmlPreviewText.setPlainText(self.getFilePreview(parentDir, "*.xml"))
 
             self.openDemoButton.show()
             self.demoTabView.show()

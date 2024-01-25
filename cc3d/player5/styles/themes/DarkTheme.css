@@ -120,13 +120,13 @@ QToolTip {
     color: white;
 }
 
-QLabel {
-    background: none;
-}
-
 /*
   All QLine instances must be written here since that tag is broken
 */
 #line_1, #line_2, #line_3, #line_4, #line_5, #line_6 {
     background-color: rgb(104, 104, 104);
+}
+
+#selectedDemoNameLabel {
+    background: none;
 }

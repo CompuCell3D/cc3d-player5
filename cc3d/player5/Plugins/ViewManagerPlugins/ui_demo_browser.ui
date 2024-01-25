@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>541</width>
-    <height>424</height>
+    <width>716</width>
+    <height>494</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -48,8 +48,8 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>505</width>
-          <height>70</height>
+          <width>694</width>
+          <height>109</height>
          </rect>
         </property>
         <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -87,18 +87,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QLabel" name="selectedDemoNameLabel">
-       <property name="font">
-        <font>
-         <pointsize>11</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QTabWidget" name="demoTabView">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -113,166 +101,85 @@
         <attribute name="title">
          <string>Description</string>
         </attribute>
-        <widget class="QScrollArea" name="scrollArea1">
-         <property name="geometry">
-          <rect>
-           <x>8</x>
-           <y>5</y>
-           <width>501</width>
-           <height>191</height>
-          </rect>
+        <layout class="QHBoxLayout" name="horizontalLayout_4">
+         <property name="leftMargin">
+          <number>9</number>
          </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>10</horstretch>
-           <verstretch>10</verstretch>
-          </sizepolicy>
+         <property name="topMargin">
+          <number>9</number>
          </property>
-         <property name="widgetResizable">
-          <bool>true</bool>
+         <property name="rightMargin">
+          <number>9</number>
          </property>
-         <widget class="QWidget" name="scrollAreaWidgetContents_4">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>499</width>
-            <height>189</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout">
-           <item>
-            <widget class="QLabel" name="descriptionLabel">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>We're still working on the description for this demo. Thanks for your patience.</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </widget>
+         <property name="bottomMargin">
+          <number>9</number>
+         </property>
+         <item>
+          <widget class="QLabel" name="descriptionLabel">
+           <property name="text">
+            <string>We're still working on the description for this demo. Thanks for your patience.</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
        <widget class="QWidget" name="pythonPreviewTab">
         <attribute name="title">
          <string>Python</string>
         </attribute>
-        <widget class="QScrollArea" name="scrollArea2">
-         <property name="geometry">
-          <rect>
-           <x>8</x>
-           <y>5</y>
-           <width>501</width>
-           <height>191</height>
-          </rect>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+         <property name="leftMargin">
+          <number>9</number>
          </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>10</horstretch>
-           <verstretch>10</verstretch>
-          </sizepolicy>
+         <property name="topMargin">
+          <number>9</number>
          </property>
-         <property name="widgetResizable">
-          <bool>true</bool>
+         <property name="rightMargin">
+          <number>9</number>
          </property>
-         <widget class="QWidget" name="scrollAreaWidgetContents_2">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>499</width>
-            <height>189</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout">
-           <item>
-            <widget class="QPlainTextEdit" name="plainTextEdit">
-             <property name="plainText">
-              <string>This demo has no Python Steppables file.</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </widget>
+         <property name="bottomMargin">
+          <number>9</number>
+         </property>
+         <item>
+          <widget class="QPlainTextEdit" name="pythonPreviewText">
+           <property name="plainText">
+            <string>This demo has no Python Steppables file.</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
        <widget class="QWidget" name="xmlPreviewTab">
         <attribute name="title">
          <string>XML</string>
         </attribute>
-        <widget class="QScrollArea" name="scrollArea3">
-         <property name="geometry">
-          <rect>
-           <x>0</x>
-           <y>0</y>
-           <width>501</width>
-           <height>191</height>
-          </rect>
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <property name="spacing">
+          <number>6</number>
          </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-           <horstretch>10</horstretch>
-           <verstretch>10</verstretch>
-          </sizepolicy>
+         <property name="leftMargin">
+          <number>9</number>
          </property>
-         <property name="widgetResizable">
-          <bool>true</bool>
+         <property name="topMargin">
+          <number>9</number>
          </property>
-         <widget class="QWidget" name="scrollAreaWidgetContents_3">
-          <property name="geometry">
-           <rect>
-            <x>0</x>
-            <y>0</y>
-            <width>499</width>
-            <height>189</height>
-           </rect>
-          </property>
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <layout class="QHBoxLayout" name="horizontalLayout">
-           <item>
-            <widget class="QLabel" name="xmlPreviewLabel">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>This demo has no XML files.</string>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </widget>
+         <property name="rightMargin">
+          <number>9</number>
+         </property>
+         <property name="bottomMargin">
+          <number>9</number>
+         </property>
+         <item>
+          <widget class="QPlainTextEdit" name="xmlPreviewText">
+           <property name="plainText">
+            <string>This demo has no XML files.</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </widget>
      </item>
@@ -305,6 +212,18 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QLabel" name="selectedDemoNameLabel">
+       <property name="font">
+        <font>
+         <pointsize>11</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
