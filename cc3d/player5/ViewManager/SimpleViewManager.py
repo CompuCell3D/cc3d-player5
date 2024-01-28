@@ -655,8 +655,9 @@ class SimpleViewManager(QObject):
             for whats_new_item in whats_new_list:
                 message += '<p> * ' + whats_new_item + '</p>'
             message += '</br></br>'  # adding new lines
-            message += '<p>When you click <b>YES</b> Player will close and update console will pop up. ' \
-                       'Please follow instructions on the pop up screen </p>'
+
+            # message += '<p>When you click <b>YES</b> Player will close and update console will pop up. ' \
+            #            'Please follow instructions on the pop up screen </p>'
 
         if display_new_version_info:
             if encourage_update:

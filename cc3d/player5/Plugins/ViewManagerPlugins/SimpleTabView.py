@@ -32,7 +32,7 @@ from cc3d.player5.Plugins.ViewManagerPlugins.ScreenshotDescriptionBrowser import
 from cc3d.core.GraphicsUtils.utils import extract_address_int_from_vtk_object
 from cc3d.player5 import Graphics
 from cc3d.core import XMLUtils
-from cc3d.player5.styles.StyleManager import getThemeNames
+from cc3d.player5.styles.StyleManager import get_theme_names
 
 from .PlotManagerSetup import create_plot_manager
 from .PopupWindowManagerSetup import create_popup_window_manager
@@ -1080,7 +1080,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.restore_default_settings_act.triggered.connect(self.restore_default_settings)
         self.restore_default_global_settings_act.triggered.connect(self.restore_default_global_settings)
 
-        self.open_act.triggered.connect(self.__openSimDialog)
+        self.open_act.triggered.connect(self.__openSim)
         self.open_lds_act.triggered.connect(self.__openLDSFile)
 
         # qApp is a member of QtGui. closeAllWindows will cause closeEvent and closeEventSimpleTabView will be called
@@ -1364,6 +1364,15 @@ class SimpleTabView(MainArea, SimpleViewManager):
         else:
             self.latticeType = Configuration.LATTICE_TYPES["Square"]  # default choice
 
+        # initializes cell type data
+        self.ui.cell_type_color_map_model.read_cell_type_color_data()
+        self.ui.cell_type_color_map_model.set_view_manager(vm=self)
+
+        self.ui.cell_type_color_map_view.setModel(self.ui.cell_type_color_map_model)
+        # update_content function gets called each time configsChanged signal gets emitted and we
+        # reread entire cell type information at this point - effectively updating cell type color map display
+        self.configsChanged.connect(self.ui.cell_type_color_map_view.update_content)
+
         self.prepareSimulationView()
 
         self.screenshotManager = ScreenshotManager.ScreenshotManager(self)
@@ -1603,14 +1612,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         if not self.completedFirstMCS:
             self.completedFirstMCS = True
-            # initializes cell type data
-            self.ui.cell_type_color_map_model.read_cell_type_color_data()
-            self.ui.cell_type_color_map_model.set_view_manager(vm=self)
-
-            self.ui.cell_type_color_map_view.setModel(self.ui.cell_type_color_map_model)
-            # update_content function gets called each time configsChanged signal gets emitted and we
-            # reread entire cell type information at this point - effectively updating cell type color map display
-            self.configsChanged.connect(self.ui.cell_type_color_map_view.update_content)
 
         self.__step = mcs
 
@@ -2950,11 +2951,12 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         return param_scan_flag
 
-    def __openSimDialog(self):
+    def __openSim(self, fileName=None):
         """
         This function is called when open file is triggered.
         Displays File open dialog to open new simulation
 
+        :param fileName: str - unused
         :return: None
         """
 
@@ -2989,14 +2991,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         self.__sim_file_name = os.path.abspath(str(self.__sim_file_name))
 
-        print('Selected simulation file:', self.__sim_file_name)
-        self.openSim(self.__sim_file_name)
-
-    def openSim(self, fileName=None):
-        print('Opening simulation file:', fileName)
-        
-        self.__sim_file_name = fileName
-
         sim_extension = os.path.splitext(self.__sim_file_name)[1].lower()
         if sim_extension not in ['.cc3d', '.dml', '.zip']:
             print('Not a .cc3d of .dml file. Ignoring ')
@@ -3012,6 +3006,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if self.__sim_file_name is None or str(self.__sim_file_name) == '':
             return
 
+        print('__openSim: self.__fileName=', self.__sim_file_name)
+
         # setting text for main window (self.UI) title bar
         self.set_title_window_from_sim_fname(widget=self.UI, abs_sim_fname=self.__sim_file_name)
 
@@ -3022,9 +3018,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # each loaded simulation has to be passed to a function which updates list of recent files
         Configuration.setSetting("RecentSimulations", self.__sim_file_name)
-
-        self.__simulationStop()
-
 
     def __checkCells(self, checked):
         """
@@ -3315,14 +3308,17 @@ class SimpleTabView(MainArea, SimpleViewManager):
         for field_name in active_field_names_list:
             self.dlg.fieldComboBox.addItem(field_name)  # this is where we set the combobox of field names in Prefs
 
-        allThemeNames = getThemeNames()
+        allThemeNames = get_theme_names()
         if not Configuration.check_if_setting_exists("ThemeName"):
             Configuration.setSetting("ThemeName", "DefaultTheme")
         savedTheme = Configuration.getSetting("ThemeName")
+        
         for i, themeName in enumerate(allThemeNames):
             self.dlg.themeComboBox.addItem(themeName)
             if themeName == savedTheme:
                 self.dlg.themeComboBox.setCurrentIndex(i)
+        self.dlg.enableThemeChanges()
+                
 
         # TODO - fix this - figure out if config dialog has configsChanged signal
         # self.connect(dlg, SIGNAL('configsChanged'), self.__configsChanged)

@@ -1,3 +1,75 @@
+/*//////////////////////////////*/
+/* SHARED CSS AMONG ALL THEMES */
+/*//////////////////////////////*/
+
+QSpinBox {
+    border: 1px solid #ccc;
+    border-radius: 1px;
+    padding: 1px;
+}
+
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 16px;
+    height: 12px;
+    subcontrol-origin: padding;
+    /*subcontrol-position: center right;*/
+}
+/*QSpinBox::up-arrow {*/
+/*    !*image: url(icon://angle-up-solid.svg);*!*/
+/*    image: url(icon:/angle_up_icon.png);*/
+/*}*/
+
+/*QSpinBox::down-arrow {*/
+/*    !*image: url(icon://angle-up-solid.svg);*!*/
+/*    image: url(icon:/angle_down_icon.png);*/
+/*}*/
+
+/*QSpinBox {*/
+/*    border: 1px solid #ccc;*/
+/*    border-radius: 3px;*/
+/*    padding: 2px;*/
+/*}*/
+/*QSpinBox::up-button, QSpinBox::down-button {*/
+/*    width: 16px;*/
+/*    height: 16px;*/
+/*    subcontrol-origin: padding;*/
+/*    subcontrol-position: center right;*/
+/*}*/
+/*QSpinBox::up-arrow {*/
+/*    image: url(icon://angle-up-solid.svg);*/
+/*}*/
+
+/*QSpinBox::down-arrow {*/
+/*    image: url(icon://angle-down-solid.svg);*/
+/*}*/
+
+
+
+QPushButton {
+    text-align: left;
+    border: none;
+    padding:  4px 12px 4px 12px;
+    border-radius: 6px;
+}
+
+QSpinBox, QLineEdit {
+    border-radius: 3px;
+}
+
+QTabBar::tab {
+    padding: 4px;
+    border-radius: 2px;
+}
+
+QTabBar::tab:selected {
+    margin-bottom: -1px;
+    margin-top: 1px;
+}
+
+/*//////////////////////////////*/
+/* DARK THEME STARTS HERE */
+/*//////////////////////////////*/
+
 * {
     font-family: Verdana;
     color: white;
