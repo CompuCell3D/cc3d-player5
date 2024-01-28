@@ -32,6 +32,8 @@ from cc3d.player5.Plugins.ViewManagerPlugins.ScreenshotDescriptionBrowser import
 from cc3d.core.GraphicsUtils.utils import extract_address_int_from_vtk_object
 from cc3d.player5 import Graphics
 from cc3d.core import XMLUtils
+from cc3d.player5.styles.StyleManager import get_theme_names
+
 from .PlotManagerSetup import create_plot_manager
 from .PopupWindowManagerSetup import create_popup_window_manager
 from .WidgetManager import WidgetManager
@@ -3306,6 +3308,18 @@ class SimpleTabView(MainArea, SimpleViewManager):
         for field_name in active_field_names_list:
             self.dlg.fieldComboBox.addItem(field_name)  # this is where we set the combobox of field names in Prefs
 
+        allThemeNames = get_theme_names()
+        if not Configuration.check_if_setting_exists("ThemeName"):
+            Configuration.setSetting("ThemeName", "DefaultTheme")
+        savedTheme = Configuration.getSetting("ThemeName")
+        
+        for i, themeName in enumerate(allThemeNames):
+            self.dlg.themeComboBox.addItem(themeName)
+            if themeName == savedTheme:
+                self.dlg.themeComboBox.setCurrentIndex(i)
+        self.dlg.enableThemeChanges()
+                
+
         # TODO - fix this - figure out if config dialog has configsChanged signal
         # self.connect(dlg, SIGNAL('configsChanged'), self.__configsChanged)
         # dlg.configsChanged.connect(self.__configsChanged)
@@ -3468,15 +3482,13 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         self.__statusBar = self.UI.statusBar()
         self.mcSteps = QLabel()
-        self.mcSteps.setStyleSheet("QLabel { background-color : white; color : red; }")
+        self.mcSteps.setStyleSheet("QLabel { color : red; }")
 
         self.conSteps = QLabel()
-        self.conSteps.setAutoFillBackground(True)
-        self.conSteps.setStyleSheet("QLabel { background-color : white; color : blue; }")
+        self.conSteps.setStyleSheet("QLabel { color : blue; }")
 
         self.warnings = QLabel()
-        self.warnings.setAutoFillBackground(True)
-        self.warnings.setStyleSheet("QLabel { background-color : white; color : red; }")
+        self.warnings.setStyleSheet("QLabel { color : red; }")
 
         self.__statusBar.addWidget(self.mcSteps)
         self.__statusBar.addWidget(self.conSteps)

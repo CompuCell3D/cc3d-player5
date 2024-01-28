@@ -1,0 +1,200 @@
+/*//////////////////////////////*/
+/* SHARED CSS AMONG ALL THEMES */
+/*//////////////////////////////*/
+
+QSpinBox {
+    border: 1px solid #ccc;
+    border-radius: 1px;
+    padding: 1px;
+}
+
+QSpinBox::up-button, QSpinBox::down-button {
+    width: 16px;
+    height: 12px;
+    subcontrol-origin: padding;
+    /*subcontrol-position: center right;*/
+}
+/*QSpinBox::up-arrow {*/
+/*    !*image: url(icon://angle-up-solid.svg);*!*/
+/*    image: url(icon:/angle_up_icon.png);*/
+/*}*/
+
+/*QSpinBox::down-arrow {*/
+/*    !*image: url(icon://angle-up-solid.svg);*!*/
+/*    image: url(icon:/angle_down_icon.png);*/
+/*}*/
+
+/*QSpinBox {*/
+/*    border: 1px solid #ccc;*/
+/*    border-radius: 3px;*/
+/*    padding: 2px;*/
+/*}*/
+/*QSpinBox::up-button, QSpinBox::down-button {*/
+/*    width: 16px;*/
+/*    height: 16px;*/
+/*    subcontrol-origin: padding;*/
+/*    subcontrol-position: center right;*/
+/*}*/
+/*QSpinBox::up-arrow {*/
+/*    image: url(icon://angle-up-solid.svg);*/
+/*}*/
+
+/*QSpinBox::down-arrow {*/
+/*    image: url(icon://angle-down-solid.svg);*/
+/*}*/
+
+
+
+QPushButton {
+    text-align: left;
+    border: none;
+    padding:  4px 12px 4px 12px;
+    border-radius: 6px;
+}
+
+QSpinBox, QLineEdit {
+    border-radius: 3px;
+}
+
+QTabBar::tab {
+    padding: 4px;
+    border-radius: 2px;
+}
+
+QTabBar::tab:selected {
+    margin-bottom: -1px;
+    margin-top: 1px;
+}
+
+/*//////////////////////////////*/
+/* DARK THEME STARTS HERE */
+/*//////////////////////////////*/
+
+* {
+    font-family: Verdana;
+    color: white;
+}
+
+QDialog {
+    background-color: rgb(17, 17, 17);
+}
+
+QPushButton {
+    text-align: left;
+    border: none;
+    padding:  4px 12px 4px 12px;
+    border-radius: 6px;
+    color: rgb(255, 255, 255);
+    background-color: rgb(46, 90, 101);
+}
+
+QPushButton:disabled, QLineEdit:disabled, QSpinBox:disabled {
+    /*Make semi-transparent and grayed out*/
+    background-color: rgba(255, 255, 255, 100);
+    color: rgba(255, 255, 255, 150);
+}
+
+QSpinBox, QLineEdit, QComboBox, QPlainTextEdit {
+    border-radius: 3px;
+    border: 1px solid rgb(170, 170, 170);
+    color: rgb(255, 255, 255);
+    background-color: rgb(37, 37, 37);
+}
+
+QTableWidget {
+    border-radius: 3px;
+    border: 1px solid rgb(170, 170, 170);
+}
+QHeaderView::section, QTableCornerButton::section { /* Table header */
+    border-radius: 0px;
+    border: 1px solid rgb(70, 70, 70);
+    color: rgb(255, 255, 255);
+    background-color: rgb(7, 7, 7);
+}
+
+QComboBox QAbstractItemView {
+    color: rgb(255, 255, 255);
+    background-color: rgb(37, 37, 37);
+}
+
+QTabWidget::pane {
+    background-color: rgb(42, 42, 42);
+    border: none;
+    border-radius: 3px;
+}
+
+QMainWindow, QApplication, QCoreApplication, QGraphicsFrame {
+    background-color: rgb(44, 44, 44);
+    border: 1px solid rgb(64, 64, 64);
+    border-radius: 2px;
+}
+
+
+QFrame { /*Applies to QDockWidget center area*/
+    background-color: rgb(44, 44, 44);
+}
+QDockWidget::title {
+    background-color: rgb(17, 17, 17);
+    color: white;
+}
+QDockWidget::close-button, QDockWidget::float-button {
+    background-color: rgb(17, 17, 17);
+    color: white;
+}
+QDockWidget::close-button:selected, QDockWidget::float-button:selected {
+    background: rgb(64, 64, 64);;
+}
+QDockWidget::close-button:pressed, QDockWidget::float-button:pressed {
+    padding: 1px -1px -1px 1px;
+}
+
+
+QMenu, QToolBar, QMenuBar {
+    background-color: rgb(24, 24, 24);
+    border: none;
+}
+QMenuBar::item {
+    color: rgb(255, 255, 255);
+    background-color: rgb(44, 44, 44);
+}
+QMenu::item {
+    color: rgb(255, 255, 255);
+    background-color: none;
+}
+QMenuBar::item:selected:enabled, QMenu::item:selected:enabled {
+    color: rgb(0, 0, 0);;
+    background-color: rgb(116, 195, 207);
+}
+QMenuBar::item:disabled, QMenu::item:disabled {
+    color: rgba(255, 255, 255, 150);
+}
+QMenuBar::item:selected:disabled, QMenu::item:selected:disabled {
+    color: rgba(255, 255, 255, 170);
+}
+
+QTabBar::tab {
+    color: white;
+    background-color: rgb(54, 54, 54);
+    border: 1px solid rgb(74, 74, 74);
+    padding: 4px;
+    border-radius: 2px;
+}
+
+QTabBar::tab:selected {
+    color: black;
+    background-color: rgb(116, 195, 207);
+}
+
+QToolTip {
+    background-color: rgb(104, 104, 104);
+    border: 1px solid rgb(84, 84, 84);
+    border-radius: 2px;
+    color: white;
+}
+
+/*
+  All QLine instances must be written here since that tag is broken
+*/
+#line_1, #line_2, #line_3, #line_4, #line_5, #line_6 {
+    background-color: rgb(104, 104, 104);
+}
