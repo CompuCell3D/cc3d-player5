@@ -9,9 +9,6 @@ from os import environ
 import sys
 from pathlib import Path
 
-import cc3d.player5.Configuration as Configuration
-from cc3d.player5.styles.StyleManager import subscribeToStylesheet
-
 
 from . import ui_param_scan_dialog
 
@@ -26,7 +23,6 @@ class ParamScanDialog(QDialog, ui_param_scan_dialog.Ui_ParamScanDialog):
         QDialog.__init__(self, parent)
         self.setModal(modal)
 
-        subscribeToStylesheet(self)
         self.setupUi(self)  # in ui_configurationdlg.Ui_CC3DPrefs
 
         self.browse_output_dir_PB.clicked.connect(self.select_output_dir)

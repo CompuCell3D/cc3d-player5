@@ -4,6 +4,7 @@ import sys
 # from PyQt5.QtCore import QEvent, Qt
 from PyQt5.QtWidgets import QApplication
 
+
 class CQApplication(QApplication):
     def __init__(self, argv):
         """

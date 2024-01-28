@@ -70,6 +70,7 @@ class Ui_demoDialog(object):
         self.horizontalLayout_4.setContentsMargins(9, 9, 9, 9)
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
         self.descriptionText = QtWidgets.QPlainTextEdit(self.descriptionTab)
+        self.descriptionText.setPlainText("")
         self.descriptionText.setObjectName("descriptionText")
         self.horizontalLayout_4.addWidget(self.descriptionText)
         self.demoTabView.addTab(self.descriptionTab, "")
@@ -79,6 +80,7 @@ class Ui_demoDialog(object):
         self.horizontalLayout_5.setContentsMargins(9, 9, 9, 9)
         self.horizontalLayout_5.setObjectName("horizontalLayout_5")
         self.pythonPreviewText = QtWidgets.QPlainTextEdit(self.pythonPreviewTab)
+        self.pythonPreviewText.setPlainText("")
         self.pythonPreviewText.setObjectName("pythonPreviewText")
         self.horizontalLayout_5.addWidget(self.pythonPreviewText)
         self.demoTabView.addTab(self.pythonPreviewTab, "")
@@ -89,6 +91,7 @@ class Ui_demoDialog(object):
         self.horizontalLayout_6.setSpacing(6)
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
         self.xmlPreviewText = QtWidgets.QPlainTextEdit(self.xmlPreviewTab)
+        self.xmlPreviewText.setPlainText("")
         self.xmlPreviewText.setObjectName("xmlPreviewText")
         self.horizontalLayout_6.addWidget(self.xmlPreviewText)
         self.demoTabView.addTab(self.xmlPreviewTab, "")
@@ -120,17 +123,14 @@ class Ui_demoDialog(object):
         self.verticalLayout.addLayout(self.horizontalLayout_3)
 
         self.retranslateUi(demoDialog)
-        self.demoTabView.setCurrentIndex(0)
+        self.demoTabView.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(demoDialog)
 
     def retranslateUi(self, demoDialog):
         _translate = QtCore.QCoreApplication.translate
         demoDialog.setWindowTitle(_translate("demoDialog", "Demo Browser"))
         self.searchLineEdit.setPlaceholderText(_translate("demoDialog", "Search..."))
-        self.descriptionText.setPlainText(_translate("demoDialog", "We\'re still working on the description for this demo. Thanks for your patience."))
         self.demoTabView.setTabText(self.demoTabView.indexOf(self.descriptionTab), _translate("demoDialog", "Description"))
-        self.pythonPreviewText.setPlainText(_translate("demoDialog", "This demo has no Python Steppables file."))
         self.demoTabView.setTabText(self.demoTabView.indexOf(self.pythonPreviewTab), _translate("demoDialog", "Python"))
-        self.xmlPreviewText.setPlainText(_translate("demoDialog", "This demo has no XML files."))
         self.demoTabView.setTabText(self.demoTabView.indexOf(self.xmlPreviewTab), _translate("demoDialog", "XML"))
         self.openDemoButton.setText(_translate("demoDialog", "Open this demo"))
