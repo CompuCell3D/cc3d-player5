@@ -300,24 +300,23 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
             keywordMatchPaths = Counter(keywordMatchPaths)
             scores = dict(keywordMatchPaths)
 
+            #Promote demos in the search results 
+            #if a search key word partially matches one of 
+            #the key words associated with that demo.
             for keyWord in self.searchIndex.keys():
                 for searchWord in searchKeywords:
-                    if searchWord in keyWord or keyWord in searchWord:
+                    if keyWord.startswith(searchWord):
                         for demoPath in self.searchIndex[keyWord]:
                             demoPath = Path(demoPath)
-                            if demoPath in scores:
-                                scores[demoPath] += 1
-                            else:
-                                scores[demoPath] = 1
+                            scores[demoPath] = scores.get(demoPath, 0) + 1
 
+            #Promote demos in the search results 
+            #if their name matches a search key word
             for demoPath in demoList:
                 prettyName = formatDemoName(str(demoPath.stem)).lower()
                 for word in searchKeywords:
                     if word in str(demoPath).lower() or prettyName.startswith(word):
-                        if demoPath in scores:
-                            scores[demoPath] += 1
-                        else:
-                            scores[demoPath] = 1
+                        scores[demoPath] = scores.get(demoPath, 0) + 1
             
             self.bestDemoPaths = sorted(scores, key=scores.get, reverse=True)
         else:
