@@ -6,15 +6,18 @@ from cc3d.player5 import Configuration
 from cc3d.player5.Plugins.ViewManagerPlugins import ui_demo_browser
 import weakref
 import re
+import time
 from pathlib import Path
 from collections import Counter
 from cc3d.player5.styles.SyntaxHighligher import *
 
 MISSING_FILE_MESSAGE = "This demo doesn't have that kind of file available to preview."
 DESCRIPTION_FNAME = 'README.txt'
+INDEX_FILE_NAME = '.demoindex'
+DELIMITER = ','
 
 
-def getDemoRootPath():
+def getDemoRootPath() -> Path | None:
     """
     Credit to https://stackoverflow.com/a/74532549/16519580 user Chris.
     """
@@ -38,14 +41,14 @@ def getDemoRootPath():
 
     return None #No demos here!
 
-def getDemoList():
+def getDemoList() -> list[Path]:
     rootPath = getDemoRootPath()
     globResults = rootPath.rglob('*.cc3d')
     globResults = [p.relative_to(rootPath) for p in globResults]
 
     return globResults
 
-def formatDemoName(name):
+def formatDemoName(name) -> str:
     outStr = name[0].upper()
     prev = 'A'
     i = 1
@@ -96,6 +99,10 @@ def tokenizeAllFiles(demoAbsPath):
 
 
 def tokenizePython(line):
+    """
+    Generates each variable or method name from a line of Python code.
+    It is not perfect. 
+    """
     for word in line.split():
         if "." in word:
             word = re.sub('[^a-zA-Z \n\.]', '.', word) #Remove numbers and special chars
@@ -103,6 +110,10 @@ def tokenizePython(line):
                 yield varName
 
 def tokenizeXml(line):
+    """
+    Generates all the key words (XML tag names and parameter names) 
+    from a line of XML. 
+    """
     if "!--" in line: #exclude comments, even if they have useful tags
         return
     for word in re.split('[^a-zA-Z]', line):
@@ -116,7 +127,8 @@ def tokenizeText(line):
 
 def preIndexSearchResults():
     """
-    Returns a map of key words to lists of paths to demos.
+    Creates and returns a map of key words to lists of paths to demos.
+    Each path is an absolute path and a string.
     """
     MAX_MATCHES = 7 #how many demos each keyword can map to
     
@@ -139,32 +151,81 @@ def preIndexSearchResults():
                 wordsSeen.add(word)
     return searchIndex
 
+def checkForDemoUpdates():
+    """
+    Returns true if any demo has been modified or created
+    since the last time we indexed them.
+    Returns false if everything is up-to-date.
+    """
+    rootPath = getDemoRootPath()
+    lastEditTime = 0
+    for file in rootPath.rglob('*'):
+        if file.lstat().st_mtime > lastEditTime:
+            lastEditTime = file.lstat().st_mtime
+    
+    modified = False
+    if Configuration.check_if_setting_exists("LastDemoEditTime"):
+        if lastEditTime > Configuration.getSetting("LastDemoEditTime"):
+            modified = True
+    else:
+        modified = True
+    
+    if modified:
+        Configuration.setSetting("LastDemoEditTime", lastEditTime)
+    
+    return modified
 
-"""
-checkForDemoUpdates is unnecessary since we reset
-the search index every time the demo browser is opened.
-However, it would be useful for optimzing the menu in the future
-so that searchIndex can be saved to an external file (e.g. txt or sqlite). 
-"""
-# def checkForDemoUpdates():
-#     rootPath = getDemoRootPath()
-#     lastEditTime = 0
-#     for file in rootPath.rglob():
-#         if file.lstat().st_mtime > lastEditTime:
-#             lastEditTime = file.lstat().st_mtime
-    
-#     modified = False
-#     if Configuration.check_if_setting_exists("LastDemoEditTime"):
-#         if lastEditTime > Configuration.getSetting("LastDemoEditTime"):
-#             modified = True
-#     else:
-#         modified = True
-    
-#     if modified:
-#         Configuration.setSetting("LastDemoEditTime", lastEditTime)
-    
-#     return modified
+def loadSearchIndex():
+    rootPath = getDemoRootPath()
+    indexFilePath = rootPath.joinpath(INDEX_FILE_NAME)
 
+    searchIndex = {}
+    with open(indexFilePath, "r") as fp:
+        for line in fp.readlines():
+            parsed = line.split(DELIMITER)
+            if len(parsed) >= 2:
+                keyWord = parsed[0]
+                paths = parsed[1:]
+                
+                #Ensure the paths still exist, but keep them as string type
+                paths = [p for p in paths if rootPath.joinpath(Path(p)).exists()]
+
+                if paths:
+                    searchIndex[keyWord] = paths
+
+    if not searchIndex:
+        print("Warning: Failed to read any demos from", INDEX_FILE_NAME, 
+              "file. Maybe the files no longer exist?")
+
+    return searchIndex
+
+
+
+def createOrLoadSearchIndex():
+    """
+    Returns a map of key words to lists of paths to demos.
+    """
+    if not checkForDemoUpdates():
+        idx = loadSearchIndex()
+        if idx:
+            return idx
+        
+    print("Please wait while we scan the demos for key words...")
+    newIdx = preIndexSearchResults()
+    print("Done indexing demos.")
+
+    #Save newly indexed demos
+    rootPath = getDemoRootPath()
+    indexFilePath = rootPath.joinpath(INDEX_FILE_NAME)
+    with open(indexFilePath, "w") as fp:
+        fp.write("YOU DO NOT NEED TO MODIFY THIS FILE. CompuCell3D Player reads and writes to it on its own.\n")
+        for (keyWord, paths) in newIdx.items():
+            fp.write(keyWord + DELIMITER)
+            fp.write(DELIMITER.join(paths))
+            fp.write("\n")
+    Configuration.setSetting("LastDemoEditTime", time.time())
+
+    return newIdx
 
 
 
@@ -205,9 +266,7 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
         self.pythonPreviewText.setStyleSheet(CODE_STYLES)
         self.xmlPreviewText.setStyleSheet(CODE_STYLES)
 
-        print("Please wait while we scan the demos for key words...")
-        self.searchIndex = preIndexSearchResults()
-        print("Done indexing demos.")
+        self.searchIndex = createOrLoadSearchIndex()
 
         self.filterByKeyWord()
 
@@ -240,6 +299,16 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
             keywordMatchPaths = [Path(x) for x in keywordMatchPaths]
             keywordMatchPaths = Counter(keywordMatchPaths)
             scores = dict(keywordMatchPaths)
+
+            for keyWord in self.searchIndex.keys():
+                for searchWord in searchKeywords:
+                    if searchWord in keyWord or keyWord in searchWord:
+                        for demoPath in self.searchIndex[keyWord]:
+                            demoPath = Path(demoPath)
+                            if demoPath in scores:
+                                scores[demoPath] += 1
+                            else:
+                                scores[demoPath] = 1
 
             for demoPath in demoList:
                 prettyName = formatDemoName(str(demoPath.stem)).lower()
