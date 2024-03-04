@@ -2995,7 +2995,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
     def openSim(self, fileName=None):
         print('Opening simulation file:', fileName)
-        
+
         self.__sim_file_name = fileName
 
         sim_extension = os.path.splitext(self.__sim_file_name)[1].lower()
@@ -3023,8 +3023,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # each loaded simulation has to be passed to a function which updates list of recent files
         Configuration.setSetting("RecentSimulations", self.__sim_file_name)
-
-        self.__simulationStop()
 
     def __checkCells(self, checked):
         """
