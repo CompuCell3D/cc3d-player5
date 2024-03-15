@@ -161,7 +161,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
     def chooseMovieDirectory(self):
         currentProjectDir = Configuration.getSetting('OutputLocation')
-        if not currentProjectDir or not os.path.exists(currentProjectDir):
+        if not currentProjectDir or not Path(currentProjectDir).exists():
             currentProjectDir = "/"
         dirName = QFileDialog.getExistingDirectory(self, "Specify CC3D Project Directory", currentProjectDir,
                                                     QFileDialog.ShowDirsOnly)
@@ -170,19 +170,17 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         if dirName == "":
             return None
 
-        simulationPath = os.path.abspath(dirName)
+        simulationPath = Path(dirName).resolve()
 
         hasProjectFile = False
         hasSimulationDir = False
 
-        for fileName in os.listdir(simulationPath):
-            filePath = os.path.join(simulationPath, fileName)
-            if os.path.isdir(filePath):
-                if fileName == "Simulation":
+        for p in simulationPath.glob('*'):
+            if p.is_dir():
+                if p.stem.lower() == "simulation":
                     hasSimulationDir = True
             else:
-                _, fileExtension = os.path.splitext(filePath)
-                if fileExtension.lower() == ".cc3d":
+                if p.suffix.lower() == ".cc3d":
                     hasProjectFile = True
 
         if not hasSimulationDir or not hasProjectFile:
@@ -198,29 +196,36 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
 
     def createMovieButtonClicked(self):
-        self.createMovieResultLabel.setText("")
-        if not os.path.exists(Configuration.getSetting('FfmpegLocation')):
-            self.showFfmpegWarning()
-            return
+        try:
+            self.createMovieResultLabel.setText("")
+            if not Path(Configuration.getSetting('FfmpegLocation')).exists():
+                self.showFfmpegWarning()
+                return
 
-        simulationPath = self.chooseMovieDirectory()
-        if not simulationPath:
-            return
+            simulationPath = self.chooseMovieDirectory()
+            if not simulationPath:
+                return
 
-        self.createMovieResultLabel.setText("Generating movies...")
+            self.createMovieResultLabel.setText("Generating movies...")
 
-        frameRate = max(self.frameRateSpinBox.value(), 1)
-        quality = float(self.movieQualitySpinBox.value())
-        quality = max(quality, 1)
-        # Convert from 1-10 domain to 0-51 domain
-        quality = int((1.0 - (quality / 10.0)) * 52.0) - 1
-        enableDrawingMCS = self.writeMCSCheckbox.isChecked()
+            frameRate = max(self.frameRateSpinBox.value(), 1)
+            quality = float(self.movieQualitySpinBox.value())
+            quality = max(quality, 1)
+            # Convert from 1-10 domain to 0-51 domain
+            quality = int((1.0 - (quality / 10.0)) * 52.0) - 1
+            enableDrawingMCS = self.writeMCSCheckbox.isChecked()
 
-        movieCount, moviePath = makeMovie(simulationPath, frameRate, quality, enableDrawingMCS)
+            movieCount, moviePath = makeMovie(simulationPath, frameRate, quality, enableDrawingMCS)
 
-        Configuration.setSetting("RecentMoviePath", moviePath)
-
-        self.displayMovieResult(movieCount)
+            Configuration.setSetting("RecentMoviePath", str(moviePath.resolve()))
+            
+            self.displayMovieResult(movieCount)
+        except Exception as e:
+            print(e)
+            QMessageBox.warning(None, "WARN",
+                            "There was a problem creating the movie. "
+                            "Please reach out to us on Reddit or GitHub Issues if this problem persists.",
+                            QMessageBox.Ok)
 
 
     def displayMovieResult(self, movieCount):
@@ -995,7 +1000,8 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.projectLocationLineEdit.setText(str(Configuration.getSetting("ProjectLocation")))
         self.outputLocationLineEdit.setText(str(Configuration.getSetting("OutputLocation")))
         self.outputToProjectCheckBox.setChecked(Configuration.getSetting("OutputToProjectOn"))
-        self.demosLocationLineEdit.setText(str(Configuration.getSetting("DemosPath")))
+        if Configuration.check_if_setting_exists("DemosPath"):
+            self.demosLocationLineEdit.setText(str(Configuration.getSetting("DemosPath")))
 
         # restart section
         enable_restart = Configuration.getSetting("RestartOutputEnable")
