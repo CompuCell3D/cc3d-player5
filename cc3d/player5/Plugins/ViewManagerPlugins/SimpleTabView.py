@@ -1137,7 +1137,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         if self.simulationIsRunning or \
           (self.simulationIsStepping and not self.simulation.getStopSimulation()):
-            reply = QMessageBox.question(self, '',
+            reply = QMessageBox.question(self, 'CC3D Player',
                 "Are you sure to quit?", QMessageBox.Yes, QMessageBox.Cancel)
             
             if reply == QMessageBox.Yes:
