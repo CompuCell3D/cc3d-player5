@@ -1140,10 +1140,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             reply = QMessageBox.question(self, 'CC3D Player',
                 "Are you sure to quit?", QMessageBox.Yes, QMessageBox.Cancel)
             
-            if reply == QMessageBox.Yes:
-                # self.__simulationStop()
-                pass
-            else:
+            if reply != QMessageBox.Yes:
                 #Cancel exit
                 event.ignore()
                 return
