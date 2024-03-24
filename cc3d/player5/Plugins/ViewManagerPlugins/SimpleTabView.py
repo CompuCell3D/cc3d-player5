@@ -1135,10 +1135,24 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :return: None
         """
 
+        if self.simulationIsRunning or \
+          (self.simulationIsStepping and not self.simulation.getStopSimulation()):
+            reply = QMessageBox.question(self, '',
+                "Are you sure to quit?", QMessageBox.Yes, QMessageBox.Cancel)
+            
+            if reply == QMessageBox.Yes:
+                # self.__simulationStop()
+                pass
+            else:
+                #Cancel exit
+                event.ignore()
+                return
+
         if self.saveSettings:
             Configuration.syncPreferences()
             Configuration.writeAllSettings()
             if self.simulation:
+                event.ignore()
                 # # the location of  __cleanAfterSimulation is not coincidental - it is called before we release
                 # # the last mutex in the simulation thread
                 self.__cleanAfterSimulation()
@@ -1153,10 +1167,14 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 self.simulation.drawMutex.tryLock()
                 self.simulation.drawMutex.unlock()
 
+                self.simulation.quit()
+                #3 seconds: abitrary amount of time to wait for thread cleanup
+                self.simulation.wait(3000)
         else:
             self.__cleanAfterSimulation(_exitCode=1)
 
         self.reset_sim_model()
+        event.accept()
 
     def reset_sim_model(self):
         """
