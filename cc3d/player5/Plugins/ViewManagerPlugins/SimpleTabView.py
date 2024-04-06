@@ -1641,7 +1641,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.simulation.finishMutex.unlock()
 
     def handleAutomaticMovie(self):
-        if Configuration.getSetting("AutomaticMovie"):
+        if Configuration.check_if_setting_exists("AutomaticMovie") and Configuration.getSetting("AutomaticMovie"):
             makeMovieWithSettings()
 
     def init_simulation_control_vars(self):
