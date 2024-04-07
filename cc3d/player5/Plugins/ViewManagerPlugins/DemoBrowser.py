@@ -178,8 +178,11 @@ def checkForDemoUpdates():
 def loadSearchIndex():
     rootPath = getDemoRootPath()
     indexFilePath = rootPath.joinpath(INDEX_FILE_NAME)
-
     searchIndex = {}
+
+    if not indexFilePath.exists():
+        return searchIndex
+
     with open(indexFilePath, "r") as fp:
         for line in fp.readlines():
             parsed = line.split(DELIMITER)
@@ -233,42 +236,48 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
 
     def __init__(self, parent=None):
         super(DemoBrowser, self).__init__(parent)
-        self.simpleTabView = weakref.ref(parent)
-        self.view = None
+        try:
+            self.simpleTabView = weakref.ref(parent)
+            self.view = None
 
-        if sys.platform.startswith('win'):
-            #Display dialog without context help - only close button exists
-            self.setWindowFlags(Qt.Drawer)
+            if sys.platform.startswith('win'):
+                #Display dialog without context help - only close button exists
+                self.setWindowFlags(Qt.Drawer)
 
-        if not getDemoRootPath():
-            self.exitWithWarning()
-            return
+            if not getDemoRootPath():
+                self.exitWithWarning()
+                return
 
-        self.setupUi(self)
+            self.setupUi(self)
 
-        self.openDemoButton.hide()
-        self.demoTabView.hide()
-        self.selectedDemoNameLabel.hide()
-        self.noSelectionPlaceholder.show()
-        
-        self.searchLineEdit.textChanged.connect(self.filterByKeyWord)
-        self.openDemoButton.clicked.connect(self.openDemo)
+            self.openDemoButton.hide()
+            self.demoTabView.hide()
+            self.selectedDemoNameLabel.hide()
+            self.noSelectionPlaceholder.show()
+            
+            self.searchLineEdit.textChanged.connect(self.filterByKeyWord)
+            self.openDemoButton.clicked.connect(self.openDemo)
 
-        self.pythonHighlighter = PythonHighlighter(self.pythonPreviewText.document())
+            self.pythonHighlighter = PythonHighlighter(self.pythonPreviewText.document())
 
-        CODE_STYLES = """
-            QPlainTextEdit { 
-                background-color: rgb(30, 30, 40); 
-                color: white; 
-                font-family: Courier; 
-            }      
-        """
-        self.pythonPreviewText.setStyleSheet(CODE_STYLES)
-        self.xmlPreviewText.setStyleSheet(CODE_STYLES)
+            CODE_STYLES = """
+                QPlainTextEdit { 
+                    background-color: rgb(30, 30, 40); 
+                    color: white; 
+                    font-family: Courier, monospace; 
+                }      
+            """
+            self.pythonPreviewText.setStyleSheet(CODE_STYLES)
+            self.xmlPreviewText.setStyleSheet(CODE_STYLES)
 
-        self.searchIndex = createOrLoadSearchIndex()
+            self.searchIndex = createOrLoadSearchIndex()
 
-        self.filterByKeyWord()
+            self.filterByKeyWord()
+        except Exception as ex:
+            QMessageBox.warning(None, "Warning",
+                        "We could not open the Demo Browser. Please restart Player, then try again.",
+                        QMessageBox.Ok)
+            print(ex)
 
     def exitWithWarning(self):
         QMessageBox.warning(None, "Warning",
@@ -372,12 +381,25 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
 
             self.noSelectionPlaceholder.hide()
         except KeyError:
-            print("Error: Could not select that demo")
+            self.showDemoOpenError()
+            print("KeyError occurred while choosing a demo.")
+        except Exception as ex:
+            self.showDemoOpenError()
+            print("Error: Could not select that demo. Exception:\n", ex)
+
+    def showDemoOpenError(self):
+        QMessageBox.warning(None, "Warning",
+                    "We could not select that demo because of an error. " +
+                    "Please close the Demo Browser, then try again. " +
+                    "If the issue persists, please delete the .demoindex " +
+                    "file inside of your demos folder. ",
+                    QMessageBox.Ok)
 
     def openDemo(self):
         #Sanity check. 
         #The button to trigger this should be invisible anyway.
         if not self.selectedPath or not self.selectedPath.exists():
+            self.showDemoOpenError()
             print("Error: Could not open the demo with path", self.selectedPath)
             return
         
