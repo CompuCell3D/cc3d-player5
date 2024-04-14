@@ -244,11 +244,11 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
                 #Display dialog without context help - only close button exists
                 self.setWindowFlags(Qt.Drawer)
 
+            self.setupUi(self)
+
             if not getDemoRootPath():
                 self.exitWithWarning()
                 return
-
-            self.setupUi(self)
 
             self.openDemoButton.hide()
             self.demoTabView.hide()
@@ -273,11 +273,13 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
             self.searchIndex = createOrLoadSearchIndex()
 
             self.filterByKeyWord()
+            
         except Exception as ex:
             QMessageBox.warning(None, "Warning",
                         "We could not open the Demo Browser. Please restart Player, then try again.",
                         QMessageBox.Ok)
             print(ex)
+            self.close()
 
     def exitWithWarning(self):
         QMessageBox.warning(None, "Warning",
