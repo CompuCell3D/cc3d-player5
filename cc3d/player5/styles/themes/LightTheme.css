@@ -91,7 +91,7 @@ QSpinBox::up-arrow {
 
 
 QPushButton {
-    text-align: left;
+    text-align: center;
     border: none;
     padding:  4px 12px 4px 12px;
     border-radius: 6px;

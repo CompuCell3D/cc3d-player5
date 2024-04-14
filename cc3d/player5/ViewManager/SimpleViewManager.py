@@ -51,6 +51,7 @@ class SimpleViewManager(QObject):
         # file actions
         self.open_act = None
         self.open_lds_act = None
+        self.demo_menu_act = None
         self.exit_act = None
         self.twedit_act = None
 
@@ -94,7 +95,6 @@ class SimpleViewManager(QObject):
         self.tutor_act = None
         self.ref_man_act = None
         self.about_act = None
-        self.demo_menu_act = None
         self.check_update_act = None
         self.whats_this_act = None
 
@@ -133,6 +133,7 @@ class SimpleViewManager(QObject):
         menu.addAction(self.twedit_act)
         menu.addSeparator()
         recent_simulations_menu = menu.addMenu("Recent Simulations...")
+        menu.addAction(self.demo_menu_act)
         menu.addSeparator()
         menu.addAction(self.exit_act)
 
@@ -223,7 +224,6 @@ class SimpleViewManager(QObject):
         menu.addAction(self.tutor_act)
         menu.addAction(self.ref_man_act)
         menu.addSeparator()
-        menu.addAction(self.demo_menu_act)
         menu.addSeparator()
         menu.addAction(self.check_update_act)
         menu.addSeparator()
