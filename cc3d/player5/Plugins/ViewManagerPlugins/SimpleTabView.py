@@ -645,6 +645,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.pause_act.setEnabled(False)
         self.stop_act.setEnabled(False)
         self.open_act.setEnabled(True)
+        self.demo_menu_act.setEnabled(True)
         self.open_lds_act.setEnabled(True)
         self.pif_from_simulation_act.setEnabled(False)
         self.pif_from_vtk_act.setEnabled(False)
@@ -1830,6 +1831,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
             self.open_act.setEnabled(False)
             self.open_lds_act.setEnabled(False)
+            self.demo_menu_act.setEnabled(False)
 
             return
         else:
@@ -1848,6 +1850,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
                 self.open_act.setEnabled(False)
                 self.open_lds_act.setEnabled(False)
+                self.demo_menu_act.setEnabled(False)
 
             self.steppingThroughSimulation = False
 
@@ -1902,6 +1905,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
             self.open_act.setEnabled(False)
             self.open_lds_act.setEnabled(False)
+            self.demo_menu_act.setEnabled(False)
             return
 
         else:
@@ -1920,6 +1924,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 self.restart_snapshot_from_simulation_act.setEnabled(True)
                 self.open_act.setEnabled(False)
                 self.open_lds_act.setEnabled(False)
+                self.demo_menu_act.setEnabled(False)
 
                 self.simulation.start()
 
