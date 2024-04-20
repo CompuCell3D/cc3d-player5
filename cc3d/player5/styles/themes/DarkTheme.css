@@ -46,7 +46,7 @@ QSpinBox::up-button, QSpinBox::down-button {
 
 
 QPushButton {
-    text-align: left;
+    text-align: center;
     border: none;
     padding:  4px 12px 4px 12px;
     border-radius: 6px;
@@ -117,7 +117,7 @@ QComboBox QAbstractItemView {
     background-color: rgb(37, 37, 37);
 }
 
-QTabWidget::pane {
+QTabWidget::pane, QScrollArea {
     background-color: rgb(42, 42, 42);
     border: none;
     border-radius: 3px;
@@ -197,4 +197,8 @@ QToolTip {
 */
 #line_1, #line_2, #line_3, #line_4, #line_5, #line_6 {
     background-color: rgb(104, 104, 104);
+}
+
+#selectedDemoNameLabel {
+    background: none;
 }
