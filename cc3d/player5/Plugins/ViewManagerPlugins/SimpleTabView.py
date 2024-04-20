@@ -3347,7 +3347,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
             # updating pauseAt
             pg = CompuCellSetup.persistent_globals
             pg.pause_at = str_to_int_container(s=Configuration.getSetting("PauseAt"), container='dict')
-            self.redo_completed_step()
+            if self.simulationIsRunning or self.simulationIsStepping:
+                self.redo_completed_step()
 
     def __generatePIFFromCurrentSnapshot(self):
         """
