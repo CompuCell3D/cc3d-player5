@@ -9,6 +9,10 @@ insert into settings(name, type, value) VALUES("RestartOutputEnable","bool",0);
 insert into settings(name, type, value) VALUES("RestartOutputFrequency","int",100);
 insert into settings(name, type, value) VALUES("RestartAllowMultipleSnapshots","bool",0);
 
+
+insert into settings(name, type, value) VALUES("DemosPath","str","");
+insert into settings(name, type, value) VALUES("LastDemoEditTime","float",1713634361.173719);
+
 to delete row - example
 
 DELETE FROM settings WHERE name='RestartEnable';

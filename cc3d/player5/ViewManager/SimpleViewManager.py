@@ -684,8 +684,8 @@ class SimpleViewManager(QObject):
         self.check_version(check_interval=-1, display_no_update_info=True)
 
     def __open_demo_menu(self):
-        self.demo_browser = ref(DemoBrowser(parent=self))
-        self.demo_browser().exec_()
+        self.demo_browser = DemoBrowser(parent=self)
+        self.demo_browser.exec_()
 
     def do_update(self, package_name: str, version: str) -> None:
         """
