@@ -1,4 +1,5 @@
 import sys
+from typing import Optional
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -17,27 +18,73 @@ INDEX_FILE_NAME = ".demoindex"
 DELIMITER = ","
 
 
+
+
+class CreateIndexWorker(QThread):
+    finished = pyqtSignal(dict)
+    def __init__(self, parent=None, *args, **kwargs):
+        super().__init__(parent=parent, *args, **kwargs)
+        self.searchIndex = None
+        self.modified = True
+        self.demo_root_path =  None
+
+    def run(self):
+        # Potentially long-ish running task
+        self.searchIndex = createOrLoadSearchIndex(self.modified, self.demo_root_path)
+        # Emit finished signal when task is done
+        self.finished.emit(self.searchIndex)
+
+
 class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
+    def on_create_index_finished(self, search_index:dict):
+        self.searchIndex = search_index
+        self.wait_popup.close()
+
     def __init__(self, parent=None):
         super(DemoBrowser, self).__init__(parent)
+        # limiting number of times we call getDemoRootPath to just a single instance
+        self.searchIndex = None
+        self.demo_root_path = getDemoRootPath()
 
+
+        self.modified = checkForDemoUpdates(demo_root_path=self.demo_root_path)
         self.wait_popup = CreateIndexWaitPopup(parent=self)
-        self.wait_popup.show()
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+
 
         try:
+            # modified and demo_root_path access sqllite so to avid issues related to cross-thread access to the db
+            # we are prefetching them here
+
+            if self.demo_root_path is None:
+                raise RuntimeError(f"self.demo_root_path is None. Exiting")
+
+            create_index_worker = CreateIndexWorker()
+            create_index_worker.modified = self.modified
+            create_index_worker.demo_root_path = self.demo_root_path
+
+            create_index_worker.finished.connect(self.on_create_index_finished)
+            create_index_worker.start()
+            # we need to execute the dialog after we start thread - otherwise the popup dialog may not
+            # display properly. We also need to wait here before index creation finishes
+            self.wait_popup.exec_()
+
+
             self.simpleTabView = weakref.ref(parent)
             self.view = None
 
             if sys.platform.startswith("win"):
                 # Display dialog without context help - only close button exists
                 self.setWindowFlags(Qt.Drawer)
-
-            self.setupUi(self)
-
-            if not getDemoRootPath():
+                self.setupUi(self)
+            if not self.demo_root_path:
                 self.exitWithWarning()
                 return
+
+            self.openDemoButton.hide()
+            self.demoTabView.hide()
+            self.selectedDemoNameLabel.hide()
+            self.noSelectionPlaceholder.show()
+            # self.searchIndex = createOrLoadSearchIndex()
 
             self.openDemoButton.hide()
             self.demoTabView.hide()
@@ -58,11 +105,6 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
             """
             self.pythonPreviewText.setStyleSheet(CODE_STYLES)
             self.xmlPreviewText.setStyleSheet(CODE_STYLES)
-
-            self.searchIndex = createOrLoadSearchIndex()
-            self.wait_popup.close()
-            # self.create_demos_index()
-
             self.filterByKeyWord()
 
         except Exception as ex:
@@ -73,9 +115,10 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
                 QMessageBox.Ok,
             )
             print(ex)
-            self.close()
+            QTimer.singleShot(10, self.close)
+            # self.close()
         finally:
-            QApplication.restoreOverrideCursor()
+            pass
 
     def exitWithWarning(self):
         QMessageBox.warning(
@@ -87,33 +130,33 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
         self.close()
 
     def filterByKeyWord(self):
-        searchText = str(self.searchLineEdit.text())
-        searchText = searchText.strip().lower()
+        search_text = str(self.searchLineEdit.text())
+        search_text = search_text.strip().lower()
 
-        demoList = list(getDemoList())
+        demo_list = list(getDemoList(demo_root_path=self.demo_root_path))
 
-        if not demoList:
+        if not demo_list:
             self.exitWithWarning()
             return
 
-        if searchText:
-            searchKeywords = [w for w in splitByUppercase(searchText)]
-            searchKeywords.extend(searchText.split())
+        if search_text:
+            search_keywords = [w for w in splitByUppercase(search_text)]
+            search_keywords.extend(search_text.split())
 
-            keywordMatchPaths = []
-            for word in searchKeywords:
+            keyword_match_paths = []
+            for word in search_keywords:
                 if word in self.searchIndex:
-                    keywordMatchPaths.extend(self.searchIndex[word])
+                    keyword_match_paths.extend(self.searchIndex[word])
 
-            keywordMatchPaths = [Path(x) for x in keywordMatchPaths]
-            keywordMatchPaths = Counter(keywordMatchPaths)
-            scores = dict(keywordMatchPaths)
+            keyword_match_paths = [Path(x) for x in keyword_match_paths]
+            keyword_match_paths = Counter(keyword_match_paths)
+            scores = dict(keyword_match_paths)
 
             # Promote demos in the search results
             # if a search key word partially matches one of
-            # the key words associated with that demo.
+            # the keywords associated with that demo.
             for keyWord in self.searchIndex.keys():
-                for searchWord in searchKeywords:
+                for searchWord in search_keywords:
                     if keyWord.startswith(searchWord):
                         for demoPath in self.searchIndex[keyWord]:
                             demoPath = Path(demoPath)
@@ -121,17 +164,17 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
 
             # Promote demos in the search results
             # if their name matches a search key word
-            for demoPath in demoList:
+            for demoPath in demo_list:
                 prettyName = formatDemoName(str(demoPath.stem)).lower()
-                for word in searchKeywords:
+                for word in search_keywords:
                     if word in str(demoPath).lower() or prettyName.startswith(word):
                         scores[demoPath] = scores.get(demoPath, 0) + 1
 
             self.bestDemoPaths = sorted(scores, key=scores.get, reverse=True)
         else:
             # Default to alphabetical
-            demoNames = [x.stem for x in demoList]
-            self.bestDemoPaths = [p for _, p in sorted(zip(demoNames, demoList))]
+            demoNames = [x.stem for x in demo_list]
+            self.bestDemoPaths = [p for _, p in sorted(zip(demoNames, demo_list))]
 
         # Render the filtered results
         model = QStringListModel()
@@ -154,7 +197,7 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
         try:
             selectedIndex = selected.indexes()[0]
             relPath = self.bestDemoPaths[selectedIndex.row()]
-            absPath = getDemoRootPath().joinpath(relPath)
+            absPath = self.demo_root_path.joinpath(relPath)
 
             self.selectedPath = absPath
 
@@ -211,19 +254,7 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
             self.close()
 
 
-class CreateIndexWorker(QThread):
-    finished = pyqtSignal()
 
-    def __init__(self, parent=None, *args, **kwargs):
-        super().__init__(parent=parent, *args, **kwargs)
-        self.searchIndex = None
-
-    def run(self):
-        # Simulate a long-running task
-        # self.searchIndex = createOrLoadSearchIndex()
-        import time
-        time.sleep(5)
-        self.finished.emit()  # Emit finished signal when task is done
 
 
 class CreateIndexWaitPopup(QMessageBox):
@@ -231,10 +262,35 @@ class CreateIndexWaitPopup(QMessageBox):
         super(CreateIndexWaitPopup, self).__init__(parent)
         self.setWindowModality(Qt.ApplicationModal)
         self.setWindowTitle('Generating Demos Index - Please Wait')
-        self.setGeometry(100, 100, 500, 100)
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+        self.setText("Ensuring you have easy access to most up-to-date Demos")
+        self.setIcon(QMessageBox.Information)
+        # Set the standard OK button
+        # self.setStandardButtons(QMessageBox.Ok)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        # Calculate the width required to show the title fully
+        font_metrics = QFontMetrics(self.font())
+        # 50 is added for padding and icon space
+        title_width = font_metrics.width(self.windowTitle()) + 50
+        # Resize if necessary
+        if title_width > self.width():
+            self.setFixedWidth(title_width)
+
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        # Calculate the required width to show the title fully
+        font_metrics = QFontMetrics(self.font())
+        title_width = font_metrics.width(self.windowTitle()) + 50  # Add extra space for padding and icon
+        text_width = font_metrics.width(self.text()) + 50  # Calculate width required for the text
+
+        # Determine the maximum necessary width
+        required_width = max(title_width, text_width, self.width())
+
+        # Resize if necessary to ensure both title and text are visible
+        if required_width > self.width():
+            self.setFixedWidth(required_width)
 
 def getDemoRootPath() -> Path | None:
     """
@@ -261,12 +317,11 @@ def getDemoRootPath() -> Path | None:
     return None  # No demos here!
 
 
-def getDemoList() -> list[Path]:
-    rootPath = getDemoRootPath()
-    globResults = rootPath.rglob("*.cc3d")
-    globResults = [p.relative_to(rootPath) for p in globResults]
+def getDemoList(demo_root_path:Optional[Path]=None) -> list[Path]:
+    glob_results = demo_root_path.rglob("*.cc3d")
+    glob_results = [p.relative_to(demo_root_path) for p in glob_results]
 
-    return globResults
+    return glob_results
 
 
 def formatDemoName(name) -> str:
@@ -343,107 +398,106 @@ def tokenizeText(line):
         yield word
 
 
-def preIndexSearchResults():
+def preIndexSearchResults(demo_root_path:Optional[Path]=None):
     """
-    Creates and returns a map of key words to lists of paths to demos.
+    Creates and returns a map of keywords to lists of paths to demos.
     Each path is an absolute path and a string.
     """
-    MAX_MATCHES = 7  # how many demos each keyword can map to
+    max_matches = 7  # how many demos each keyword can map to
 
-    searchIndex = {}
+    search_index = {}
 
-    rootPath = getDemoRootPath()
-    demoList = list(getDemoList())
+    demo_list = list(getDemoList(demo_root_path))
 
-    for demoPath in demoList:
-        fullPath = rootPath.joinpath(demoPath)
+    for demoPath in demo_list:
+        full_path = demo_root_path.joinpath(demoPath)
 
-        wordsSeen = set()
-        for word in tokenizeAllFiles(fullPath):
-            if word not in wordsSeen:
-                smallPath = str(demoPath)  # conserve memory by converting object to str
-                if word in searchIndex and len(searchIndex[word]) < MAX_MATCHES:
-                    searchIndex[word].append(smallPath)
+        words_seen = set()
+        for word in tokenizeAllFiles(full_path):
+            if word not in words_seen:
+                small_path = str(demoPath)  # conserve memory by converting object to str
+                if word in search_index and len(search_index[word]) < max_matches:
+                    search_index[word].append(small_path)
                 else:
-                    searchIndex[word] = [smallPath]
-                wordsSeen.add(word)
-    return searchIndex
+                    search_index[word] = [small_path]
+                words_seen.add(word)
+    return search_index
 
 
-def checkForDemoUpdates():
+def checkForDemoUpdates(demo_root_path:Optional[Path]=None):
     """
     Returns true if any demo has been modified or created
     since the last time we indexed them.
     Returns false if everything is up-to-date.
     """
-    rootPath = getDemoRootPath()
-    lastEditTime = 0
-    for file in rootPath.rglob("*"):
-        if file.lstat().st_mtime > lastEditTime:
-            lastEditTime = file.lstat().st_mtime
+    if demo_root_path is None:
+        return False
+
+    last_edit_time = 0
+    for file in demo_root_path.rglob("*"):
+        if file.lstat().st_mtime > last_edit_time:
+            last_edit_time = file.lstat().st_mtime
 
     modified = False
     if Configuration.check_if_setting_exists("LastDemoEditTime"):
-        if lastEditTime > Configuration.getSetting("LastDemoEditTime"):
+        if last_edit_time > Configuration.getSetting("LastDemoEditTime"):
             modified = True
     else:
         modified = True
 
     if modified:
-        Configuration.setSetting("LastDemoEditTime", lastEditTime)
+        Configuration.setSetting("LastDemoEditTime", last_edit_time)
 
     return modified
 
 
-def loadSearchIndex():
-    rootPath = getDemoRootPath()
-    indexFilePath = rootPath.joinpath(INDEX_FILE_NAME)
-    searchIndex = {}
+def loadSearchIndex(demo_root_path:Optional[Path]=None):
+    index_file_path = demo_root_path.joinpath(INDEX_FILE_NAME)
+    search_index = {}
 
-    if not indexFilePath.exists():
-        return searchIndex
+    if not index_file_path.exists():
+        return search_index
 
-    with open(indexFilePath, "r") as fp:
+    with open(index_file_path, "r") as fp:
         for line in fp.readlines():
             parsed = line.split(DELIMITER)
             if len(parsed) >= 2:
-                keyWord = parsed[0]
+                keyword = parsed[0]
                 paths = parsed[1:]
 
                 # Ensure the paths still exist, but keep them as string type
-                paths = [p for p in paths if rootPath.joinpath(Path(p)).exists()]
+                paths = [p for p in paths if demo_root_path.joinpath(Path(p)).exists()]
 
                 if paths:
-                    searchIndex[keyWord] = paths
+                    search_index[keyword] = paths
 
-    if not searchIndex:
+    if not search_index:
         print("Warning: Failed to read any demos from", INDEX_FILE_NAME, "file. Maybe the files no longer exist?")
 
-    return searchIndex
+    return search_index
 
 
-def createOrLoadSearchIndex():
+def createOrLoadSearchIndex(modified:bool, demo_root_path:Optional[Path]=None):
     """
     Returns a map of key words to lists of paths to demos.
     """
-    if not checkForDemoUpdates():
-        idx = loadSearchIndex()
+    if modified:
+        idx = loadSearchIndex(demo_root_path=demo_root_path)
         if idx:
             return idx
 
     print("Please wait while we scan the demos for key words...")
-    newIdx = preIndexSearchResults()
+    new_idx = preIndexSearchResults(demo_root_path=demo_root_path)
     print("Done indexing demos.")
 
     # Save newly indexed demos
-    rootPath = getDemoRootPath()
-    indexFilePath = rootPath.joinpath(INDEX_FILE_NAME)
-    with open(indexFilePath, "w") as fp:
+    index_file_path = demo_root_path.joinpath(INDEX_FILE_NAME)
+    with open(index_file_path, "w") as fp:
         fp.write("YOU DO NOT NEED TO MODIFY THIS FILE. CompuCell3D Player reads and writes to it on its own.\n")
-        for keyWord, paths in newIdx.items():
+        for keyWord, paths in new_idx.items():
             fp.write(keyWord + DELIMITER)
             fp.write(DELIMITER.join(paths))
             fp.write("\n")
     # Configuration.setSetting("LastDemoEditTime", time.time())
 
-    return newIdx
+    return new_idx

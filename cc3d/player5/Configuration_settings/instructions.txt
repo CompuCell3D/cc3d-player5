@@ -11,7 +11,7 @@ insert into settings(name, type, value) VALUES("RestartAllowMultipleSnapshots","
 
 
 insert into settings(name, type, value) VALUES("DemosPath","str","");
-insert into settings(name, type, value) VALUES("LastDemoEditTime","float",1713634361.173719);
+insert into settings(name, type, value) VALUES("LastDemoEditTime","float",0);
 
 to delete row - example
 
