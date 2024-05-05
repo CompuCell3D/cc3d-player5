@@ -2291,6 +2291,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if gwd.winType != 'steering_panel':
                 return
 
+            win.move(gwd.winPosition)
             win.resize(gwd.winSize)
             win.move(gwd.winPosition)
 
@@ -2629,6 +2630,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 if gwd.winType == GRAPHICS_WINDOW_LABEL:
                     graphics_window = self.lastActiveRealWindow
                     gfw = graphics_window.widget()
+
+                    # we are using move, resize, move pattern to deal with Windows inconsistencies when restoring
+                    # proper size and position of graphics windows
+
                     graphics_window.move(gwd.winPosition)
                     graphics_window.resize(gwd.winSize)
                     graphics_window.move(gwd.winPosition)
@@ -2683,6 +2688,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             graphics_window = self.add_new_graphics_window()
             gfw = graphics_window.widget()
 
+            graphics_window.move(gwd.winPosition)
             graphics_window.resize(gwd.winSize)
             graphics_window.move(gwd.winPosition)
 
