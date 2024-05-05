@@ -219,7 +219,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.check_version(check_interval=7)
         self.setup_logging()
         self.restore_default_settings_local_flag = False
-        self.restore_default_settings_global_flag = False
 
     def setup_logging(self):
         """
@@ -2379,10 +2378,19 @@ class SimpleTabView(MainArea, SimpleViewManager):
                                        )
             if ret == QMessageBox.No:
                 return
-            self.restore_default_settings_global_flag = True
+
             self.__stopSim()
         else:
-            self.restore_default_settings_global_flag = True
+            ret = QMessageBox.question(self, "Restoring Global Simulation Setting",
+                                       "Need to <b>close the Player</b>"
+                                       " to restore default global settings. <br/>"
+                                       "Do you want to proceed?",
+                                       QMessageBox.Yes | QMessageBox.No
+                                       )
+            if ret == QMessageBox.No:
+                return
+
+
 
         Configuration.restore_default_global_settings()
         self.quit()
