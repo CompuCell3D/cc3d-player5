@@ -819,6 +819,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
         # 3D section
         Configuration.setSetting("Types3DInvisible", self.cellTypesInvisibleList.text())
+        Configuration.setSetting("CellShellOptimization", self.cell_shell_optimization_CB.isChecked())
         Configuration.setSetting("BoundingBoxOn", self.boundingBoxCheckBox.isChecked())
         Configuration.setSetting("ShowAxes", self.showAxesCB.isChecked())
         Configuration.setSetting("ShowHorizontalAxesLabels", self.showHorizontalAxesLabelsCB.isChecked())
@@ -971,7 +972,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         # 3D
         self.cellTypesInvisibleList.setText(Configuration.getSetting("Types3DInvisible"))
         self.boundingBoxCheckBox.setChecked(self.paramCC3D["BoundingBoxOn"])
-
+        self.cell_shell_optimization_CB.setChecked(Configuration.getSetting("CellShellOptimization"))
         self.showAxesCB.setChecked(Configuration.getSetting("ShowAxes"))
         self.showHorizontalAxesLabelsCB.setChecked(Configuration.getSetting("ShowHorizontalAxesLabels"))
         self.showVerticalAxesLabelsCB.setChecked(Configuration.getSetting("ShowVerticalAxesLabels"))
