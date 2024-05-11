@@ -2915,7 +2915,7 @@
         <item>
          <widget class="QCheckBox" name="cell_shell_optimization_CB">
           <property name="text">
-           <string>Draw Outer Shell Only (Faster 3D Rendering)</string>
+           <string>Draw Outer Shell Only (Faster 3D Rendering)  - NeighborTracker Plugin must be included inthe CC3DML</string>
           </property>
           <property name="checked">
            <bool>true</bool>

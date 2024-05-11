@@ -1293,7 +1293,7 @@ class Ui_CC3DPrefs(object):
         self.groupBox_2.setTitle(_translate("CC3DPrefs", "Cell Rendering"))
         self.label_31.setText(_translate("CC3DPrefs", "Cell types invisible in 3D (example: 0,1,4)"))
         self.cellTypesInvisibleList.setToolTip(_translate("CC3DPrefs", "<html><head/><body><p>comma-sepoarated list of cell type numbers that shuold not be rendered in 3D. Usually you do not want to display medium so at the very least this list should have \'0\' element in it</p></body></html>"))
-        self.cell_shell_optimization_CB.setText(_translate("CC3DPrefs", "Draw Outer Shell Only (Faster 3D Rendering)"))
+        self.cell_shell_optimization_CB.setText(_translate("CC3DPrefs", "Draw Outer Shell Only (Faster 3D Rendering)  - NeighborTracker Plugin must be included inthe CC3DML"))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_3D), _translate("CC3DPrefs", "3D"))
         self.groupBox_10.setTitle(_translate("CC3DPrefs", "Bounding Box"))
         self.boundingBoxCheckBox.setToolTip(_translate("CC3DPrefs", "<html><head/><body><p>Enables the rectangle outline around the lattice plot</p></body></html>"))
