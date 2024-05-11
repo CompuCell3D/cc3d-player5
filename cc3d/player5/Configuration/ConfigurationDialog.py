@@ -117,7 +117,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
     def currentTabChanged(self):
 
         Configuration.setSetting("TabIndex", self.tabWidget.currentIndex())
-        if self.tabWidget.currentIndex() == 3: #select Field tab
+        if self.tabWidget.tabText(self.tabWidget.currentIndex()) == "Field":
 
             if self.lastSelectedField >= 0:
                 self.fieldComboBox.setCurrentIndex(self.lastSelectedField)
