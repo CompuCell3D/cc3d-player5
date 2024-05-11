@@ -218,6 +218,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # too often. Default check interval is 7 days
         self.check_version(check_interval=7)
         self.setup_logging()
+        self.restore_default_settings_local_flag = False
 
     def setup_logging(self):
         """
@@ -1807,6 +1808,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if prepare_flag:
                 # todo 5 - self.drawingAreaPrepared is initialized elsewhere this is tmp placeholder and a hack
                 self.drawingAreaPrepared = True
+                self.restore_default_settings_local_flag = False
 
             else:
                 # when self.prepareSimulation() fails
@@ -1883,6 +1885,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if prepare_flag:
                 # todo 5 - self.drawingAreaPrepared is initialized elsewhere this is tmp placeholder and a hack
                 self.drawingAreaPrepared = True
+                self.restore_default_settings_local_flag = False
             else:
                 # when self.prepareSimulation() fails
                 return
@@ -2288,6 +2291,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if gwd.winType != 'steering_panel':
                 return
 
+            win.move(gwd.winPosition)
             win.resize(gwd.winSize)
             win.move(gwd.winPosition)
 
@@ -2346,17 +2350,51 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if not self.simulationIsRunning:
             return
 
-        Configuration.replace_custom_settings_with_defaults()
+        ret = QMessageBox.question(self, "Restoring Default Simulation Setting",
+                                    "Need to stop existing simulation to restore default simulation settings. "
+                                    "Do you want to proceed?",
+                                   QMessageBox.Yes | QMessageBox.No
+                                   )
+        if ret == QMessageBox.No:
+            return
 
-    @staticmethod
-    def restore_default_global_settings():
+        self.restore_default_settings_local_flag = True
+        self.__stopSim()
+        # Configuration.replace_custom_settings_with_defaults()
+
+
+    def restore_default_global_settings(self):
         """
         Removes global settings
 
         :return: None
         """
 
+        if self.simulationIsRunning:
+            ret = QMessageBox.question(self, "Restoring Global Simulation Setting",
+                                       "Need to <b>stop</b> existing simulation and <b>close the Player</b>"
+                                       " to restore default global settings. <br/>"
+                                       "Do you want to proceed?",
+                                       QMessageBox.Yes | QMessageBox.No
+                                       )
+            if ret == QMessageBox.No:
+                return
+
+            self.__stopSim()
+        else:
+            ret = QMessageBox.question(self, "Restoring Global Simulation Setting",
+                                       "Need to <b>close the Player</b>"
+                                       " to restore default global settings. <br/>"
+                                       "Do you want to proceed?",
+                                       QMessageBox.Yes | QMessageBox.No
+                                       )
+            if ret == QMessageBox.No:
+                return
+
+
+
         Configuration.restore_default_global_settings()
+        self.quit()
 
     def quit(self, error_code=0):
         """Quit the application."""
@@ -2382,7 +2420,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # self.__save_windows_layout()
         # saving settings with the simulation
         if self.customSettingPath:
-            Configuration.writeSettingsForSingleSimulation(self.customSettingPath)
+            if self.restore_default_settings_local_flag:
+                Configuration.replace_custom_settings_with_defaults()
+            else:
+                Configuration.writeSettingsForSingleSimulation(self.customSettingPath)
             self.customSettingPath = ''
 
         Configuration.writeAllSettings()
@@ -2590,9 +2631,12 @@ class SimpleTabView(MainArea, SimpleViewManager):
                     graphics_window = self.lastActiveRealWindow
                     gfw = graphics_window.widget()
 
+                    # we are using move, resize, move pattern to deal with Windows inconsistencies when restoring
+                    # proper size and position of graphics windows
+
+                    graphics_window.move(gwd.winPosition)
                     graphics_window.resize(gwd.winSize)
                     graphics_window.move(gwd.winPosition)
-
                     gfw.apply_graphics_window_data(gwd)
 
             except KeyError:
@@ -2644,6 +2688,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             graphics_window = self.add_new_graphics_window()
             gfw = graphics_window.widget()
 
+            graphics_window.move(gwd.winPosition)
             graphics_window.resize(gwd.winSize)
             graphics_window.move(gwd.winPosition)
 
