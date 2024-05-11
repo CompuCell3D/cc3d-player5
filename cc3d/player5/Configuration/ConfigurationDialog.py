@@ -844,7 +844,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
     def updateUI(self):
         """called whenever Prefs dialog is open"""
 
-        self.tabWidget.setCurrentIndex(Configuration.getSetting("TabIndex"))
+        # self.tabWidget.setCurrentIndex(Configuration.getSetting("TabIndex"))
 
         fieldIndex = Configuration.getSetting("FieldIndex")
         self.lastSelectedField = fieldIndex
