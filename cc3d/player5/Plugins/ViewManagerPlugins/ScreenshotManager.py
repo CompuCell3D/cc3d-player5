@@ -146,7 +146,6 @@ class ScreenshotManager(ScreenshotManagerCore):
         scr_data = ScreenshotData()
         scr_data.spaceDimension = "3D"
         scr_data.plotData = (_plotName, _plotType)
-        scr_data.cell_shell_optimization = Configuration.getSetting("CellShellOptimization")
         self.update_screenshot_container(scr_data=scr_data, _camera=_camera, metadata=metadata)
 
     def update_screenshot_container(self, scr_data: ScreenshotData, _camera: object,
@@ -169,6 +168,7 @@ class ScreenshotManager(ScreenshotManagerCore):
             scr_data.screenshotName = scr_name
             scr_data.screenshotCoreName = scr_core_name
             scr_data.screenshotGraphicsWidget = self.screenshotGraphicsWidget
+            scr_data.cell_shell_optimization = Configuration.getSetting("CellShellOptimization")
 
             scr_data.win_width = x_size
             scr_data.win_height = y_size
