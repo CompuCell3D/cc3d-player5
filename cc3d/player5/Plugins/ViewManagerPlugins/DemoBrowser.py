@@ -1,5 +1,5 @@
 import sys
-from typing import Optional
+from typing import List, Optional
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -292,7 +292,7 @@ class CreateIndexWaitPopup(QMessageBox):
         if required_width > self.width():
             self.setFixedWidth(required_width)
 
-def getDemoRootPath() -> Path | None:
+def getDemoRootPath() -> Optional[Path]:
     """
     Credit to https://stackoverflow.com/a/74532549/16519580 user Chris.
     """
@@ -317,7 +317,7 @@ def getDemoRootPath() -> Path | None:
     return None  # No demos here!
 
 
-def getDemoList(demo_root_path:Optional[Path]=None) -> list[Path]:
+def getDemoList(demo_root_path:Optional[Path]=None) -> List[Path]:
     glob_results = demo_root_path.rglob("*.cc3d")
     glob_results = [p.relative_to(demo_root_path) for p in glob_results]
 
