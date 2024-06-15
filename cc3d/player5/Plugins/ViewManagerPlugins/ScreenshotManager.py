@@ -27,7 +27,7 @@ class ScreenshotManager(ScreenshotManagerCore):
         self.screenshot_number_of_digits = len(str(self.basicSimulationData.numberOfSteps))
 
         # we limit max number of screenshots to discourage users from using screenshots as their main analysis tool
-        self.maxNumberOfScreenshots = 30
+        self.maxNumberOfScreenshots = 100
 
         self.screenshotGraphicsWidget = None
 
@@ -171,39 +171,16 @@ class ScreenshotManager(ScreenshotManagerCore):
         # if self.ok_to_add_screenshot(scr_name=scr_name, camera=_camera):
         if self.ok_to_add_screenshot_detailed(scr_data=scr_data):
 
-            # scr_data.screenshotName = scr_name
-            #
-            # scr_data.screenshotCoreName = scr_core_name
-            # scr_data.screenshotGraphicsWidget = self.screenshotGraphicsWidget
-            # scr_data.cell_shell_optimization = Configuration.getSetting("CellShellOptimization")
-            #
-            # scr_data.win_width = x_size
-            # scr_data.win_height = y_size
-            #
-            # if metadata is not None:
-            #     scr_data.metadata = metadata
-            #
-            # tvw = self.tabViewWidget()
-            # if tvw:
-            #     tvw.update_active_window_vis_flags(self.screenshotGraphicsWidget)
-            #
-            # self.store_gui_vis_config(scrData=scr_data)
-            #
-            # scr_data.extractCameraInfo(_camera)
+            self.screenshot_config_counter += 1
+            screenshot_uid = (f"{scr_name}{self.screenshot_config_counter_separator}"
+                              f"{str(self.screenshot_config_counter).zfill(self.padding)}")
 
             # on linux there is a problem with X-server/Qt/QVTK implementation and calling
             # resize right after additional QVTK
             # is created causes segfault so possible "solution" is to do resize right before taking screenshot.
             # It causes flicker but does not cause segfault
             # User should NOT close or minimize this "empty" window (on Linux anyway).
-            self.screenshot_config_counter += 1
-            screenshot_uid = (f"{scr_name}{self.screenshot_config_counter_separator}"
-                              f"{str(self.screenshot_config_counter).zfill(self.padding)}")
-            if sys.platform == "Linux" or sys.platform == "linux" or sys.platform == "linux2":
-                self.screenshotDataDict[screenshot_uid] = scr_data
-
-            else:
-                self.screenshotDataDict[screenshot_uid] = scr_data
+            self.screenshotDataDict[screenshot_uid] = scr_data
 
         # serializing all screenshots
         self.serialize_screenshot_data()
@@ -247,6 +224,7 @@ class ScreenshotManager(ScreenshotManagerCore):
 
     def ok_to_add_screenshot_detailed(self, scr_data: ScreenshotData) -> bool:
 
+        ok_to_add_screenshot = True
         for scr_name_stored, scr_data_stored in self.screenshotDataDict.items():
             differences = self.compare_dictionaries(
                 dict1=scr_data.to_json_simulate_file_readout(),
@@ -259,16 +237,29 @@ class ScreenshotManager(ScreenshotManagerCore):
                 ret = QMessageBox.warning(
                     self.tabViewWidget(),
                     "Screenshot Already Exists",
-                    "Screenshot with identical settings exists in <b>screenshot_data/screenshots.json</b><br/>"
+                    "Screenshot with identical settings exists in <br/><b>screenshot_data/screenshots.json</b><br/>"
                     "Would you like to add with different screenshot name or discard it (recommended) ",
                     QMessageBox.No | QMessageBox.Yes,
                 )
 
                 if ret == QMessageBox.No:
-                    return False
+                    ok_to_add_screenshot = False
 
-            print
-        return True
+
+        if ok_to_add_screenshot:
+            # before we accept new screenshot we check if max number of screenshots has been reached
+            if len(self.screenshotDataDict) >= self.maxNumberOfScreenshots:
+                ret = QMessageBox.information(
+                    self.tabViewWidget(),
+                    "Max Number oF screenshots Has Been reached",
+                    "Maximum number of screenshots has been reached. You may want to save VTK simulation "
+                    "snapshots "
+                    "and replay them in player after simulation is done to take additional screenshot configurations",
+                    QMessageBox.Ok,
+                )
+                ok_to_add_screenshot = False
+
+        return ok_to_add_screenshot
 
     def compare_dictionaries(self, dict1, dict2, path="", ignore_keys: Optional[List[str]] = None):
         """
@@ -310,52 +301,6 @@ class ScreenshotManager(ScreenshotManagerCore):
                         differences[new_path] = (dict1[key], dict2[key])
 
         return differences
-
-    def ok_to_add_screenshot(self, scr_name: str, camera: object) -> bool:
-        """
-        Checks if it is OK to add screenshot. Asks user for permission to overwrite
-        existing screenshot configuration if a configuration with a given label already exists
-        TODO: we might consider allowing multiple screenshots with different camera settings
-
-        :param scr_name: name/label of the screenshot configuration
-        :param camera: camera object for current scene
-        :return: flag
-        """
-        ok_to_add_screenshot = True
-
-        if scr_name in self.screenshotDataDict:
-
-            scr_data_from_dict = self.screenshotDataDict[scr_name]
-            if scr_data_from_dict.compareCameras(camera):
-                print("CAMERAS ARE THE SAME")
-                # no need to update screenshot if the camera is the same
-                return False
-            else:
-                ret = QMessageBox.warning(
-                    self.tabViewWidget(),
-                    "Screenshot Already Exists",
-                    "Screenshot for given graphical configuration already exist but current camera settings"
-                    "are different from the saved ones.. Would you like to "
-                    "overwrite screenshot configuration and use new camera settings?",
-                    QMessageBox.No | QMessageBox.Yes,
-                )
-
-                if ret == QMessageBox.No:
-                    ok_to_add_screenshot = False
-
-        if ok_to_add_screenshot:
-            # before we accept new screenshot we check if max number of screenshots has been reached
-            if len(self.screenshotDataDict) > self.maxNumberOfScreenshots:
-                ret = QMessageBox.information(
-                    self.tabViewWidget(),
-                    "Max Number oF screenshots Has Been reached",
-                    "Maximum number of screenshots has been reached. you may want to save VTK simulation snapshots"
-                    "and replay them in player after simulation is done to take additional screenshot configurations",
-                    QMessageBox.Ok,
-                )
-                ok_to_add_screenshot = False
-
-        return ok_to_add_screenshot
 
     def get_basic_simulation_data(self):
         """
