@@ -50,7 +50,8 @@ class Configuration:
     myCustomSettingsPath = ''
 
     globalOnlySettings = ['RecentSimulations', 'NumberOfRecentSimulations', 'OutputLocation', 'ProjectLocation',
-                          'FloatingWindows', 'MainWindowSizeDefault', 'MainWindowSizeDefault', 'ScreenGeometry']
+                          'FloatingWindows', 'MainWindowSizeDefault', 'MainWindowSizeDefault', 'ScreenGeometry',
+                          "ThemeName"]
     customOnlySettings = ['WindowsLayout', 'Types3DInvisible']
 
     activeFieldNamesList = []

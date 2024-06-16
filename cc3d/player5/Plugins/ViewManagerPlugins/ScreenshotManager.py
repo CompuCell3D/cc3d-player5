@@ -12,6 +12,7 @@ from cc3d.core.utils import mkdir_p
 from cc3d import CompuCellSetup
 from PyQt5.QtWidgets import *
 from typing import Optional
+from typing import List
 
 
 class ScreenshotManager(ScreenshotManagerCore):
@@ -26,7 +27,7 @@ class ScreenshotManager(ScreenshotManagerCore):
         self.screenshot_number_of_digits = len(str(self.basicSimulationData.numberOfSteps))
 
         # we limit max number of screenshots to discourage users from using screenshots as their main analysis tool
-        self.maxNumberOfScreenshots = 30
+        self.maxNumberOfScreenshots = 100
 
         self.screenshotGraphicsWidget = None
 
@@ -42,7 +43,7 @@ class ScreenshotManager(ScreenshotManagerCore):
         # have to do cleanup to ensure some of the memory intensive resources e.g.
         # self.screenshotGraphicsWidget get deallocated
         if self.screenshotGraphicsWidget:
-            print('JUST BEFORE CLOSING self.screenshotGraphicsWidget')
+            # print("JUST BEFORE CLOSING self.screenshotGraphicsWidget")
             # this close and assignment do not do much for the non-mdi layout
             self.screenshotGraphicsWidget.close()
             self.screenshotGraphicsWidget = None
@@ -69,8 +70,8 @@ class ScreenshotManager(ScreenshotManagerCore):
         out_dir_name = persistent_globals.output_directory
         sim_fname = persistent_globals.simulation_file_name
 
-        out_fname = join(out_dir_name, 'screenshot_data', 'screenshots.json')
-        out_fname_in_sim_dir = join(dirname(sim_fname), 'screenshot_data', 'screenshots.json')
+        out_fname = join(out_dir_name, "screenshot_data", "screenshots.json")
+        out_fname_in_sim_dir = join(dirname(sim_fname), "screenshot_data", "screenshots.json")
 
         # writing in the simulation output dir
         self.safe_write_screenshot_description_file(out_fname)
@@ -95,8 +96,9 @@ class ScreenshotManager(ScreenshotManagerCore):
         scrData.cluster_borders_on = tvw.cluster_border_act.isChecked()
         scrData.cell_glyphs_on = tvw.cell_glyphs_act.isChecked()
         scrData.fpp_links_on = tvw.fpp_links_act.isChecked()
-        scrData.lattice_axes_on = Configuration.getSetting('ShowHorizontalAxesLabels') or Configuration.getSetting(
-            'ShowVerticalAxesLabels')
+        scrData.lattice_axes_on = Configuration.getSetting("ShowHorizontalAxesLabels") or Configuration.getSetting(
+            "ShowVerticalAxesLabels"
+        )
         scrData.lattice_axes_labels_on = Configuration.getSetting("ShowAxes")
         scrData.bounding_box_on = Configuration.getSetting("BoundingBoxOn")
 
@@ -104,7 +106,7 @@ class ScreenshotManager(ScreenshotManagerCore):
         invisible_types = invisible_types.strip()
 
         if invisible_types:
-            scrData.invisible_types = list([int(x) for x in invisible_types.split(',')])
+            scrData.invisible_types = list([int(x) for x in invisible_types.split(",")])
             if 0 not in scrData.invisible_types:
                 scrData.invisible_types = [0] + scrData.invisible_types
 
@@ -112,8 +114,7 @@ class ScreenshotManager(ScreenshotManagerCore):
             scrData.invisible_types = [0]
 
     #
-    def add_2d_screenshot(self, _plotName, _plotType, _projection, _projectionPosition,
-                          _camera, metadata=None):
+    def add_2d_screenshot(self, _plotName, _plotType, _projection, _projectionPosition, _camera, metadata=None):
         """
         Adds 2D screenshot configuration . Called from GraphicsFrameWidget
         :param _plotName:
@@ -146,11 +147,11 @@ class ScreenshotManager(ScreenshotManagerCore):
         scr_data = ScreenshotData()
         scr_data.spaceDimension = "3D"
         scr_data.plotData = (_plotName, _plotType)
-
         self.update_screenshot_container(scr_data=scr_data, _camera=_camera, metadata=metadata)
 
-    def update_screenshot_container(self, scr_data: ScreenshotData, _camera: object,
-                                    metadata: Optional[dict] = None) -> None:
+    def update_screenshot_container(
+        self, scr_data: ScreenshotData, _camera: object, metadata: Optional[dict] = None
+    ) -> None:
         """
         updates screenshot data based on requested configuration. Users will have a chance to approve overwriting
         of existing screenshot configuration
@@ -165,80 +166,141 @@ class ScreenshotManager(ScreenshotManagerCore):
 
         (scr_name, scr_core_name) = self.produce_screenshot_name(scr_data)
 
-        if self.ok_to_add_screenshot(scr_name=scr_name, camera=_camera):
-            scr_data.screenshotName = scr_name
-            scr_data.screenshotCoreName = scr_core_name
-            scr_data.screenshotGraphicsWidget = self.screenshotGraphicsWidget
+        scr_data = self.fill_in_screenshot_data_details(scr_data=scr_data, _camera=_camera, metadata=metadata)
 
-            scr_data.win_width = x_size
-            scr_data.win_height = y_size
+        # if self.ok_to_add_screenshot(scr_name=scr_name, camera=_camera):
+        if self.ok_to_add_screenshot_detailed(scr_data=scr_data):
 
-            if metadata is not None:
-                scr_data.metadata = metadata
-
-            tvw = self.tabViewWidget()
-            if tvw:
-                tvw.update_active_window_vis_flags(self.screenshotGraphicsWidget)
-
-            self.store_gui_vis_config(scrData=scr_data)
-
-            scr_data.extractCameraInfo(_camera)
+            self.screenshot_config_counter += 1
+            screenshot_uid = (f"{scr_name}{self.screenshot_config_counter_separator}"
+                              f"{str(self.screenshot_config_counter).zfill(self.padding)}")
 
             # on linux there is a problem with X-server/Qt/QVTK implementation and calling
             # resize right after additional QVTK
             # is created causes segfault so possible "solution" is to do resize right before taking screenshot.
             # It causes flicker but does not cause segfault
             # User should NOT close or minimize this "empty" window (on Linux anyway).
-            if sys.platform == 'Linux' or sys.platform == 'linux' or sys.platform == 'linux2':
-                self.screenshotDataDict[scr_data.screenshotName] = scr_data
-
-            else:
-                self.screenshotDataDict[scr_data.screenshotName] = scr_data
+            self.screenshotDataDict[screenshot_uid] = scr_data
 
         # serializing all screenshots
         self.serialize_screenshot_data()
 
-    def ok_to_add_screenshot(self, scr_name: str, camera: object) -> bool:
+    def fill_in_screenshot_data_details(
+        self, scr_data: ScreenshotData, _camera: object, metadata: Optional[dict] = None
+    ) -> ScreenshotData:
         """
-        Checks if it is OK to add screenshot. Asks user for permission to overwrite
-        existing screenshot configuration if a configuration with a given label already exists
-        TODO: we might consider allowing multiple screenshots with different camera settings
+        Populates screenshot data content
+        :param metadata:
+        :param _camera:
+        :param scr_data:
+        :return:
+        """
+        x_size = Configuration.getSetting("Screenshot_X")
+        y_size = Configuration.getSetting("Screenshot_Y")
 
-        :param scr_name: name/label of the screenshot configuration
-        :param camera: camera object for current scene
-        :return: flag
-        """
+        (scr_name, scr_core_name) = self.produce_screenshot_name(scr_data)
+
+        scr_data.screenshotName = scr_name
+
+        scr_data.screenshotCoreName = scr_core_name
+        scr_data.screenshotGraphicsWidget = self.screenshotGraphicsWidget
+        scr_data.cell_shell_optimization = Configuration.getSetting("CellShellOptimization")
+
+        scr_data.win_width = x_size
+        scr_data.win_height = y_size
+
+        if metadata is not None:
+            scr_data.metadata = metadata
+
+        tvw = self.tabViewWidget()
+        if tvw:
+            tvw.update_active_window_vis_flags(self.screenshotGraphicsWidget)
+
+        self.store_gui_vis_config(scrData=scr_data)
+
+        scr_data.extractCameraInfo(_camera)
+
+        return scr_data
+
+    def ok_to_add_screenshot_detailed(self, scr_data: ScreenshotData) -> bool:
+
         ok_to_add_screenshot = True
+        for scr_name_stored, scr_data_stored in self.screenshotDataDict.items():
+            differences = self.compare_dictionaries(
+                dict1=scr_data.to_json_simulate_file_readout(),
+                dict2=scr_data_stored.to_json_simulate_file_readout(),
+                ignore_keys=["actual_screenshot", "screenshotName"],
+            )
 
-        if scr_name in self.screenshotDataDict:
+            if not differences:
 
-            scr_data_from_dict = self.screenshotDataDict[scr_name]
-            if scr_data_from_dict.compareCameras(camera):
-                print("CAMERAS ARE THE SAME")
-                # no need to update screenshot if the camera is the same
-                return False
-            else:
                 ret = QMessageBox.warning(
-                    self.tabViewWidget(), "Screenshot Already Exists",
-                    "Screenshot for given graphical configuration already exist but current camera settings"
-                    "are different from the saved ones.. Would you like to "
-                    "overwrite screenshot configuration and use new camera settings?",
-                    QMessageBox.No | QMessageBox.Yes)
+                    self.tabViewWidget(),
+                    "Screenshot Already Exists",
+                    "Screenshot with identical settings exists in <br/><b>screenshot_data/screenshots.json</b><br/>"
+                    "Would you like to add with different screenshot name or discard it (recommended) ",
+                    QMessageBox.No | QMessageBox.Yes,
+                )
 
                 if ret == QMessageBox.No:
                     ok_to_add_screenshot = False
 
+
         if ok_to_add_screenshot:
             # before we accept new screenshot we check if max number of screenshots has been reached
-            if len(self.screenshotDataDict) > self.maxNumberOfScreenshots:
+            if len(self.screenshotDataDict) >= self.maxNumberOfScreenshots:
                 ret = QMessageBox.information(
-                    self.tabViewWidget(), "Max Number oF screenshots Has Been reached",
-                    "Maximum number of screenshots has been reached. you may want to save VTK simulation snapshots"
+                    self.tabViewWidget(),
+                    "Max Number oF screenshots Has Been reached",
+                    "Maximum number of screenshots has been reached. You may want to save VTK simulation "
+                    "snapshots "
                     "and replay them in player after simulation is done to take additional screenshot configurations",
-                    QMessageBox.Ok)
+                    QMessageBox.Ok,
+                )
                 ok_to_add_screenshot = False
 
         return ok_to_add_screenshot
+
+    def compare_dictionaries(self, dict1, dict2, path="", ignore_keys: Optional[List[str]] = None):
+        """
+        Compare two dictionaries and return a dictionary detailing the differences.
+
+        Parameters:
+        - dict1: The first dictionary to compare.
+        - dict2: The second dictionary to compare.
+        - path: The current path (used for nested dictionaries).
+
+        Returns:
+        A dictionary detailing the differences.
+        """
+        differences = {}
+
+        key_union = set(dict1.keys() | dict2.keys())
+        if ignore_keys is not None:
+            key_union.difference_update(set(ignore_keys))
+        # for key in dict1.keys() | dict2.keys():
+
+        for key in key_union:
+
+            new_path = f"{path}/{key}" if path else key
+
+            if key in dict1 and key not in dict2:
+                differences[new_path] = ("Only in dict1", dict1[key])
+            elif key in dict2 and key not in dict1:
+                differences[new_path] = ("Only in dict2", dict2[key])
+            else:
+                if isinstance(dict1[key], dict) and isinstance(dict2[key], dict):
+                    nested_diff = self.compare_dictionaries(dict1[key], dict2[key], new_path, ignore_keys=ignore_keys)
+                    if nested_diff:
+                        differences.update(nested_diff)
+                elif isinstance(dict1[key], (list, tuple)) and isinstance(dict2[key], (list, tuple)):
+                    if tuple(dict1[key]) != tuple(dict2[key]):
+                        differences[new_path] = (dict1[key], dict2[key])
+                else:
+                    if dict1[key] != dict2[key]:
+                        differences[new_path] = (dict1[key], dict2[key])
+
+        return differences
 
     def get_basic_simulation_data(self):
         """
@@ -270,10 +332,10 @@ class ScreenshotManager(ScreenshotManagerCore):
             # we are inserting a flag into scene metadata that informs the rest
             # of the visualization pipeline that we are dealing with actual screenshop
             # and if so we will use e.g. colors from screenshot description file, and not from settings
-            screenshot_data.metadata['actual_screenshot'] = True
+            screenshot_data.metadata["actual_screenshot"] = True
 
             if not screenshot_name:
-                screenshot_name = 'screenshot_' + str(i)
+                screenshot_name = "screenshot_" + str(i)
 
             screenshot_dir = os.path.join(screenshot_directory_name, screenshot_name)
 
@@ -285,5 +347,6 @@ class ScreenshotManager(ScreenshotManagerCore):
 
             self.gd.clear_display()
             self.gd.draw(screenshot_data=screenshot_data, bsd=bsd, screenshot_name=screenshot_name)
-            self.gd.output_screenshot(screenshot_fname=screenshot_fname, file_format="png",
-                                      screenshot_data=screenshot_data)
+            self.gd.output_screenshot(
+                screenshot_fname=screenshot_fname, file_format="png", screenshot_data=screenshot_data
+            )

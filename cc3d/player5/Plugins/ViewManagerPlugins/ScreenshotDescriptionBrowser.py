@@ -11,7 +11,6 @@ from typing import Optional
 from pathlib import Path
 import shutil
 
-
 class ScreenshotDescriptionBrowser(QDialog, ui_screenshot_description_browser.Ui_screenshotDescriptionDialog):
 
     def __init__(self, parent=None):

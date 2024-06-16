@@ -9,8 +9,6 @@ from os import environ
 import sys
 from pathlib import Path
 
-import cc3d.player5.Configuration as Configuration
-
 
 from . import ui_param_scan_dialog
 

@@ -29,7 +29,7 @@ setup(name='cc3d-player5',
       include_package_data=True,
       package_data={
             '': [
-                  '*.information', '*.qrc', '*.sql', '*.xml'
+                  '*.information', '*.qrc', '*.sql', '*.xml', "*.css", "*.png"
             ] + extra_package_data,
             'cc3d.player5': [
                   'compucell3d.pyw',
@@ -37,6 +37,7 @@ setup(name='cc3d-player5',
                   'Configuration_settings/*',
                   'Configuration_settings/osx/*',
                   'icons/*',
+                  'styles/themes/*',
                   'Launchers/*',
                   'Plugins/ViewManagerPlugins/*',
                   extra_library
