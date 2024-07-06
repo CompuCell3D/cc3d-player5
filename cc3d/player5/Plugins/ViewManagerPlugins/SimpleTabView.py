@@ -32,6 +32,8 @@ from cc3d.player5.Plugins.ViewManagerPlugins.ScreenshotDescriptionBrowser import
 from cc3d.core.GraphicsUtils.utils import extract_address_int_from_vtk_object
 from cc3d.player5 import Graphics
 from cc3d.core import XMLUtils
+from cc3d.player5.styles.StyleManager import get_theme_names
+
 from .PlotManagerSetup import create_plot_manager
 from .PopupWindowManagerSetup import create_popup_window_manager
 from .WidgetManager import WidgetManager
@@ -216,6 +218,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # too often. Default check interval is 7 days
         self.check_version(check_interval=7)
         self.setup_logging()
+        self.restore_default_settings_local_flag = False
 
     def setup_logging(self):
         """
@@ -643,6 +646,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.pause_act.setEnabled(False)
         self.stop_act.setEnabled(False)
         self.open_act.setEnabled(True)
+        self.demo_menu_act.setEnabled(True)
         self.open_lds_act.setEnabled(True)
         self.pif_from_simulation_act.setEnabled(False)
         self.pif_from_vtk_act.setEnabled(False)
@@ -1078,7 +1082,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.restore_default_settings_act.triggered.connect(self.restore_default_settings)
         self.restore_default_global_settings_act.triggered.connect(self.restore_default_global_settings)
 
-        self.open_act.triggered.connect(self.__openSim)
+        self.open_act.triggered.connect(self.__openSimDialog)
         self.open_lds_act.triggered.connect(self.__openLDSFile)
 
         # qApp is a member of QtGui. closeAllWindows will cause closeEvent and closeEventSimpleTabView will be called
@@ -1804,6 +1808,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if prepare_flag:
                 # todo 5 - self.drawingAreaPrepared is initialized elsewhere this is tmp placeholder and a hack
                 self.drawingAreaPrepared = True
+                self.restore_default_settings_local_flag = False
 
             else:
                 # when self.prepareSimulation() fails
@@ -1828,6 +1833,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
             self.open_act.setEnabled(False)
             self.open_lds_act.setEnabled(False)
+            self.demo_menu_act.setEnabled(False)
 
             return
         else:
@@ -1846,6 +1852,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
                 self.open_act.setEnabled(False)
                 self.open_lds_act.setEnabled(False)
+                self.demo_menu_act.setEnabled(False)
 
             self.steppingThroughSimulation = False
 
@@ -1878,6 +1885,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if prepare_flag:
                 # todo 5 - self.drawingAreaPrepared is initialized elsewhere this is tmp placeholder and a hack
                 self.drawingAreaPrepared = True
+                self.restore_default_settings_local_flag = False
             else:
                 # when self.prepareSimulation() fails
                 return
@@ -1900,6 +1908,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
             self.open_act.setEnabled(False)
             self.open_lds_act.setEnabled(False)
+            self.demo_menu_act.setEnabled(False)
             return
 
         else:
@@ -1918,6 +1927,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 self.restart_snapshot_from_simulation_act.setEnabled(True)
                 self.open_act.setEnabled(False)
                 self.open_lds_act.setEnabled(False)
+                self.demo_menu_act.setEnabled(False)
 
                 self.simulation.start()
 
@@ -2281,6 +2291,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if gwd.winType != 'steering_panel':
                 return
 
+            win.move(gwd.winPosition)
             win.resize(gwd.winSize)
             win.move(gwd.winPosition)
 
@@ -2339,17 +2350,51 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if not self.simulationIsRunning:
             return
 
-        Configuration.replace_custom_settings_with_defaults()
+        ret = QMessageBox.question(self, "Restoring Default Simulation Setting",
+                                    "Need to stop existing simulation to restore default simulation settings. "
+                                    "Do you want to proceed?",
+                                   QMessageBox.Yes | QMessageBox.No
+                                   )
+        if ret == QMessageBox.No:
+            return
 
-    @staticmethod
-    def restore_default_global_settings():
+        self.restore_default_settings_local_flag = True
+        self.__stopSim()
+        # Configuration.replace_custom_settings_with_defaults()
+
+
+    def restore_default_global_settings(self):
         """
         Removes global settings
 
         :return: None
         """
 
+        if self.simulationIsRunning:
+            ret = QMessageBox.question(self, "Restoring Global Simulation Setting",
+                                       "Need to <b>stop</b> existing simulation and <b>close the Player</b>"
+                                       " to restore default global settings. <br/>"
+                                       "Do you want to proceed?",
+                                       QMessageBox.Yes | QMessageBox.No
+                                       )
+            if ret == QMessageBox.No:
+                return
+
+            self.__stopSim()
+        else:
+            ret = QMessageBox.question(self, "Restoring Global Simulation Setting",
+                                       "Need to <b>close the Player</b>"
+                                       " to restore default global settings. <br/>"
+                                       "Do you want to proceed?",
+                                       QMessageBox.Yes | QMessageBox.No
+                                       )
+            if ret == QMessageBox.No:
+                return
+
+
+
         Configuration.restore_default_global_settings()
+        self.quit()
 
     def quit(self, error_code=0):
         """Quit the application."""
@@ -2375,7 +2420,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # self.__save_windows_layout()
         # saving settings with the simulation
         if self.customSettingPath:
-            Configuration.writeSettingsForSingleSimulation(self.customSettingPath)
+            if self.restore_default_settings_local_flag:
+                Configuration.replace_custom_settings_with_defaults()
+            else:
+                Configuration.writeSettingsForSingleSimulation(self.customSettingPath)
             self.customSettingPath = ''
 
         Configuration.writeAllSettings()
@@ -2583,9 +2631,12 @@ class SimpleTabView(MainArea, SimpleViewManager):
                     graphics_window = self.lastActiveRealWindow
                     gfw = graphics_window.widget()
 
+                    # we are using move, resize, move pattern to deal with Windows inconsistencies when restoring
+                    # proper size and position of graphics windows
+
+                    graphics_window.move(gwd.winPosition)
                     graphics_window.resize(gwd.winSize)
                     graphics_window.move(gwd.winPosition)
-
                     gfw.apply_graphics_window_data(gwd)
 
             except KeyError:
@@ -2637,6 +2688,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             graphics_window = self.add_new_graphics_window()
             gfw = graphics_window.widget()
 
+            graphics_window.move(gwd.winPosition)
             graphics_window.resize(gwd.winSize)
             graphics_window.move(gwd.winPosition)
 
@@ -2949,12 +3001,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         return param_scan_flag
 
-    def __openSim(self, fileName=None):
+    def __openSimDialog(self):
         """
         This function is called when open file is triggered.
         Displays File open dialog to open new simulation
 
-        :param fileName: str - unused
         :return: None
         """
 
@@ -2989,6 +3040,14 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         self.__sim_file_name = os.path.abspath(str(self.__sim_file_name))
 
+        print('Selected simulation file:', self.__sim_file_name)
+        self.openSim(self.__sim_file_name)
+
+    def openSim(self, fileName=None):
+        print('Opening simulation file:', fileName)
+
+        self.__sim_file_name = fileName
+
         sim_extension = os.path.splitext(self.__sim_file_name)[1].lower()
         if sim_extension not in ['.cc3d', '.dml', '.zip']:
             print('Not a .cc3d of .dml file. Ignoring ')
@@ -3003,8 +3062,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # a file or if we skip opening altogether
         if self.__sim_file_name is None or str(self.__sim_file_name) == '':
             return
-
-        print('__openSim: self.__fileName=', self.__sim_file_name)
 
         # setting text for main window (self.UI) title bar
         self.set_title_window_from_sim_fname(widget=self.UI, abs_sim_fname=self.__sim_file_name)
@@ -3306,6 +3363,18 @@ class SimpleTabView(MainArea, SimpleViewManager):
         for field_name in active_field_names_list:
             self.dlg.fieldComboBox.addItem(field_name)  # this is where we set the combobox of field names in Prefs
 
+        allThemeNames = get_theme_names()
+        if not Configuration.check_if_setting_exists("ThemeName"):
+            Configuration.setSetting("ThemeName", "DefaultTheme")
+        savedTheme = Configuration.getSetting("ThemeName")
+        
+        for i, themeName in enumerate(allThemeNames):
+            self.dlg.themeComboBox.addItem(themeName)
+            if themeName == savedTheme:
+                self.dlg.themeComboBox.setCurrentIndex(i)
+        self.dlg.enableThemeChanges()
+                
+
         # TODO - fix this - figure out if config dialog has configsChanged signal
         # self.connect(dlg, SIGNAL('configsChanged'), self.__configsChanged)
         # dlg.configsChanged.connect(self.__configsChanged)
@@ -3323,7 +3392,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
             # updating pauseAt
             pg = CompuCellSetup.persistent_globals
             pg.pause_at = str_to_int_container(s=Configuration.getSetting("PauseAt"), container='dict')
-            self.redo_completed_step()
+            if self.simulationIsRunning or self.simulationIsStepping:
+                self.redo_completed_step()
 
     def __generatePIFFromCurrentSnapshot(self):
         """
@@ -3468,15 +3538,13 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         self.__statusBar = self.UI.statusBar()
         self.mcSteps = QLabel()
-        self.mcSteps.setStyleSheet("QLabel { background-color : white; color : red; }")
+        self.mcSteps.setStyleSheet("QLabel { color : red; }")
 
         self.conSteps = QLabel()
-        self.conSteps.setAutoFillBackground(True)
-        self.conSteps.setStyleSheet("QLabel { background-color : white; color : blue; }")
+        self.conSteps.setStyleSheet("QLabel { color : blue; }")
 
         self.warnings = QLabel()
-        self.warnings.setAutoFillBackground(True)
-        self.warnings.setStyleSheet("QLabel { background-color : white; color : red; }")
+        self.warnings.setStyleSheet("QLabel { color : red; }")
 
         self.__statusBar.addWidget(self.mcSteps)
         self.__statusBar.addWidget(self.conSteps)

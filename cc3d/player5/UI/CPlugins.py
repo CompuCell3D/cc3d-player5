@@ -28,7 +28,7 @@ class CPlugins(QTableView):
 
         self.setColumnWidth(0, 130)
         #self.cplugins.setColumnWidth(1, 200)
-        self.setAlternatingRowColors (True)
+        self.setAlternatingRowColors (False)
         self.horizontalHeader().setStretchLastSection(True)
         
         self.connect(self, SIGNAL("doubleClicked(const QModelIndex &)"), self.__showPluginView)

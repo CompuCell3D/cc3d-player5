@@ -14,6 +14,7 @@ from cc3d.player5.CQt.CQApplication import CQApplication
 from cc3d.player5.Messaging import setDebugging
 
 import cc3d
+from cc3d.player5.styles.StyleManager import subscribe_to_style_sheet
 
 setDebugging(0)
 
@@ -69,6 +70,7 @@ def main(argv=None):
     #     PyQt5.QtCore.QCoreApplication.setAttribute(Qt.AA_DontUseNativeMenuBar)
 
     app = CQApplication(argv)
+    subscribe_to_style_sheet(app)
 
     pixmap = QPixmap("icons/splash_angio.png")
     splash = QSplashScreen(pixmap)

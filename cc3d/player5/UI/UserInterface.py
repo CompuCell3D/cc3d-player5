@@ -133,6 +133,7 @@ class UserInterface(QMainWindow):
             # we hide central widget when graphics windows are floating
             self.centralWidget().hide()
 
+
     def initialize_gui_geometry(self, allow_main_window_move:bool=True):
         """
         Initializes GUI geometry based on saved settings and based on current screen configuration

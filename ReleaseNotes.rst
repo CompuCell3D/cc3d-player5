@@ -1,6 +1,28 @@
 Release Notes
 =============
 
+
+Version 4.6.0
+-------------
+**2024-06-08**
+
+New features:
+
+ - Improved handling of screenshots
+ - New Demos Browser
+ - Added explicit setting to turn on/off cell-shell rendering optimization in 3D.
+ - Implemented direct way to restore default settings directly from the Player
+
+Changes:
+
+Bug fixes:
+    - Fixing screenshots settings handling
+    - Fixed restoration of graphics windows on Windows OS
+    - Multiple minor bug fixes
+
+
+
+
 Version 4.5.0
 -------------
 **2024-01-06**
