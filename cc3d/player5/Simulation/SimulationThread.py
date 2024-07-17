@@ -396,6 +396,10 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
         self.inject()
         run_cc3d_project(cc3d_sim_fname=cc3d_sim_fname)
 
+    def quit(self):
+        super()
+        self.finishRequest.emit(True)
+
     @staticmethod
     def main_loop():
         player_type = CompuCellSetup.persistent_globals.player_type
