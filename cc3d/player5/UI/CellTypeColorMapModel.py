@@ -4,10 +4,11 @@ from PyQt5.QtGui import *
 
 from collections import OrderedDict
 from cc3d import CompuCellSetup
+from cc3d.core.logging import log_py
+from cc3d.cpp import CompuCell
 from cc3d.player5 import Configuration
 from cc3d.player5.UI.cell_type_colors import default_cell_type_color_list
 from cc3d.player5.Utilities.utils import assign_cell_type_colors
-import warnings
 import weakref
 
 
@@ -204,7 +205,7 @@ class CellTypeColorMapModel(QtCore.QAbstractTableModel):
             color_for_row_item = row_item[self.color_idx_in_list]
             type_color_map[type_id_for_row_item] = color_for_row_item
         except (LookupError, IndexError) as e:
-            warnings.warn(f'Could not find entry for TypeColorMap setting {row_item} . Error: {e}')
+            log_py(CompuCell.LOG_WARNING, f'Could not find entry for TypeColorMap setting {row_item} . Error: {e}')
 
         Configuration.setSetting('TypeColorMap', type_color_map)
 

@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 import weakref
 from PyQt5 import QtCore
-import warnings
 from cc3d.core.PySteppables import *
+from cc3d.core.logging import log_py
+from cc3d.cpp import CompuCell
 
 try:
     import webcolors as wc
 except ImportError:
-    warnings.warn('Could not find webcolors. Run "pip install webcolors" to fix this', RuntimeWarning)
+    log_py(CompuCell.LOG_WARNING, 'Could not find webcolors. Run "pip install webcolors" to fix this')
 
 PLOT_TYPE_POSITION = 3
 (XYPLOT, HISTOGRAM, BARPLOT) = list(range(0, 3))

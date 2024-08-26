@@ -5,15 +5,16 @@ from PyQt5.QtGui import *
 import numpy as np
 from collections import OrderedDict
 from typing import Iterable
-import warnings
 from deprecated import deprecated
 from pathlib import Path
 from cc3d import CompuCellSetup
+from cc3d.core.logging import log_py
+from cc3d.cpp import CompuCell
 
 try:
     import webcolors as wc
 except ImportError:
-    warnings.warn('Could not find webcolors. Run "pip install webcolors" to fix this', RuntimeWarning)
+    log_py(CompuCell.LOG_WARNING, 'Could not find webcolors. Run "pip install webcolors" to fix this')
 
 import pyqtgraph as pg
 from cc3d.core.enums import *
@@ -565,10 +566,11 @@ class PlotWindowInterface(QtCore.QObject):
         :return: None
         """
 
-        warnings.warn('Player 5 does not allow scaling of plot screenshots. If this feature is required,'
-                      'it is best to save plot data and render it '
-                      'separately in a full-featured plotting package such as Matpotlib or pyqtgraph. '
-                      'CompuCell3D provides only basic plotting capabilities', RuntimeWarning)
+        log_py(CompuCell.LOG_WARNING,
+               'Player 5 does not allow scaling of plot screenshots. If this feature is required,'
+               'it is best to save plot data and render it '
+               'separately in a full-featured plotting package such as Matpotlib or pyqtgraph. '
+               'CompuCell3D provides only basic plotting capabilities')
 
         file_name = str(file_name)
         pixmap = QPixmap(self.pW.size())

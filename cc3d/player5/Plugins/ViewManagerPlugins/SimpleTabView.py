@@ -33,6 +33,7 @@ from cc3d.core.GraphicsUtils.utils import extract_address_int_from_vtk_object
 from cc3d.player5 import Graphics
 from cc3d.core import XMLUtils
 from cc3d.player5.styles.StyleManager import get_theme_names
+from cc3d.core.logging import get_logger
 
 from .PlotManagerSetup import create_plot_manager
 from .PopupWindowManagerSetup import create_popup_window_manager
@@ -45,6 +46,7 @@ from cc3d import CompuCellSetup
 from cc3d.core.RollbackImporter import RollbackImporter
 from cc3d.CompuCellSetup.readers import readCC3DFile
 from cc3d.CompuCellSetup.simulation_utils import str_to_int_container
+from cc3d.CompuCellSetup.utils import SCREENSHOT_SUBDIR
 from typing import Union, Optional
 from cc3d.player5.Utilities.unzipper import Unzipper
 from weakref import ref
@@ -227,7 +229,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         """
         log_level_val = getattr(CompuCell, Configuration.getSetting("LogLevel"))
         if log_level_val != self.log_level:
-            logger = CompuCell.CC3DLogger.get()
+            logger = get_logger()
             logger.enableConsoleLogging(log_level_val)
             self.log_level = log_level_val
 
@@ -242,12 +244,12 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if pg.output_directory is not None:
                 if not Path(pg.output_directory).exists():
                     pg.create_output_dir()
-                logger = CompuCell.CC3DLogger.get()
+                logger = get_logger()
                 logger.enableFileLogging(str(
                     Path(pg.output_directory).joinpath("simulation.log")), log_level_val)
         else:
             if pg.output_directory is not None:
-                logger = CompuCell.CC3DLogger.get()
+                logger = get_logger()
                 logger.disableFileLogging()
 
 
@@ -1539,11 +1541,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.screenshotManager.output_error_flag = True
             self.popup_message(
                 title='Error Processing Screenshots',
-                msg='Could not output screenshots. It is likely that screenshot description file was generated '
+                msg='Could not output screenshots. It is likely that the screenshot description file was generated '
                     'using incompatible code. '
-                    'You may want to remove "screenshot_data" directory from your project '
-                    'and use camera button to generate new screenshot file '
-                    ' No screenshots will be taken'.format(self.screenshotManager.get_screenshot_filename()))
+                    f'You may want to remove the "{SCREENSHOT_SUBDIR}" directory from your project '
+                    'and use the camera button to generate a new screenshot file. '
+                    'No screenshots will be taken.')
 
     def handleCompletedStepRegular(self, mcs: int) -> None:
         """
