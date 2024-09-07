@@ -1,10 +1,11 @@
-import warnings
 from weakref import ref
+from cc3d.core.logging import log_py
+from cc3d.cpp import CompuCell
 
 try:
     import webcolors as wc
 except ImportError:
-    warnings.warn('Could not find webcolors. Run "pip install webcolors" to fix this', RuntimeWarning)
+    log_py(CompuCell.LOG_WARNING, 'Could not find webcolors. Run "pip install webcolors" to fix this')
 
 from PyQt5 import QtCore, QtWidgets
 
