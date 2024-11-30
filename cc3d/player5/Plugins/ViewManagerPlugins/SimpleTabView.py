@@ -2712,24 +2712,31 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
     def setFieldTypes(self):
         """
-        initializes field types for VTK vidgets during regular simulation
+        initializes field types for VTK widgets during regular simulation.
+        Use this function to set up fields that you want to appear in
+        GraphicsFrame/GraphicsFrameWidget Fields combo box
 
         :return: None
         """
         sim_obj = self.mysim()
-        if not sim_obj: return
+        if not sim_obj:
+            return
 
-        self.fieldTypes["Cell_Field"] = FIELD_TYPES[0]  # "CellField"
+        extra_field_registry = CompuCellSetup.persistent_globals.field_registry
 
-        # Add concentration fields How? I don't care how I got it at this time
+        self.fieldTypes["Cell_Field"] = FIELD_TYPES[0]
 
         conc_field_name_vec = sim_obj.getConcentrationFieldNameVector()
         # putting concentration fields from simulator
         for fieldName in conc_field_name_vec:
-            #            print MODULENAME,"setFieldTypes():  Got this conc field: ",fieldName
             self.fieldTypes[fieldName] = FIELD_TYPES[1]
 
-        extra_field_registry = CompuCellSetup.persistent_globals.field_registry
+        for fieldName in sim_obj.getVectorFieldNameVectorEngineOwned():
+            # initializing and registering engine-created (in CC3D C++ code) vector field
+            extra_field_registry.engine_vector_field_to_field_adapter(fieldName)
+            # fields added to fieldTypes are the fields that show up in the ComboBox
+            # of the GraphicsFrame/GraphicsFrameWidget
+            self.fieldTypes[fieldName] = FIELD_TYPES[4]
 
         # inserting extra scalar fields managed from Python script
         field_dict = extra_field_registry.get_fields_to_create_dict()
@@ -2749,7 +2756,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         persistent_globals = CompuCellSetup.persistent_globals
         check_for_COM_plugin  = persistent_globals.player_type != PlayerType.REPLAY
-
 
         cc3d_xml_2_obj_converter = CompuCellSetup.persistent_globals.cc3d_xml_2_obj_converter
         if cc3d_xml_2_obj_converter is not None:
