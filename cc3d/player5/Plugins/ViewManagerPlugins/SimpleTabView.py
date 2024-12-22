@@ -2726,10 +2726,22 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         self.fieldTypes["Cell_Field"] = FIELD_TYPES[0]
 
+        conc_shared_numpy_field_name_vec_engine_owned = sim_obj.getConcentrationSharedNumpyFieldNameVectorEngineOwned()
+
         conc_field_name_vec = sim_obj.getConcentrationFieldNameVector()
         # putting concentration fields from simulator
         for fieldName in conc_field_name_vec:
+            if fieldName not in conc_shared_numpy_field_name_vec_engine_owned:
+                self.fieldTypes[fieldName] = FIELD_TYPES[1]
+
+        # handling concentration shared numpy fields that are managed by c++
+        for fieldName in conc_shared_numpy_field_name_vec_engine_owned:
+            # initializing and registering engine-created (in CC3D C++ code) concentration field
+            extra_field_registry.engine_scalar_field_to_field_adapter(fieldName)
+            # fields added to fieldTypes are the fields that show up in the ComboBox
+            # of the GraphicsFrame/GraphicsFrameWidget
             self.fieldTypes[fieldName] = FIELD_TYPES[1]
+
 
         for fieldName in sim_obj.getVectorFieldNameVectorEngineOwned():
             # initializing and registering engine-created (in CC3D C++ code) vector field
