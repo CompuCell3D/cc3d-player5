@@ -2742,6 +2742,14 @@ class SimpleTabView(MainArea, SimpleViewManager):
             # of the GraphicsFrame/GraphicsFrameWidget
             self.fieldTypes[fieldName] = FIELD_TYPES[1]
 
+        # handling generic concentration shared numpy fields (char, short, int, ...) that are managed by c++
+        for fieldName in sim_obj.getGenericScalarFieldNameVectorEngineOwned():
+            extra_field_registry.engine_scalar_field_to_field_adapter_generic(fieldName)
+            # fields added to fieldTypes are the fields that show up in the ComboBox
+            # of the GraphicsFrame/GraphicsFrameWidget
+            self.fieldTypes[fieldName] = FIELD_TYPES[1]
+
+
 
         for fieldName in sim_obj.getVectorFieldNameVectorEngineOwned():
             # initializing and registering engine-created (in CC3D C++ code) vector field
