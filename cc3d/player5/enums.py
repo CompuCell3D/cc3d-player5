@@ -1,7 +1,15 @@
 from enum import Enum
 
+
+
+
+# FIELD_TYPES = (
+#     "CellField", "ConField", "ScalarField", "ScalarFieldCellLevel", "VectorField", "VectorFieldCellLevel", "CustomVis")
+
+
 FIELD_TYPES = (
     "CellField", "ConField", "ScalarField", "ScalarFieldCellLevel", "VectorField", "VectorFieldCellLevel", "CustomVis")
+
 
 PLANES = ("xy", "xz", "yz")
 
