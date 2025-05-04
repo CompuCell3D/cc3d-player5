@@ -2746,7 +2746,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             extra_field_registry.engine_scalar_field_to_field_adapter(fieldName)
             # fields added to fieldTypes are the fields that show up in the ComboBox
             # of the GraphicsFrame/GraphicsFrameWidget
-            # self.fieldTypes[fieldName] = FIELD_TYPES[1]
+
             self.fieldTypes[fieldName] = FieldProperties(field_name=fieldName, field_type=FIELD_TYPES[1],
                                                          precision_type="float32")
 
