@@ -2753,43 +2753,30 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # handling generic concentration shared numpy fields (char, short, int, ...) that are managed by c++
         for fieldName in sim_obj.getGenericScalarFieldNameVectorEngineOwned():
             field_properties = extra_field_registry.engine_scalar_field_to_field_adapter_generic(fieldName)
-            # type_info_obj = sim_obj.getGenericScalarFieldTypeBase(fieldName)
-            # npy_precision_type = type_info_obj.getNumPyTypeString()
-
             # fields added to fieldTypes are the fields that show up in the ComboBox
             # of the GraphicsFrame/GraphicsFrameWidget
-            # self.fieldTypes[fieldName] = FIELD_TYPES[1]
             self.fieldTypes[fieldName] = field_properties
-
-
 
         for fieldName in sim_obj.getVectorFieldNameVectorEngineOwned():
             # initializing and registering engine-created (in CC3D C++ code) vector field
             extra_field_registry.engine_vector_field_to_field_adapter(fieldName)
             # fields added to fieldTypes are the fields that show up in the ComboBox
             # of the GraphicsFrame/GraphicsFrameWidget
-            # self.fieldTypes[fieldName] = FIELD_TYPES[4]
+
             self.fieldTypes[fieldName] = FieldProperties(field_name=fieldName, field_type=FIELD_TYPES[4],
                         precision_type="float32")
 
         # inserting extra scalar fields managed from Python script
         field_dict = extra_field_registry.get_fields_to_create_dict()
         for field_name, field_adapter in field_dict.items():
-            try:
-                self.fieldTypes[field_name]
-                if isinstance(self.fieldTypes[field_name], str):
-                    self.fieldTypes[field_name] = FieldProperties(
-                        field_name=field_name,
-                        field_type=FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_adapter.field_type],
-                        precision_type="float32")
-                    # self.fieldTypes[field_name] = FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_adapter.field_type]
-            except KeyError:
-                # self.fieldTypes[field_name] = FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_adapter.field_type]
+            current = self.fieldTypes.get(field_name)
 
+            if not isinstance(current, FieldProperties):
                 self.fieldTypes[field_name] = FieldProperties(
                     field_name=field_name,
                     field_type=FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_adapter.field_type],
-                    precision_type="float32")
+                    precision_type="float32"
+                )
 
         # converting all values of self.fieldTypes to have FieldProperties type
         for field_name, field_type in self.fieldTypes.items():
