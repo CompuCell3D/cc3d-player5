@@ -35,6 +35,7 @@ from cc3d.core import XMLUtils
 from cc3d.player5.styles.StyleManager import get_theme_names
 from cc3d.core.logging import get_logger
 
+
 from .PlotManagerSetup import create_plot_manager
 from .PopupWindowManagerSetup import create_popup_window_manager
 from .WidgetManager import WidgetManager
@@ -390,7 +391,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.windowMapper.setMapping(action, win)
             counter += 1
 
-    def handle_vis_field_created(self, field_name: str, field_type: int) -> None:
+    def handle_vis_field_created(self, field_name: str, field_type: int, precision_type: str) -> None:
         """
         slot that handles new visualization field creation. This mechanism is necessary to handle fields
         created outside steppable constructor
@@ -400,7 +401,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :return:
         """
 
-        self.fieldTypes[field_name] = FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_type]
+        # self.fieldTypes[field_name] = FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_type]
+        self.fieldTypes[field_name] = FieldProperties(field_name=field_name,
+                                                      field_type=FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_type],
+                                                      precision_type=precision_type)
 
         for win_id, win in self.win_inventory.getWindowsItems(GRAPHICS_WINDOW_LABEL):
             graphics_frame = win.widget()
@@ -2712,30 +2716,73 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
     def setFieldTypes(self):
         """
-        initializes field types for VTK vidgets during regular simulation
+        initializes field types for VTK widgets during regular simulation.
+        Use this function to set up fields that you want to appear in
+        GraphicsFrame/GraphicsFrameWidget Fields combo box
 
         :return: None
         """
         sim_obj = self.mysim()
-        if not sim_obj: return
+        if not sim_obj:
+            return
 
-        self.fieldTypes["Cell_Field"] = FIELD_TYPES[0]  # "CellField"
+        extra_field_registry = CompuCellSetup.persistent_globals.field_registry
 
-        # Add concentration fields How? I don't care how I got it at this time
+        # self.fieldTypes["Cell_Field"] = FIELD_TYPES[0]
+        self.fieldTypes["Cell_Field"] = FieldProperties(field_name="Cell_Field", field_type=FIELD_TYPES[0],precision_type="uint8")
+
+        conc_shared_numpy_field_name_vec_engine_owned = sim_obj.getConcentrationSharedNumpyFieldNameVectorEngineOwned()
 
         conc_field_name_vec = sim_obj.getConcentrationFieldNameVector()
         # putting concentration fields from simulator
         for fieldName in conc_field_name_vec:
-            #            print MODULENAME,"setFieldTypes():  Got this conc field: ",fieldName
-            self.fieldTypes[fieldName] = FIELD_TYPES[1]
+            if fieldName not in conc_shared_numpy_field_name_vec_engine_owned:
+                # self.fieldTypes[fieldName] = FIELD_TYPES[1]
+                self.fieldTypes[fieldName] = FieldProperties(field_name=fieldName, field_type=FIELD_TYPES[1],precision_type="float32")
 
-        extra_field_registry = CompuCellSetup.persistent_globals.field_registry
+        # handling concentration shared numpy fields that are managed by c++
+        for fieldName in conc_shared_numpy_field_name_vec_engine_owned:
+            # initializing and registering engine-created (in CC3D C++ code) concentration field
+            extra_field_registry.engine_scalar_field_to_field_adapter(fieldName)
+            # fields added to fieldTypes are the fields that show up in the ComboBox
+            # of the GraphicsFrame/GraphicsFrameWidget
+
+            self.fieldTypes[fieldName] = FieldProperties(field_name=fieldName, field_type=FIELD_TYPES[1],
+                                                         precision_type="float32")
+
+        # handling generic concentration shared numpy fields (char, short, int, ...) that are managed by c++
+        for fieldName in sim_obj.getGenericScalarFieldNameVectorEngineOwned():
+            field_properties = extra_field_registry.engine_scalar_field_to_field_adapter_generic(fieldName)
+            # fields added to fieldTypes are the fields that show up in the ComboBox
+            # of the GraphicsFrame/GraphicsFrameWidget
+            self.fieldTypes[fieldName] = field_properties
+
+        for fieldName in sim_obj.getVectorFieldNameVectorEngineOwned():
+            # initializing and registering engine-created (in CC3D C++ code) vector field
+            extra_field_registry.engine_vector_field_to_field_adapter(fieldName)
+            # fields added to fieldTypes are the fields that show up in the ComboBox
+            # of the GraphicsFrame/GraphicsFrameWidget
+
+            self.fieldTypes[fieldName] = FieldProperties(field_name=fieldName, field_type=FIELD_TYPES[4],
+                        precision_type="float32")
 
         # inserting extra scalar fields managed from Python script
         field_dict = extra_field_registry.get_fields_to_create_dict()
-
         for field_name, field_adapter in field_dict.items():
-            self.fieldTypes[field_name] = FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_adapter.field_type]
+            current = self.fieldTypes.get(field_name)
+
+            if not isinstance(current, FieldProperties):
+                self.fieldTypes[field_name] = FieldProperties(
+                    field_name=field_name,
+                    field_type=FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_adapter.field_type],
+                    precision_type="float32"
+                )
+
+        # converting all values of self.fieldTypes to have FieldProperties type
+        for field_name, field_type in self.fieldTypes.items():
+            if not isinstance(self.fieldTypes[field_name], FieldProperties):
+                self.fieldTypes[field_name] = FieldProperties(field_name=field_name,
+                                                              field_type=field_type, precision_type="float32")
 
     def showDisplayWidgets(self):
         """
@@ -2749,7 +2796,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         persistent_globals = CompuCellSetup.persistent_globals
         check_for_COM_plugin  = persistent_globals.player_type != PlayerType.REPLAY
-
 
         cc3d_xml_2_obj_converter = CompuCellSetup.persistent_globals.cc3d_xml_2_obj_converter
         if cc3d_xml_2_obj_converter is not None:

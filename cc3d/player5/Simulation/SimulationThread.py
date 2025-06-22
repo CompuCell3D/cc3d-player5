@@ -24,7 +24,7 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
     errorOccured = pyqtSignal(str, str)
     errorFormatted = pyqtSignal(str)
     errorOccuredDetailed = pyqtSignal(str, str,int,int,str)
-    visFieldCreatedSignal = pyqtSignal(str, int)
+    visFieldCreatedSignal = pyqtSignal(str, int, str)
     pauseRequest = pyqtSignal(bool)
     makeMovieRequest = pyqtSignal()
 
@@ -121,8 +121,8 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
     def emitErrorOccuredDetailed(self,_errorType,_file,_line,_col,_traceback_message):
         self.errorOccuredDetailed.emit(_errorType,_file,_line,_col,_traceback_message)
 
-    def emitVisFieldCreatedSignal(self, field_name, field_type):
-        self.visFieldCreatedSignal.emit(field_name, field_type)
+    def emitVisFieldCreatedSignal(self, field_name, field_type, precision_type):
+        self.visFieldCreatedSignal.emit(field_name, field_type, precision_type)
 
     def setSimulator(self, _sim):
 
@@ -371,7 +371,7 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
 
         exec(compile(open(run_script_name).read(), run_script_name, 'exec'))
 
-    def add_visualization_field(self, field_name, field_type):
+    def add_visualization_field(self, field_name, field_type, precision_type):
         """
 
         :param field_name:
@@ -380,7 +380,7 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
         """
 
         print(" field_name, field_type=",( field_name, field_type))
-        self.emitVisFieldCreatedSignal(field_name=field_name, field_type=field_type)
+        self.emitVisFieldCreatedSignal(field_name=field_name, field_type=field_type, precision_type=precision_type)
 
     def get_field_storage(self):
         """
