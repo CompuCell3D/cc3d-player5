@@ -1,6 +1,14 @@
 Release Notes
 =============
 
+Version 4.7.0
+-------------
+**2022-06-21**
+
+New features:
+ - Added support for shared numpy field visualization
+
+Bug fixes:
 
 Version 4.6.0
 -------------
