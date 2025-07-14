@@ -379,7 +379,7 @@ class SimulationThread(QtCore.QThread, SimulationThreadBase):
         :return:
         """
 
-        print(" field_name, field_type=",( field_name, field_type))
+        # print(" field_name, field_type=",( field_name, field_type))
         self.emitVisFieldCreatedSignal(field_name=field_name, field_type=field_type, precision_type=precision_type)
 
     def get_field_storage(self):
