@@ -70,6 +70,7 @@ class UserInterface(QMainWindow):
         self.setWindowTitle("CompuCell3D Player")
 
         self._relaunch_path = ""  # remember what to relaunch with after close
+        self._run_action = "run"  # run action that the restarted player should perform options are "run", "step"
         self.origStdout = sys.stdout
         self.origStderr = sys.stderr
 
@@ -354,7 +355,7 @@ class UserInterface(QMainWindow):
                 QTimer.singleShot(
                     0,
                     lambda: QProcess.startDetached(
-                        sys.executable, ["-m", "cc3d.player5", "-i", path], os.getcwd()
+                        sys.executable, ["-m", "cc3d.player5", "-i", path, "--run-action", self._run_action], os.getcwd()
                     )
                 )
 
@@ -468,8 +469,9 @@ class UserInterface(QMainWindow):
         self._relaunch_path = ""  # remember what to relaunch with after close
         self.viewmanager.requestRelaunch.connect(self._on_request_relaunch)
 
-    def _on_request_relaunch(self, project_path: str):
+    def _on_request_relaunch(self, project_path: str, run_action:str = "run"):
         self._relaunch_path = project_path or ""
+        self._run_action = run_action
         self.close()  # triggers closeEvent
 
     def __createLayout(self):

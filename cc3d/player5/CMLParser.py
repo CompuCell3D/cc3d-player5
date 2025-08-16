@@ -38,6 +38,14 @@ class CMLParser(object):
         cml_parser.add_argument('-i', '--input', required=False, action='store',
                                 help='path to the CC3D project file (*.cc3d)')
 
+        cml_parser.add_argument(
+            '--run-action',
+            required=False,
+            choices=['run', 'step'],
+            default='run',
+            help='Initial action after loading the simulation: "run" (default) or "step".'
+        )
+
         cml_parser.add_argument('-c', '--output-file-core-name', required=False, action='store',
                                 help='core name for vtk files.')
 

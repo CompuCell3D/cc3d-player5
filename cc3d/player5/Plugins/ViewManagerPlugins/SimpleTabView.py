@@ -97,7 +97,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
     # stop request
     stopRequestSignal = pyqtSignal()
     justStopRequestSignal = pyqtSignal()
-    requestRelaunch = pyqtSignal(str)  # emits project path (or '')
+    requestRelaunch = pyqtSignal(str, str)  # emits project path and action (or '', 'run')
 
     def __init__(self, parent):
 
@@ -550,7 +550,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
     def process_command_line_options(self, cml_args: argparse.Namespace) -> None:
         """
         initializes player internal variables based on command line input.
-        Also if user passes appropriate option this function may get simulation going directly from command line
+        Also if user passes the appropriate option this function may get simulation going directly from command line
 
         :param cml_args: {}
         :return:
@@ -626,7 +626,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
                     "Could not find playerSettings file: " + self.playerSettingsFileName)
 
         if start_simulation:
-            self.__runSim()
+            if cml_args.run_action=="run":
+                self.__runSim()
+            else:
+                self.__stepSim()
 
     def set_recent_simulation_file(self, file_name: str) -> None:
         """
@@ -1680,7 +1683,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             pg.restart_manager.output_frequency = pg.restart_snapshot_frequency
             pg.restart_manager.allow_multiple_restart_directories = pg.restart_multiple_snapshots
 
-    def prepareSimulation(self):
+    def prepareSimulation(self, run_action:str="run"):
         """
         Prepares simulation - loads simulation, installs rollback importer - to unimport previously used modules
 
@@ -1689,15 +1692,15 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if self.num_runs > 0:
             print("will restart player")
             # we expect that  self.__sim_file_name is non-empty at this pooint
-            self._restart_with_project(project_path=self.__sim_file_name)
+            self._restart_with_project(project_path=self.__sim_file_name, run_action=run_action)
             return False
 
         if not self.drawingAreaPrepared:
             self.reset_sim_model()
             # checking if the simulation file is not an empty string
             if self.__sim_file_name == "":
-                msg = QMessageBox.warning(self, "Not A Valid Simulation File", \
-                                          "Please pick simulation file <b>File->OpenSimulation File ...</b>", \
+                msg = QMessageBox.warning(self, "Not A Valid Simulation File",
+                                          "Please pick simulation file <b>File->OpenSimulation File ...</b>",
                                           QMessageBox.Ok,
                                           QMessageBox.Ok)
                 return False
@@ -1821,7 +1824,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if self.maybe_launch_param_scan():
                 return
 
-            prepare_flag = self.prepareSimulation()
+            prepare_flag = self.prepareSimulation(run_action="run")
             if prepare_flag:
                 # todo 5 - self.drawingAreaPrepared is initialized elsewhere this is tmp placeholder and a hack
                 self.drawingAreaPrepared = True
@@ -1898,7 +1901,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if self.maybe_launch_param_scan():
                 return
 
-            prepare_flag = self.prepareSimulation()
+            prepare_flag = self.prepareSimulation(run_action="step")
             if prepare_flag:
                 # todo 5 - self.drawingAreaPrepared is initialized elsewhere this is tmp placeholder and a hack
                 self.drawingAreaPrepared = True
@@ -1987,11 +1990,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # If your Player entrypoint is different, adjust here:
         return ["-m", "cc3d.player5","-i" , project_path]
 
-    def _restart_with_project(self, project_path: str):
+    def _restart_with_project(self, project_path: str, run_action:str="run"):
         """
         Relaunch the Player with the given project and quit the current instance.
         """
-        QTimer.singleShot(0, lambda: self.requestRelaunch.emit(project_path))
+        QTimer.singleShot(0, lambda: self.requestRelaunch.emit(project_path, run_action))
         # if not project_path:
         #     # Nothing loaded; just relaunch empty Player or ignore
         #     QCoreApplication.quit()
