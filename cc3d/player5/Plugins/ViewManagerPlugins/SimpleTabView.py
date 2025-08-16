@@ -97,6 +97,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
     # stop request
     stopRequestSignal = pyqtSignal()
     justStopRequestSignal = pyqtSignal()
+    requestRelaunch = pyqtSignal(str)  # emits project path (or '')
 
     def __init__(self, parent):
 
@@ -105,6 +106,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         SimpleViewManager.__init__(self, parent)
         MainArea.__init__(self, stv=self, ui=parent)
+        self.num_runs = 0
 
         self.__createStatusBar()
         self.__setConnects()
@@ -917,6 +919,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :return:
         """
 
+
         self.prepare_for_new_simulation(force_generic_initialization=True)
 
         self.cc3dSimulationDataHandler = None
@@ -1683,6 +1686,12 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         :return: None
         """
+        if self.num_runs > 0:
+            print("will restart player")
+            # we expect that  self.__sim_file_name is non-empty at this pooint
+            self._restart_with_project(project_path=self.__sim_file_name)
+            return False
+
         if not self.drawingAreaPrepared:
             self.reset_sim_model()
             # checking if the simulation file is not an empty string
@@ -1723,7 +1732,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 self.rollbackImporter.uninstall()
 
             self.rollbackImporter = RollbackImporter()
-
+            self.num_runs += 1
             return True
 
     def start_parameter_scan(self, sim_file_name):
@@ -1804,6 +1813,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # when we run simulation we ensure that self.simulation.screenUpdateFrequency
         # is whatever is written in the settings
 
+
+
         self.simulation.screenUpdateFrequency = self.__updateScreen
 
         if not self.drawingAreaPrepared:
@@ -1859,7 +1870,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 self.open_act.setEnabled(False)
                 self.open_lds_act.setEnabled(False)
                 self.demo_menu_act.setEnabled(False)
-
+                self.num_runs += 1
             self.steppingThroughSimulation = False
 
             if self.simulationIsStepping:
@@ -1966,6 +1977,33 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 return
 
             return
+
+    def _compute_project_launch_args(self, project_path: str):
+        """
+        Return the argv to relaunch the Player with the same project.
+        Most distributions install 'cc3d' entry points; but the most
+        robust approach is 'python -m cc3d.player5 <project>'.
+        """
+        # If your Player entrypoint is different, adjust here:
+        return ["-m", "cc3d.player5","-i" , project_path]
+
+    def _restart_with_project(self, project_path: str):
+        """
+        Relaunch the Player with the given project and quit the current instance.
+        """
+        QTimer.singleShot(0, lambda: self.requestRelaunch.emit(project_path))
+        # if not project_path:
+        #     # Nothing loaded; just relaunch empty Player or ignore
+        #     QCoreApplication.quit()
+        #     return
+        # def do_restart():
+        #     if project_path:
+        #         args = self._compute_project_launch_args(project_path)
+        #         QProcess.startDetached(sys.executable, args, os.getcwd())
+        #
+        # # do_restart()
+        # QTimer.singleShot(1000, lambda : QCoreApplication.quit())
+
 
     def requestRedraw(self):
         """

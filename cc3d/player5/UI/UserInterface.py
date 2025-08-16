@@ -2,16 +2,19 @@
 This file holds the UI elements for CompuCell3D Player. Class UserInterface is the MainWindow of the
 CompuCell3D player invoked from compucell3d_new.py file.
 '''
-
+import os
 # FIXME: Make the Console as a Dock window
 # FIXME: When you open the XML file the second time, it doesn't expand the tree
 # TODO: Make the tooltip for the description column in Plugins.
 
 import sys
+import time
 
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
+from anyio import sleep
+
 from cc3d.player5.UI.ModelEditor import ModelEditor
 from cc3d.player5.Plugins.ViewManagerPlugins.SimpleTabView import SimpleTabView
 from .LatticeDataModelTable import LatticeDataModelTable
@@ -66,6 +69,7 @@ class UserInterface(QMainWindow):
         self.setWindowIcon(QIcon(gip("cc3d_64x64_logo.png")))
         self.setWindowTitle("CompuCell3D Player")
 
+        self._relaunch_path = ""  # remember what to relaunch with after close
         self.origStdout = sys.stdout
         self.origStderr = sys.stderr
 
@@ -340,6 +344,32 @@ class UserInterface(QMainWindow):
 
         self.viewmanager.closeEventSimpleTabView(event)
 
+        if event.isAccepted():
+            # relaunch on next tick so we're safely out of closeEvent
+            if getattr(self, "_relaunch_path", ""):
+                path = self._relaunch_path
+                self._relaunch_path = ""
+
+                # schedule the relaunch AFTER the window is closed
+                QTimer.singleShot(
+                    0,
+                    lambda: QProcess.startDetached(
+                        sys.executable, ["-m", "cc3d.player5", "-i", path], os.getcwd()
+                    )
+                )
+
+        super().closeEvent(event)
+
+        # if event.isAccepted():
+        #     # relaunch on next tick so we’re safely out of closeEvent
+        #     if getattr(self, "_relaunch_path", ""):
+        #         path = self._relaunch_path
+        #         self._relaunch_path = ""
+        #         QProcess.startDetached(sys.executable, ["-m", "cc3d.player5", "-i", path], os.getcwd())
+        #
+        #         time.sleep(10)
+        # super().closeEvent(event)
+
     def __initStatusbar(self):
         self.__statusBar = self.statusBar()
         self.__statusBar.setSizeGripEnabled(True)
@@ -435,6 +465,12 @@ class UserInterface(QMainWindow):
 
         self.setCentralWidget(self.viewmanager)
         self.setCentralWidget(self.viewmanager)
+        self._relaunch_path = ""  # remember what to relaunch with after close
+        self.viewmanager.requestRelaunch.connect(self._on_request_relaunch)
+
+    def _on_request_relaunch(self, project_path: str):
+        self._relaunch_path = project_path or ""
+        self.close()  # triggers closeEvent
 
     def __createLayout(self):
         # Zoom items. The only place where the zoom items are specified!
