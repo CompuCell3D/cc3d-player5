@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>788</width>
-    <height>723</height>
+    <height>746</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -269,6 +269,13 @@
           </size>
          </property>
         </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="restart_player_for_new_simulation_CB">
+         <property name="text">
+          <string>Restart Player for each new simulation run</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="Line" name="line_2">

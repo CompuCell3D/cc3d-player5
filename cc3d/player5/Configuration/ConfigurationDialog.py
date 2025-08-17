@@ -827,6 +827,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
         # restart section
         Configuration.setSetting("RestartOutputEnable", self.restart_CB.isChecked())
+        Configuration.setSetting("RestartPlayerForNewSimulation", self.restart_player_for_new_simulation_CB.isChecked())
         Configuration.setSetting("RestartOutputFrequency", self.restart_freq_SB.value())
         Configuration.setSetting("RestartAllowMultipleSnapshots", self.multiple_restart_snapshots_CB.isChecked())
 
@@ -1005,10 +1006,12 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
         # restart section
         enable_restart = Configuration.getSetting("RestartOutputEnable")
+        restart_player_for_new_simulation = Configuration.getSetting("RestartPlayerForNewSimulation")
         restart_output_frequency = Configuration.getSetting("RestartOutputFrequency")
         allow_multiple_snapshots = Configuration.getSetting("RestartAllowMultipleSnapshots")
 
         self.restart_CB.setChecked(enable_restart)
+        self.restart_player_for_new_simulation_CB.setChecked(restart_player_for_new_simulation)
         self.restart_freq_SB.setValue(restart_output_frequency)
         self.multiple_restart_snapshots_CB.setChecked(allow_multiple_snapshots)
 

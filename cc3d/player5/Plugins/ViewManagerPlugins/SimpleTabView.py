@@ -1689,8 +1689,9 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         :return: None
         """
-        if self.num_runs > 0:
-            print("will restart player")
+        restart_player_for_new_simulation = Configuration.getSetting("RestartPlayerForNewSimulation")
+        if self.num_runs > 0 and restart_player_for_new_simulation:
+            print("Restarting Player for new simulation")
             # we expect that  self.__sim_file_name is non-empty at this pooint
             self._restart_with_project(project_path=self.__sim_file_name, run_action=run_action)
             return False
@@ -1735,6 +1736,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 self.rollbackImporter.uninstall()
 
             self.rollbackImporter = RollbackImporter()
+            # increment run counter
             self.num_runs += 1
             return True
 

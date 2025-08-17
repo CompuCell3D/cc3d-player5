@@ -51,7 +51,7 @@ class Configuration:
 
     globalOnlySettings = ['RecentSimulations', 'NumberOfRecentSimulations', 'OutputLocation', 'ProjectLocation',
                           'FloatingWindows', 'MainWindowSizeDefault', 'MainWindowSizeDefault', 'ScreenGeometry',
-                          "ThemeName"]
+                          "ThemeName", "RestartPlayerForNewSimulation"]
     customOnlySettings = ['WindowsLayout', 'Types3DInvisible']
 
     activeFieldNamesList = []
