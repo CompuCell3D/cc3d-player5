@@ -85,7 +85,7 @@ class CMLParser(object):
         cml_parser.add_argument('-w', '--windowSize', required=False, action='store',
                                 help='specifies window size Format is  WIDTHxHEIGHT e.g. -w 500x300 (deprecated)')
 
-        cml_parser.add_argument('--port', required=False, action='store', type=int,
+        cml_parser.add_argument('--port', required=False, action='store', type=int, default=-1,
                                 help='specifies listening port for communication with Twedit')
 
         cml_parser.add_argument('--tweditPID', required=False, action='store', type=int,
