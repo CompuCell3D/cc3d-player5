@@ -97,7 +97,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
     # stop request
     stopRequestSignal = pyqtSignal()
     justStopRequestSignal = pyqtSignal()
-    requestRelaunch = pyqtSignal(str, str)  # emits project path and action (or '', 'run')
+    # requestRelaunch = pyqtSignal(str, str)  # emits project path and action (or '', 'run')
+    requestRelaunch = pyqtSignal(str, str, int)  # emits project path and action (or '', 'run', '47406')
 
     def __init__(self, parent):
 
@@ -125,6 +126,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # stores parsed command line arguments
         self.cml_args = None
+        # optional port for connecting Twedit++ to Player
+        self.port = -1
 
         # object responsible for creating/managing plot windows so they're accessible from steppable level
 
@@ -573,7 +576,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
             Configuration.setSetting("GraphicsWinWidth", width)
             Configuration.setSetting("GraphicsWinHeight", height)
 
-        port = cml_args.port if cml_args.port else -1
+        self.port = cml_args.port if cml_args.port else -1
+
 
         self.closePlayerAfterSimulationDone = cml_args.exitWhenDone
 
@@ -598,8 +602,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if syntax_error_console.is_qsci_based():
             self.twedit_act.triggered.connect(syntax_error_console.cc3dSender.establishConnection)
 
-        if port != -1:
-            syntax_error_console.set_service_port_cc3d_sender(port)
+        if self.port != -1:
+            syntax_error_console.set_service_port_cc3d_sender(self.port)
 
         # checking if file path needs to be remapped to point to files in the directories
         # from which run script was called
@@ -1983,32 +1987,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
             return
 
-    def _compute_project_launch_args(self, project_path: str):
-        """
-        Return the argv to relaunch the Player with the same project.
-        Most distributions install 'cc3d' entry points; but the most
-        robust approach is 'python -m cc3d.player5 <project>'.
-        """
-        # If your Player entrypoint is different, adjust here:
-        return ["-m", "cc3d.player5","-i" , project_path]
-
     def _restart_with_project(self, project_path: str, run_action:str="run"):
         """
         Relaunch the Player with the given project and quit the current instance.
         """
-        QTimer.singleShot(0, lambda: self.requestRelaunch.emit(project_path, run_action))
-        # if not project_path:
-        #     # Nothing loaded; just relaunch empty Player or ignore
-        #     QCoreApplication.quit()
-        #     return
-        # def do_restart():
-        #     if project_path:
-        #         args = self._compute_project_launch_args(project_path)
-        #         QProcess.startDetached(sys.executable, args, os.getcwd())
-        #
-        # # do_restart()
-        # QTimer.singleShot(1000, lambda : QCoreApplication.quit())
-
+        QTimer.singleShot(0, lambda: self.requestRelaunch.emit(project_path, run_action, self.port))
 
     def requestRedraw(self):
         """
