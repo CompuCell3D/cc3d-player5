@@ -967,7 +967,13 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :param file_name:
         :return: None
         """
+
+
         persistent_globals = CompuCellSetup.persistent_globals
+
+        custom_settings_path = persistent_globals.get_custom_settings_path()
+        if custom_settings_path:
+            Configuration.initializeCustomSettings(custom_settings_path)
         # Let's toggle these off (and not tell the user for now)
         # need to make it possible to save images from .dml/vtk files
         if Configuration.getSetting("LatticeOutputOn"):
@@ -1424,7 +1430,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         screenshot_directory = CompuCellSetup.persistent_globals.output_directory
         # if self.singleSimulation:
         if self.cc3dSimulationDataHandler and screenshot_directory is not None:
-            self.cc3dSimulationDataHandler.copy_simulation_data_files(screenshot_directory)
+            CompuCellSetup.persistent_globals.copy_simulation_files_to_output_folder(
+            custom_output_directory=screenshot_directory)
 
         self.simulation.sem.tryAcquire()
         self.simulation.sem.release()
@@ -2441,7 +2448,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :param _exitCode: exit code from the simulation
         :return: None
         """
-
+        pg = CompuCellSetup.persistent_globals
         self.reset_control_buttons_and_actions()
         self.reset_control_variables()
 
@@ -2451,15 +2458,21 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.UI.save_ui_geometry()
         # self.__save_windows_layout()
         # saving settings with the simulation
+
+        pg.copy_custom_settings_to_output_folder()
+
         if self.customSettingPath:
             if self.restore_default_settings_local_flag:
                 Configuration.replace_custom_settings_with_defaults()
             else:
                 Configuration.writeSettingsForSingleSimulation(self.customSettingPath)
+
             self.customSettingPath = ''
 
         Configuration.writeAllSettings()
         Configuration.initConfiguration()  # this flushes configuration
+        # copy _ettings.sqlite to the output simulation folder
+
 
         if Configuration.getSetting("ClosePlayerAfterSimulationDone") or self.closePlayerAfterSimulationDone:
             Configuration.setSetting("RecentFile", os.path.abspath(self.__sim_file_name))

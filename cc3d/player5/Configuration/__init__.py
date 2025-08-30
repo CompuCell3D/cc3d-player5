@@ -163,7 +163,7 @@ def initializeCustomSettings(filename):
     :param filename: {str} absolute path to the simulation-specific setting file
     :return: None
     """
-    Configuration.myCustomSettings, Configuration.myCustomSettingsPath = loadSettings(filename)
+    Configuration.myCustomSettings, Configuration.myCustomSettingsPath = loadSettings(str(filename))
 
 
 def getDefaultFieldParams():

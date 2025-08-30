@@ -117,7 +117,8 @@ def prepareParameterScan(_cc3dSimulationDataHandler):
     if not customOutputPath:
         return False, False
 
-    _cc3dSimulationDataHandler.copy_simulation_data_files(customOutputPath)
+    CompuCellSetup.persistent_globals.copy_simulation_files_to_output_folder(customOutputPath=customOutputPath)
+    # _cc3dSimulationDataHandler.copy_simulation_data_files(customOutputPath)
 
     # tweak simulation files according to parameter scan file
 
