@@ -565,6 +565,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
         persistent_globals.output_file_core_name = cml_args.output_file_core_name
         persistent_globals.parameter_scan_iteration = self.cml_args.parameter_scan_iteration
 
+        # by default this flag is False i.e. we skip MCS=0 and display true configuration
+        # however for testing we may need to run MCS to allow proper "alignment" of generated data with
+        # reference test data.
+        persistent_globals.execute_step_at_mcs_0 = cml_args.execute_step_at_mcs_0
+
         settings_dict = self.override_settings_using_cml_args(cml_args=self.cml_args)
         start_simulation = settings_dict['start_simulation']
 

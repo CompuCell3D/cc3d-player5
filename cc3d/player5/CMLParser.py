@@ -117,6 +117,13 @@ class CMLParser(object):
         cml_parser.add_argument('--returnValueTag', required=False, action='store',
                                 help='return value tag (optimization runs only))')
 
+        cml_parser.add_argument(
+            '--execute-step-at-mcs-0',
+            action='store_true',
+            default=False,
+            help='Execute step at MCS 0 when this flag is present.'
+        )
+
         if arg_list is None:
             arg_list = []
 
