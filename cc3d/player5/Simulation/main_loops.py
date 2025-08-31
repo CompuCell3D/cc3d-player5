@@ -81,8 +81,9 @@ def main_loop_player(sim, simthread=None, steppable_registry=None):
                 steppable_registry.stepRunBeforeMCSSteppables(cur_step)
 
             compiled_code_begin = time.time()
+            if cur_step != 0:
+                sim.step(cur_step)  # steering using steppables
 
-            sim.step(cur_step)  # steering using steppables
             check_for_cpp_errors(CompuCellSetup.persistent_globals.simulator)
 
             compiled_code_end = time.time()
