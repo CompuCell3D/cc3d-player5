@@ -76,6 +76,8 @@ class DemoBrowser(QDialog, ui_demo_browser.Ui_demoDialog):
                 # Display dialog without context help - only close button exists
                 self.setWindowFlags(Qt.Drawer)
                 self.setupUi(self)
+            else:
+                self.setupUi(self)
             if not self.demo_root_path:
                 self.exitWithWarning()
                 return

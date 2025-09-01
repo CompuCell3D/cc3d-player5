@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'cc3D_prefs.ui'
+# Form implementation generated from reading ui file '/Users/m/src/conda-build-repos/cc3d-player5/cc3d/player5/Configuration/cc3D_prefs.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -14,9 +14,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_CC3DPrefs(object):
     def setupUi(self, CC3DPrefs):
         CC3DPrefs.setObjectName("CC3DPrefs")
-        CC3DPrefs.resize(788, 723)
+        CC3DPrefs.resize(788, 746)
+        self.verticalLayout_20 = QtWidgets.QVBoxLayout(CC3DPrefs)
+        self.verticalLayout_20.setObjectName("verticalLayout_20")
         self.tabWidget = QtWidgets.QTabWidget(CC3DPrefs)
-        self.tabWidget.setGeometry(QtCore.QRect(12, 6, 764, 903))
         self.tabWidget.setObjectName("tabWidget")
         self.tab_setup = QtWidgets.QWidget()
         self.tab_setup.setObjectName("tab_setup")
@@ -91,6 +92,9 @@ class Ui_CC3DPrefs(object):
         self.verticalLayout_10.addLayout(self.gridLayout_4)
         spacerItem5 = QtWidgets.QSpacerItem(20, 5, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed)
         self.verticalLayout_10.addItem(spacerItem5)
+        self.restart_player_for_new_simulation_CB = QtWidgets.QCheckBox(self.tab_setup)
+        self.restart_player_for_new_simulation_CB.setObjectName("restart_player_for_new_simulation_CB")
+        self.verticalLayout_10.addWidget(self.restart_player_for_new_simulation_CB)
         self.line_2 = QtWidgets.QFrame(self.tab_setup)
         self.line_2.setFrameShape(QtWidgets.QFrame.HLine)
         self.line_2.setFrameShadow(QtWidgets.QFrame.Sunken)
@@ -1081,12 +1085,13 @@ class Ui_CC3DPrefs(object):
         spacerItem58 = QtWidgets.QSpacerItem(20, 172, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.gridLayout_2.addItem(spacerItem58, 1, 0, 1, 1)
         self.tabWidget.addTab(self.tab_axes, "")
+        self.verticalLayout_20.addWidget(self.tabWidget)
         self.buttonBox = QtWidgets.QDialogButtonBox(CC3DPrefs)
         self.buttonBox.setEnabled(True)
-        self.buttonBox.setGeometry(QtCore.QRect(6, 687, 164, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
+        self.verticalLayout_20.addWidget(self.buttonBox)
 
         self.retranslateUi(CC3DPrefs)
         self.tabWidget.setCurrentIndex(0)
@@ -1116,6 +1121,7 @@ class Ui_CC3DPrefs(object):
         self.demosLocationButton.setToolTip(_translate("CC3DPrefs", "<html><head/><body><p>A path that points to the folder of official demos. Example: ~/CompuCell3D/Demos/ -- This is only needed if you want to use the menu \'Help → Open Demo\'</p></body></html>"))
         self.demosLocationButton.setText(_translate("CC3DPrefs", "Demos Dir"))
         self.outputLocationLineEdit.setToolTip(_translate("CC3DPrefs", "<html><head/><body><p>Directory where simulation outputs will be written to</p></body></html>"))
+        self.restart_player_for_new_simulation_CB.setText(_translate("CC3DPrefs", "Restart Player for each new simulation run"))
         self.label_28.setText(_translate("CC3DPrefs", "Movie Setup"))
         self.label_19.setText(_translate("CC3DPrefs", "We use FFMPEG to make movies"))
         self.ffmpegLocationButton.setToolTip(_translate("CC3DPrefs", "<html><head/><body><p>Select your ffmpeg.exe file, or click Reset to let us find it for you</p></body></html>"))

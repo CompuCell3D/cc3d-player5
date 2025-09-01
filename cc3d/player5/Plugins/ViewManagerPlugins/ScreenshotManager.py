@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 import os
-import sys
-from os.path import join, dirname
+from os.path import dirname
 import cc3d.player5.Configuration as Configuration
 from cc3d.core.GraphicsUtils.ScreenshotData import ScreenshotData
 from cc3d.core.GraphicsUtils.ScreenshotManagerCore import ScreenshotManagerCore
 from cc3d.core.GraphicsOffScreen.GenericDrawer import GenericDrawer
 from weakref import ref
 from cc3d.CompuCellSetup import persistent_globals
+from cc3d.CompuCellSetup.utils import standard_screenshot_file
 from cc3d.core.utils import mkdir_p
 from cc3d import CompuCellSetup
 from PyQt5.QtWidgets import *
-from typing import Optional
-from typing import List
+from typing import List, Optional
 
 
 class ScreenshotManager(ScreenshotManagerCore):
@@ -70,8 +69,8 @@ class ScreenshotManager(ScreenshotManagerCore):
         out_dir_name = persistent_globals.output_directory
         sim_fname = persistent_globals.simulation_file_name
 
-        out_fname = join(out_dir_name, "screenshot_data", "screenshots.json")
-        out_fname_in_sim_dir = join(dirname(sim_fname), "screenshot_data", "screenshots.json")
+        out_fname = standard_screenshot_file(out_dir_name, must_exist=False)
+        out_fname_in_sim_dir = standard_screenshot_file(dirname(sim_fname), must_exist=False)
 
         # writing in the simulation output dir
         self.safe_write_screenshot_description_file(out_fname)
@@ -245,7 +244,6 @@ class ScreenshotManager(ScreenshotManagerCore):
                 if ret == QMessageBox.No:
                     ok_to_add_screenshot = False
 
-
         if ok_to_add_screenshot:
             # before we accept new screenshot we check if max number of screenshots has been reached
             if len(self.screenshotDataDict) >= self.maxNumberOfScreenshots:
@@ -311,7 +309,7 @@ class ScreenshotManager(ScreenshotManagerCore):
         bsd = tvw.basicSimulationData
         return bsd
 
-    def output_screenshots_impl(self, mcs: int, screenshot_label_list: list):
+    def output_screenshots_impl(self, mcs: int, screenshot_label_list: List[str]):
         """
         implementation function ofr taking screenshots
         :param mcs:

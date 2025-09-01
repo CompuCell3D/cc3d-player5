@@ -33,6 +33,8 @@ from cc3d.core.GraphicsUtils.utils import extract_address_int_from_vtk_object
 from cc3d.player5 import Graphics
 from cc3d.core import XMLUtils
 from cc3d.player5.styles.StyleManager import get_theme_names
+from cc3d.core.logging import get_logger
+
 
 from .PlotManagerSetup import create_plot_manager
 from .PopupWindowManagerSetup import create_popup_window_manager
@@ -45,6 +47,7 @@ from cc3d import CompuCellSetup
 from cc3d.core.RollbackImporter import RollbackImporter
 from cc3d.CompuCellSetup.readers import readCC3DFile
 from cc3d.CompuCellSetup.simulation_utils import str_to_int_container
+from cc3d.CompuCellSetup.utils import SCREENSHOT_SUBDIR
 from typing import Union, Optional
 from cc3d.player5.Utilities.unzipper import Unzipper
 from weakref import ref
@@ -94,6 +97,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
     # stop request
     stopRequestSignal = pyqtSignal()
     justStopRequestSignal = pyqtSignal()
+    # requestRelaunch = pyqtSignal(str, str)  # emits project path and action (or '', 'run')
+    requestRelaunch = pyqtSignal(str, str, int)  # emits project path and action (or '', 'run', '47406')
 
     def __init__(self, parent):
 
@@ -102,6 +107,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         SimpleViewManager.__init__(self, parent)
         MainArea.__init__(self, stv=self, ui=parent)
+        self.num_runs = 0
 
         self.__createStatusBar()
         self.__setConnects()
@@ -120,6 +126,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # stores parsed command line arguments
         self.cml_args = None
+        # optional port for connecting Twedit++ to Player
+        self.port = -1
 
         # object responsible for creating/managing plot windows so they're accessible from steppable level
 
@@ -227,7 +235,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         """
         log_level_val = getattr(CompuCell, Configuration.getSetting("LogLevel"))
         if log_level_val != self.log_level:
-            logger = CompuCell.CC3DLogger.get()
+            logger = get_logger()
             logger.enableConsoleLogging(log_level_val)
             self.log_level = log_level_val
 
@@ -242,12 +250,12 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if pg.output_directory is not None:
                 if not Path(pg.output_directory).exists():
                     pg.create_output_dir()
-                logger = CompuCell.CC3DLogger.get()
+                logger = get_logger()
                 logger.enableFileLogging(str(
                     Path(pg.output_directory).joinpath("simulation.log")), log_level_val)
         else:
             if pg.output_directory is not None:
-                logger = CompuCell.CC3DLogger.get()
+                logger = get_logger()
                 logger.disableFileLogging()
 
 
@@ -388,7 +396,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.windowMapper.setMapping(action, win)
             counter += 1
 
-    def handle_vis_field_created(self, field_name: str, field_type: int) -> None:
+    def handle_vis_field_created(self, field_name: str, field_type: int, precision_type: str) -> None:
         """
         slot that handles new visualization field creation. This mechanism is necessary to handle fields
         created outside steppable constructor
@@ -398,7 +406,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :return:
         """
 
-        self.fieldTypes[field_name] = FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_type]
+        # self.fieldTypes[field_name] = FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_type]
+        self.fieldTypes[field_name] = FieldProperties(field_name=field_name,
+                                                      field_type=FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_type],
+                                                      precision_type=precision_type)
 
         for win_id, win in self.win_inventory.getWindowsItems(GRAPHICS_WINDOW_LABEL):
             graphics_frame = win.widget()
@@ -542,7 +553,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
     def process_command_line_options(self, cml_args: argparse.Namespace) -> None:
         """
         initializes player internal variables based on command line input.
-        Also if user passes appropriate option this function may get simulation going directly from command line
+        Also if user passes the appropriate option this function may get simulation going directly from command line
 
         :param cml_args: {}
         :return:
@@ -553,6 +564,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         persistent_globals.output_file_core_name = cml_args.output_file_core_name
         persistent_globals.parameter_scan_iteration = self.cml_args.parameter_scan_iteration
+
+        # by default this flag is False i.e. we skip MCS=0 and display true configuration
+        # however for testing we may need to run MCS to allow proper "alignment" of generated data with
+        # reference test data.
+        persistent_globals.execute_step_at_mcs_0 = cml_args.execute_step_at_mcs_0
 
         settings_dict = self.override_settings_using_cml_args(cml_args=self.cml_args)
         start_simulation = settings_dict['start_simulation']
@@ -565,7 +581,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
             Configuration.setSetting("GraphicsWinWidth", width)
             Configuration.setSetting("GraphicsWinHeight", height)
 
-        port = cml_args.port if cml_args.port else -1
+        self.port = cml_args.port if cml_args.port else -1
+
 
         self.closePlayerAfterSimulationDone = cml_args.exitWhenDone
 
@@ -590,8 +607,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if syntax_error_console.is_qsci_based():
             self.twedit_act.triggered.connect(syntax_error_console.cc3dSender.establishConnection)
 
-        if port != -1:
-            syntax_error_console.set_service_port_cc3d_sender(port)
+        if self.port != -1:
+            syntax_error_console.set_service_port_cc3d_sender(self.port)
 
         # checking if file path needs to be remapped to point to files in the directories
         # from which run script was called
@@ -618,7 +635,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
                     "Could not find playerSettings file: " + self.playerSettingsFileName)
 
         if start_simulation:
-            self.__runSim()
+            if cml_args.run_action=="run":
+                self.__runSim()
+            else:
+                self.__stepSim()
 
     def set_recent_simulation_file(self, file_name: str) -> None:
         """
@@ -911,6 +931,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :return:
         """
 
+
         self.prepare_for_new_simulation(force_generic_initialization=True)
 
         self.cc3dSimulationDataHandler = None
@@ -951,7 +972,13 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :param file_name:
         :return: None
         """
+
+
         persistent_globals = CompuCellSetup.persistent_globals
+
+        custom_settings_path = persistent_globals.get_custom_settings_path()
+        if custom_settings_path:
+            Configuration.initializeCustomSettings(custom_settings_path)
         # Let's toggle these off (and not tell the user for now)
         # need to make it possible to save images from .dml/vtk files
         if Configuration.getSetting("LatticeOutputOn"):
@@ -1408,7 +1435,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         screenshot_directory = CompuCellSetup.persistent_globals.output_directory
         # if self.singleSimulation:
         if self.cc3dSimulationDataHandler and screenshot_directory is not None:
-            self.cc3dSimulationDataHandler.copy_simulation_data_files(screenshot_directory)
+            CompuCellSetup.persistent_globals.copy_simulation_files_to_output_folder(
+            custom_output_directory=screenshot_directory)
 
         self.simulation.sem.tryAcquire()
         self.simulation.sem.release()
@@ -1539,11 +1567,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
             self.screenshotManager.output_error_flag = True
             self.popup_message(
                 title='Error Processing Screenshots',
-                msg='Could not output screenshots. It is likely that screenshot description file was generated '
+                msg='Could not output screenshots. It is likely that the screenshot description file was generated '
                     'using incompatible code. '
-                    'You may want to remove "screenshot_data" directory from your project '
-                    'and use camera button to generate new screenshot file '
-                    ' No screenshots will be taken'.format(self.screenshotManager.get_screenshot_filename()))
+                    f'You may want to remove the "{SCREENSHOT_SUBDIR}" directory from your project '
+                    'and use the camera button to generate a new screenshot file. '
+                    'No screenshots will be taken.')
 
     def handleCompletedStepRegular(self, mcs: int) -> None:
         """
@@ -1671,18 +1699,25 @@ class SimpleTabView(MainArea, SimpleViewManager):
             pg.restart_manager.output_frequency = pg.restart_snapshot_frequency
             pg.restart_manager.allow_multiple_restart_directories = pg.restart_multiple_snapshots
 
-    def prepareSimulation(self):
+    def prepareSimulation(self, run_action:str="run"):
         """
         Prepares simulation - loads simulation, installs rollback importer - to unimport previously used modules
 
         :return: None
         """
+        restart_player_for_new_simulation = Configuration.getSetting("RestartPlayerForNewSimulation")
+        if self.num_runs > 0 and restart_player_for_new_simulation:
+            print("Restarting Player for new simulation")
+            # we expect that  self.__sim_file_name is non-empty at this pooint
+            self._restart_with_project(project_path=self.__sim_file_name, run_action=run_action)
+            return False
+
         if not self.drawingAreaPrepared:
             self.reset_sim_model()
             # checking if the simulation file is not an empty string
             if self.__sim_file_name == "":
-                msg = QMessageBox.warning(self, "Not A Valid Simulation File", \
-                                          "Please pick simulation file <b>File->OpenSimulation File ...</b>", \
+                msg = QMessageBox.warning(self, "Not A Valid Simulation File",
+                                          "Please pick simulation file <b>File->OpenSimulation File ...</b>",
                                           QMessageBox.Ok,
                                           QMessageBox.Ok)
                 return False
@@ -1717,7 +1752,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 self.rollbackImporter.uninstall()
 
             self.rollbackImporter = RollbackImporter()
-
+            # increment run counter
+            self.num_runs += 1
             return True
 
     def start_parameter_scan(self, sim_file_name):
@@ -1798,13 +1834,15 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # when we run simulation we ensure that self.simulation.screenUpdateFrequency
         # is whatever is written in the settings
 
+
+
         self.simulation.screenUpdateFrequency = self.__updateScreen
 
         if not self.drawingAreaPrepared:
             if self.maybe_launch_param_scan():
                 return
 
-            prepare_flag = self.prepareSimulation()
+            prepare_flag = self.prepareSimulation(run_action="run")
             if prepare_flag:
                 # todo 5 - self.drawingAreaPrepared is initialized elsewhere this is tmp placeholder and a hack
                 self.drawingAreaPrepared = True
@@ -1853,7 +1891,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 self.open_act.setEnabled(False)
                 self.open_lds_act.setEnabled(False)
                 self.demo_menu_act.setEnabled(False)
-
+                self.num_runs += 1
             self.steppingThroughSimulation = False
 
             if self.simulationIsStepping:
@@ -1881,7 +1919,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if self.maybe_launch_param_scan():
                 return
 
-            prepare_flag = self.prepareSimulation()
+            prepare_flag = self.prepareSimulation(run_action="step")
             if prepare_flag:
                 # todo 5 - self.drawingAreaPrepared is initialized elsewhere this is tmp placeholder and a hack
                 self.drawingAreaPrepared = True
@@ -1960,6 +1998,12 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 return
 
             return
+
+    def _restart_with_project(self, project_path: str, run_action:str="run"):
+        """
+        Relaunch the Player with the given project and quit the current instance.
+        """
+        QTimer.singleShot(0, lambda: self.requestRelaunch.emit(project_path, run_action, self.port))
 
     def requestRedraw(self):
         """
@@ -2409,7 +2453,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :param _exitCode: exit code from the simulation
         :return: None
         """
-
+        pg = CompuCellSetup.persistent_globals
         self.reset_control_buttons_and_actions()
         self.reset_control_variables()
 
@@ -2419,15 +2463,21 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.UI.save_ui_geometry()
         # self.__save_windows_layout()
         # saving settings with the simulation
+
+        pg.copy_custom_settings_to_output_folder()
+
         if self.customSettingPath:
             if self.restore_default_settings_local_flag:
                 Configuration.replace_custom_settings_with_defaults()
             else:
                 Configuration.writeSettingsForSingleSimulation(self.customSettingPath)
+
             self.customSettingPath = ''
 
         Configuration.writeAllSettings()
         Configuration.initConfiguration()  # this flushes configuration
+        # copy _ettings.sqlite to the output simulation folder
+
 
         if Configuration.getSetting("ClosePlayerAfterSimulationDone") or self.closePlayerAfterSimulationDone:
             Configuration.setSetting("RecentFile", os.path.abspath(self.__sim_file_name))
@@ -2710,30 +2760,73 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
     def setFieldTypes(self):
         """
-        initializes field types for VTK vidgets during regular simulation
+        initializes field types for VTK widgets during regular simulation.
+        Use this function to set up fields that you want to appear in
+        GraphicsFrame/GraphicsFrameWidget Fields combo box
 
         :return: None
         """
         sim_obj = self.mysim()
-        if not sim_obj: return
+        if not sim_obj:
+            return
 
-        self.fieldTypes["Cell_Field"] = FIELD_TYPES[0]  # "CellField"
+        extra_field_registry = CompuCellSetup.persistent_globals.field_registry
 
-        # Add concentration fields How? I don't care how I got it at this time
+        # self.fieldTypes["Cell_Field"] = FIELD_TYPES[0]
+        self.fieldTypes["Cell_Field"] = FieldProperties(field_name="Cell_Field", field_type=FIELD_TYPES[0],precision_type="uint8")
+
+        conc_shared_numpy_field_name_vec_engine_owned = sim_obj.getConcentrationSharedNumpyFieldNameVectorEngineOwned()
 
         conc_field_name_vec = sim_obj.getConcentrationFieldNameVector()
         # putting concentration fields from simulator
         for fieldName in conc_field_name_vec:
-            #            print MODULENAME,"setFieldTypes():  Got this conc field: ",fieldName
-            self.fieldTypes[fieldName] = FIELD_TYPES[1]
+            if fieldName not in conc_shared_numpy_field_name_vec_engine_owned:
+                # self.fieldTypes[fieldName] = FIELD_TYPES[1]
+                self.fieldTypes[fieldName] = FieldProperties(field_name=fieldName, field_type=FIELD_TYPES[1],precision_type="float32")
 
-        extra_field_registry = CompuCellSetup.persistent_globals.field_registry
+        # handling concentration shared numpy fields that are managed by c++
+        for fieldName in conc_shared_numpy_field_name_vec_engine_owned:
+            # initializing and registering engine-created (in CC3D C++ code) concentration field
+            extra_field_registry.engine_scalar_field_to_field_adapter(fieldName)
+            # fields added to fieldTypes are the fields that show up in the ComboBox
+            # of the GraphicsFrame/GraphicsFrameWidget
+
+            self.fieldTypes[fieldName] = FieldProperties(field_name=fieldName, field_type=FIELD_TYPES[1],
+                                                         precision_type="float32")
+
+        # handling generic concentration shared numpy fields (char, short, int, ...) that are managed by c++
+        for fieldName in sim_obj.getGenericScalarFieldNameVectorEngineOwned():
+            field_properties = extra_field_registry.engine_scalar_field_to_field_adapter_generic(fieldName)
+            # fields added to fieldTypes are the fields that show up in the ComboBox
+            # of the GraphicsFrame/GraphicsFrameWidget
+            self.fieldTypes[fieldName] = field_properties
+
+        for fieldName in sim_obj.getVectorFieldNameVectorEngineOwned():
+            # initializing and registering engine-created (in CC3D C++ code) vector field
+            extra_field_registry.engine_vector_field_to_field_adapter(fieldName)
+            # fields added to fieldTypes are the fields that show up in the ComboBox
+            # of the GraphicsFrame/GraphicsFrameWidget
+
+            self.fieldTypes[fieldName] = FieldProperties(field_name=fieldName, field_type=FIELD_TYPES[4],
+                        precision_type="float32")
 
         # inserting extra scalar fields managed from Python script
         field_dict = extra_field_registry.get_fields_to_create_dict()
-
         for field_name, field_adapter in field_dict.items():
-            self.fieldTypes[field_name] = FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_adapter.field_type]
+            current = self.fieldTypes.get(field_name)
+
+            if not isinstance(current, FieldProperties):
+                self.fieldTypes[field_name] = FieldProperties(
+                    field_name=field_name,
+                    field_type=FIELD_NUMBER_TO_FIELD_TYPE_MAP[field_adapter.field_type],
+                    precision_type="float32"
+                )
+
+        # converting all values of self.fieldTypes to have FieldProperties type
+        for field_name, field_type in self.fieldTypes.items():
+            if not isinstance(self.fieldTypes[field_name], FieldProperties):
+                self.fieldTypes[field_name] = FieldProperties(field_name=field_name,
+                                                              field_type=field_type, precision_type="float32")
 
     def showDisplayWidgets(self):
         """
@@ -2747,7 +2840,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         persistent_globals = CompuCellSetup.persistent_globals
         check_for_COM_plugin  = persistent_globals.player_type != PlayerType.REPLAY
-
 
         cc3d_xml_2_obj_converter = CompuCellSetup.persistent_globals.cc3d_xml_2_obj_converter
         if cc3d_xml_2_obj_converter is not None:

@@ -7,9 +7,11 @@ from cc3d.player5.Plugins.ViewManagerPlugins.QJsonBrowser import QJsonModel, QJs
 import weakref
 import cc3d
 from cc3d import CompuCellSetup
+from cc3d.CompuCellSetup.utils import standard_screenshot_file
 from typing import Optional
 from pathlib import Path
 import shutil
+
 
 class ScreenshotDescriptionBrowser(QDialog, ui_screenshot_description_browser.Ui_screenshotDescriptionDialog):
 
@@ -107,7 +109,7 @@ class ScreenshotDescriptionBrowser(QDialog, ui_screenshot_description_browser.Ui
             if sim_file_name is None or sim_file_name == '':
                 return None
 
-            scr_desc_json_pth = Path(sim_file_name).parent.joinpath('screenshot_data', 'screenshots.json')
+            scr_desc_json_pth = Path(standard_screenshot_file(sim_file_name, must_exist=False))
         else:
             # When running
             scr_desc_json_pth = Path(stv.screenshotManager.get_screenshot_filename())

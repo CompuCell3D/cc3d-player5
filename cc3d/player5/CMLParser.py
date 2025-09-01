@@ -38,6 +38,14 @@ class CMLParser(object):
         cml_parser.add_argument('-i', '--input', required=False, action='store',
                                 help='path to the CC3D project file (*.cc3d)')
 
+        cml_parser.add_argument(
+            '--run-action',
+            required=False,
+            choices=['run', 'step'],
+            default='run',
+            help='Initial action after loading the simulation: "run" (default) or "step".'
+        )
+
         cml_parser.add_argument('-c', '--output-file-core-name', required=False, action='store',
                                 help='core name for vtk files.')
 
@@ -77,7 +85,7 @@ class CMLParser(object):
         cml_parser.add_argument('-w', '--windowSize', required=False, action='store',
                                 help='specifies window size Format is  WIDTHxHEIGHT e.g. -w 500x300 (deprecated)')
 
-        cml_parser.add_argument('--port', required=False, action='store', type=int,
+        cml_parser.add_argument('--port', required=False, action='store', type=int, default=-1,
                                 help='specifies listening port for communication with Twedit')
 
         cml_parser.add_argument('--tweditPID', required=False, action='store', type=int,
@@ -108,6 +116,13 @@ class CMLParser(object):
 
         cml_parser.add_argument('--returnValueTag', required=False, action='store',
                                 help='return value tag (optimization runs only))')
+
+        cml_parser.add_argument(
+            '--execute-step-at-mcs-0',
+            action='store_true',
+            default=False,
+            help='Execute step at MCS 0 when this flag is present.'
+        )
 
         if arg_list is None:
             arg_list = []

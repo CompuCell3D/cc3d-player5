@@ -51,7 +51,7 @@ class Configuration:
 
     globalOnlySettings = ['RecentSimulations', 'NumberOfRecentSimulations', 'OutputLocation', 'ProjectLocation',
                           'FloatingWindows', 'MainWindowSizeDefault', 'MainWindowSizeDefault', 'ScreenGeometry',
-                          "ThemeName"]
+                          "ThemeName", "RestartPlayerForNewSimulation"]
     customOnlySettings = ['WindowsLayout', 'Types3DInvisible']
 
     activeFieldNamesList = []
@@ -163,7 +163,7 @@ def initializeCustomSettings(filename):
     :param filename: {str} absolute path to the simulation-specific setting file
     :return: None
     """
-    Configuration.myCustomSettings, Configuration.myCustomSettingsPath = loadSettings(filename)
+    Configuration.myCustomSettings, Configuration.myCustomSettingsPath = loadSettings(str(filename))
 
 
 def getDefaultFieldParams():
