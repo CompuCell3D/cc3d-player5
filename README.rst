@@ -18,3 +18,10 @@ also available via conda as an extension package of the CompuCell3D conda packag
 
 For conda packages, Player can be launched from a terminal by activating the conda
 environment in which Player is installed and then issuing the command ``cc3d-player5``.
+
+
+Once installation completes, you may run Player (CompuCell3D GUI) as follows:
+
+.. code-block:: console
+
+    python -m cc3d.player5

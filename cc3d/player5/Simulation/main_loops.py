@@ -82,7 +82,9 @@ def main_loop_player(sim, simthread=None, steppable_registry=None):
 
             compiled_code_begin = time.time()
 
-            sim.step(cur_step)  # steering using steppables
+            if cur_step != 0 or CompuCellSetup.persistent_globals.execute_step_at_mcs_0:
+                sim.step(cur_step)  # steering using steppables
+
             check_for_cpp_errors(CompuCellSetup.persistent_globals.simulator)
 
             compiled_code_end = time.time()

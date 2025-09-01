@@ -2,16 +2,19 @@
 This file holds the UI elements for CompuCell3D Player. Class UserInterface is the MainWindow of the
 CompuCell3D player invoked from compucell3d_new.py file.
 '''
-
+import os
 # FIXME: Make the Console as a Dock window
 # FIXME: When you open the XML file the second time, it doesn't expand the tree
 # TODO: Make the tooltip for the description column in Plugins.
 
 import sys
+import time
 
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
+from anyio import sleep
+
 from cc3d.player5.UI.ModelEditor import ModelEditor
 from cc3d.player5.Plugins.ViewManagerPlugins.SimpleTabView import SimpleTabView
 from .LatticeDataModelTable import LatticeDataModelTable
@@ -65,6 +68,10 @@ class UserInterface(QMainWindow):
         QApplication.setWindowIcon(QIcon(gip("cc3d_64x64_logo.png")))
         self.setWindowIcon(QIcon(gip("cc3d_64x64_logo.png")))
         self.setWindowTitle("CompuCell3D Player")
+
+        self._relaunch_path = ""  # remember what to relaunch with after close
+        self._run_action = "run"  # run action that the restarted player should perform options are "run", "step"
+        self._relaunch_port = None # optional port that we use to connect Player to Twedit++
 
         self.origStdout = sys.stdout
         self.origStderr = sys.stderr
@@ -332,6 +339,24 @@ class UserInterface(QMainWindow):
         self.__toolbars["file"] = [file_tb.windowTitle(), file_tb]
         self.__toolbars["simulation"] = [sim_tb.windowTitle(), sim_tb]
 
+
+    def _compute_project_launch_args(self, project_path: str):
+        """
+        Return the argv to relaunch the Player with the same project.
+        Most distributions install 'cc3d' entry points; but the most
+        robust approach is 'python -m cc3d.player5 <project>'.
+        """
+        # If your Player entrypoint is different, adjust here:
+        cli_args_list = ["-m", "cc3d.player5", "-i", project_path, "--run-action", self._run_action]
+        # when player is started from Twedit it connects to Twedit via socket using 474xx port
+        # we grab this port when restarting the player so tha t we can reestablish connection to Twedit for
+        # the restarted Player
+        if self._relaunch_port and self._relaunch_port != -1:
+            cli_args_list += ["--port", str(self._relaunch_port)]
+
+
+        return cli_args_list
+
     def closeEvent(self, event=None):
 
         Configuration.setSetting('ScreenGeometry', self.get_current_screen_geometry_settings())
@@ -339,6 +364,24 @@ class UserInterface(QMainWindow):
         self.save_ui_geometry()
 
         self.viewmanager.closeEventSimpleTabView(event)
+
+        if event.isAccepted():
+            # relaunch on next tick so we're safely out of closeEvent
+            # TYhe relaunch should be called from the main window (ideally)
+            if self._relaunch_port:
+                cli_args_list = self._compute_project_launch_args(project_path=self._relaunch_path)
+                self._relaunch_path = ""
+
+                # schedule the relaunch AFTER the window is closed
+                QTimer.singleShot(
+                    0,
+                    lambda: QProcess.startDetached(
+                        sys.executable, cli_args_list, os.getcwd()
+                    )
+                )
+
+        super().closeEvent(event)
+
 
     def __initStatusbar(self):
         self.__statusBar = self.statusBar()
@@ -435,6 +478,15 @@ class UserInterface(QMainWindow):
 
         self.setCentralWidget(self.viewmanager)
         self.setCentralWidget(self.viewmanager)
+        self._relaunch_path = ""  # remember what to relaunch with after close
+        self._relaunch_port = None
+        self.viewmanager.requestRelaunch.connect(self._on_request_relaunch)
+
+    def _on_request_relaunch(self, project_path: str, run_action:str = "run", port:int=None):
+        self._relaunch_path = project_path or ""
+        self._run_action = run_action
+        self._relaunch_port = port
+        self.close()  # triggers closeEvent
 
     def __createLayout(self):
         # Zoom items. The only place where the zoom items are specified!

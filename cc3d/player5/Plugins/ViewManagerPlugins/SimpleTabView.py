@@ -97,6 +97,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
     # stop request
     stopRequestSignal = pyqtSignal()
     justStopRequestSignal = pyqtSignal()
+    # requestRelaunch = pyqtSignal(str, str)  # emits project path and action (or '', 'run')
+    requestRelaunch = pyqtSignal(str, str, int)  # emits project path and action (or '', 'run', '47406')
 
     def __init__(self, parent):
 
@@ -105,6 +107,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         SimpleViewManager.__init__(self, parent)
         MainArea.__init__(self, stv=self, ui=parent)
+        self.num_runs = 0
 
         self.__createStatusBar()
         self.__setConnects()
@@ -123,6 +126,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # stores parsed command line arguments
         self.cml_args = None
+        # optional port for connecting Twedit++ to Player
+        self.port = -1
 
         # object responsible for creating/managing plot windows so they're accessible from steppable level
 
@@ -548,7 +553,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
     def process_command_line_options(self, cml_args: argparse.Namespace) -> None:
         """
         initializes player internal variables based on command line input.
-        Also if user passes appropriate option this function may get simulation going directly from command line
+        Also if user passes the appropriate option this function may get simulation going directly from command line
 
         :param cml_args: {}
         :return:
@@ -559,6 +564,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         persistent_globals.output_file_core_name = cml_args.output_file_core_name
         persistent_globals.parameter_scan_iteration = self.cml_args.parameter_scan_iteration
+
+        # by default this flag is False i.e. we skip MCS=0 and display true configuration
+        # however for testing we may need to run MCS to allow proper "alignment" of generated data with
+        # reference test data.
+        persistent_globals.execute_step_at_mcs_0 = cml_args.execute_step_at_mcs_0
 
         settings_dict = self.override_settings_using_cml_args(cml_args=self.cml_args)
         start_simulation = settings_dict['start_simulation']
@@ -571,7 +581,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
             Configuration.setSetting("GraphicsWinWidth", width)
             Configuration.setSetting("GraphicsWinHeight", height)
 
-        port = cml_args.port if cml_args.port else -1
+        self.port = cml_args.port if cml_args.port else -1
+
 
         self.closePlayerAfterSimulationDone = cml_args.exitWhenDone
 
@@ -596,8 +607,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if syntax_error_console.is_qsci_based():
             self.twedit_act.triggered.connect(syntax_error_console.cc3dSender.establishConnection)
 
-        if port != -1:
-            syntax_error_console.set_service_port_cc3d_sender(port)
+        if self.port != -1:
+            syntax_error_console.set_service_port_cc3d_sender(self.port)
 
         # checking if file path needs to be remapped to point to files in the directories
         # from which run script was called
@@ -624,7 +635,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
                     "Could not find playerSettings file: " + self.playerSettingsFileName)
 
         if start_simulation:
-            self.__runSim()
+            if cml_args.run_action=="run":
+                self.__runSim()
+            else:
+                self.__stepSim()
 
     def set_recent_simulation_file(self, file_name: str) -> None:
         """
@@ -917,6 +931,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :return:
         """
 
+
         self.prepare_for_new_simulation(force_generic_initialization=True)
 
         self.cc3dSimulationDataHandler = None
@@ -957,7 +972,13 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :param file_name:
         :return: None
         """
+
+
         persistent_globals = CompuCellSetup.persistent_globals
+
+        custom_settings_path = persistent_globals.get_custom_settings_path()
+        if custom_settings_path:
+            Configuration.initializeCustomSettings(custom_settings_path)
         # Let's toggle these off (and not tell the user for now)
         # need to make it possible to save images from .dml/vtk files
         if Configuration.getSetting("LatticeOutputOn"):
@@ -1414,7 +1435,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         screenshot_directory = CompuCellSetup.persistent_globals.output_directory
         # if self.singleSimulation:
         if self.cc3dSimulationDataHandler and screenshot_directory is not None:
-            self.cc3dSimulationDataHandler.copy_simulation_data_files(screenshot_directory)
+            CompuCellSetup.persistent_globals.copy_simulation_files_to_output_folder(
+            custom_output_directory=screenshot_directory)
 
         self.simulation.sem.tryAcquire()
         self.simulation.sem.release()
@@ -1677,18 +1699,25 @@ class SimpleTabView(MainArea, SimpleViewManager):
             pg.restart_manager.output_frequency = pg.restart_snapshot_frequency
             pg.restart_manager.allow_multiple_restart_directories = pg.restart_multiple_snapshots
 
-    def prepareSimulation(self):
+    def prepareSimulation(self, run_action:str="run"):
         """
         Prepares simulation - loads simulation, installs rollback importer - to unimport previously used modules
 
         :return: None
         """
+        restart_player_for_new_simulation = Configuration.getSetting("RestartPlayerForNewSimulation")
+        if self.num_runs > 0 and restart_player_for_new_simulation:
+            print("Restarting Player for new simulation")
+            # we expect that  self.__sim_file_name is non-empty at this pooint
+            self._restart_with_project(project_path=self.__sim_file_name, run_action=run_action)
+            return False
+
         if not self.drawingAreaPrepared:
             self.reset_sim_model()
             # checking if the simulation file is not an empty string
             if self.__sim_file_name == "":
-                msg = QMessageBox.warning(self, "Not A Valid Simulation File", \
-                                          "Please pick simulation file <b>File->OpenSimulation File ...</b>", \
+                msg = QMessageBox.warning(self, "Not A Valid Simulation File",
+                                          "Please pick simulation file <b>File->OpenSimulation File ...</b>",
                                           QMessageBox.Ok,
                                           QMessageBox.Ok)
                 return False
@@ -1723,7 +1752,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 self.rollbackImporter.uninstall()
 
             self.rollbackImporter = RollbackImporter()
-
+            # increment run counter
+            self.num_runs += 1
             return True
 
     def start_parameter_scan(self, sim_file_name):
@@ -1804,13 +1834,15 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # when we run simulation we ensure that self.simulation.screenUpdateFrequency
         # is whatever is written in the settings
 
+
+
         self.simulation.screenUpdateFrequency = self.__updateScreen
 
         if not self.drawingAreaPrepared:
             if self.maybe_launch_param_scan():
                 return
 
-            prepare_flag = self.prepareSimulation()
+            prepare_flag = self.prepareSimulation(run_action="run")
             if prepare_flag:
                 # todo 5 - self.drawingAreaPrepared is initialized elsewhere this is tmp placeholder and a hack
                 self.drawingAreaPrepared = True
@@ -1859,7 +1891,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 self.open_act.setEnabled(False)
                 self.open_lds_act.setEnabled(False)
                 self.demo_menu_act.setEnabled(False)
-
+                self.num_runs += 1
             self.steppingThroughSimulation = False
 
             if self.simulationIsStepping:
@@ -1887,7 +1919,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if self.maybe_launch_param_scan():
                 return
 
-            prepare_flag = self.prepareSimulation()
+            prepare_flag = self.prepareSimulation(run_action="step")
             if prepare_flag:
                 # todo 5 - self.drawingAreaPrepared is initialized elsewhere this is tmp placeholder and a hack
                 self.drawingAreaPrepared = True
@@ -1966,6 +1998,12 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 return
 
             return
+
+    def _restart_with_project(self, project_path: str, run_action:str="run"):
+        """
+        Relaunch the Player with the given project and quit the current instance.
+        """
+        QTimer.singleShot(0, lambda: self.requestRelaunch.emit(project_path, run_action, self.port))
 
     def requestRedraw(self):
         """
@@ -2415,7 +2453,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :param _exitCode: exit code from the simulation
         :return: None
         """
-
+        pg = CompuCellSetup.persistent_globals
         self.reset_control_buttons_and_actions()
         self.reset_control_variables()
 
@@ -2425,15 +2463,21 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.UI.save_ui_geometry()
         # self.__save_windows_layout()
         # saving settings with the simulation
+
+        pg.copy_custom_settings_to_output_folder()
+
         if self.customSettingPath:
             if self.restore_default_settings_local_flag:
                 Configuration.replace_custom_settings_with_defaults()
             else:
                 Configuration.writeSettingsForSingleSimulation(self.customSettingPath)
+
             self.customSettingPath = ''
 
         Configuration.writeAllSettings()
         Configuration.initConfiguration()  # this flushes configuration
+        # copy _ettings.sqlite to the output simulation folder
+
 
         if Configuration.getSetting("ClosePlayerAfterSimulationDone") or self.closePlayerAfterSimulationDone:
             Configuration.setSetting("RecentFile", os.path.abspath(self.__sim_file_name))
