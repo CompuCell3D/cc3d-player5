@@ -948,13 +948,13 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         self.simulation.visFieldCreatedSignal.connect(self.handle_vis_field_created)
 
-        if re.match(".*\.cc3d$", file_name):
+        if re.match(r".*\.cc3d$", file_name):
             self.__loadCC3DFile(file_name)
 
             self.UI.toggleLatticeData(False)
             self.UI.toggleModelEditor(True)
 
-        elif re.match(".*\.dml$", file_name):
+        elif re.match(r".*\.dml$", file_name):
             self.__loadDMLFile(file_name=file_name)
 
         Configuration.setSetting("RecentFile", os.path.abspath(self.__sim_file_name))

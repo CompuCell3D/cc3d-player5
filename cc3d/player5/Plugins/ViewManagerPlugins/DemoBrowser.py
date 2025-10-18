@@ -379,7 +379,7 @@ def tokenizePython(line):
     """
     for word in line.split():
         if "." in word:
-            word = re.sub("[^a-zA-Z \n\.]", ".", word)  # Remove numbers and special chars
+            word = re.sub(r"[^a-zA-Z \n\.]", ".", word)  # Remove numbers and special chars
             for varName in word.split("."):
                 yield varName
 

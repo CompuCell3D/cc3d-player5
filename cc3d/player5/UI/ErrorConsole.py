@@ -84,10 +84,10 @@ class ErrorConsole(ConsoleWidgetBase, QsciScintilla):
 
         # self.SendScintilla(QsciScintilla.SCI_SETCARETSTYLE, QsciScintilla.CARETSTYLE_INVISIBLE) # make caret invisible
 
-        self.lineNumberExtractRegex = re.compile("^[\s\S]*[L|l]ine:[\s]*([0-9]*)")
-        self.colNumberExtractRegex = re.compile("^[\s\S]*[C|c]ol:[\s]*([0-9]*)")
+        self.lineNumberExtractRegex = re.compile(r"^[\s\S]*[L|l]ine:[\s]*([0-9]*)")
+        self.colNumberExtractRegex = re.compile(r"^[\s\S]*[C|c]ol:[\s]*([0-9]*)")
 
-        self.fileNameExtractRegex = re.compile("^[\s]*File:[\s]*([\S][\s\S]*)")
+        self.fileNameExtractRegex = re.compile(r"^[\s]*File:[\s]*([\S][\s\S]*)")
 
         # self.zoomRange=self.editorWindow.configuration.setting("ZoomRangeFindDisplayWidget")
         # self.zoomTo(self.zoomRange)
