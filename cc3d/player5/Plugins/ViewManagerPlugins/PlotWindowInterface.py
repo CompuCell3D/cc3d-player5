@@ -266,10 +266,6 @@ class PlotWindowInterface(QtCore.QObject):
         """
         set_data_fcn = self.set_data_default
 
-        # if style.lower() == 'dots':
-        #
-        #     plot_obj = pg.ScatterPlotItem(y=yd, x=xd, pen=color, size=size, name=plot_name)
-
         if style.lower() == 'dots':
             # --- FIX: ScatterPlotItem breaks on log scales -> use PlotDataItem ---
             plot_obj = pg.PlotDataItem(
@@ -310,8 +306,6 @@ class PlotWindowInterface(QtCore.QObject):
                 symbolPen=None,
                 name=plot_name
             )
-            # # dots is the default
-            # plot_obj = pg.ScatterPlotItem(y=yd, x=xd, pen=color, size=size, name=plot_name)
 
         return plot_obj, set_data_fcn
 
