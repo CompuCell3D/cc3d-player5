@@ -824,6 +824,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         Configuration.setSetting("ShowAxes", self.showAxesCB.isChecked())
         Configuration.setSetting("ShowHorizontalAxesLabels", self.showHorizontalAxesLabelsCB.isChecked())
         Configuration.setSetting("ShowVerticalAxesLabels", self.showVerticalAxesLabelsCB.isChecked())
+        Configuration.setSetting("DisplayUnits", self.displayUnitsCB.isChecked())
 
         # restart section
         Configuration.setSetting("RestartOutputEnable", self.restart_CB.isChecked())
@@ -977,6 +978,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.showAxesCB.setChecked(Configuration.getSetting("ShowAxes"))
         self.showHorizontalAxesLabelsCB.setChecked(Configuration.getSetting("ShowHorizontalAxesLabels"))
         self.showVerticalAxesLabelsCB.setChecked(Configuration.getSetting("ShowVerticalAxesLabels"))
+        self.displayUnitsCB.setChecked(Configuration.getSetting("DisplayUnits"))
 
         color = Configuration.getSetting("BoundingBoxColor")
         pm = QPixmap(size.width(), size.height())
