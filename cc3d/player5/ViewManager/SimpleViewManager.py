@@ -532,7 +532,7 @@ class SimpleViewManager(QObject):
         current_version = None
         current_revision = None
 
-        current_version_regex = re.compile("(current version)([0-9\. ]*)")
+        current_version_regex = re.compile(r"(current version)([0-9\. ]*)")
 
         for line in str(version_html_str).split("\n"):
             search_obj = re.search(current_version_regex, line)
@@ -557,7 +557,7 @@ class SimpleViewManager(QObject):
         whats_new_list = []
 
         # (.*?)(<) ensures non-greedy match i.e. all the characters will be matched until first occurrence of '<'
-        whats_new_regex = re.compile("(>[\S]*what is new:)(.*?)(<)")
+        whats_new_regex = re.compile(r"(>[\S]*what is new:)(.*?)(<)")
 
         for line in str(version_html_str).split("\n"):
 

@@ -45,7 +45,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         #            self.cancelButton.setFocusPolicy(Qt.NoFocus)
 
         self.tabWidget.currentChanged.connect(self.currentTabChanged)
-        comma_separated_list_validator = QRegExpValidator(QRegExp('(\d+)(,\d+)*'))
+        comma_separated_list_validator = QRegExpValidator(QRegExp(r'(\d+)(,\d+)*'))
 
         self.canChangeTheme = False #wait for SimpleTabView to populate it.
         self.themeComboBox.currentIndexChanged.connect(self.themeComboBoxClicked)
