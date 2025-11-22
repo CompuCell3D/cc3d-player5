@@ -254,10 +254,10 @@ class QVTKRenderWindowInteractor(QVTKRWIBaseClass):
             self._RenderWindow = vtk.vtkRenderWindow()
 
         WId = self.winId()
-        print('WId=',WId)
+        # print('WId=',WId)
         # print 'widget id = ', widget.winId()
         win_id = int(WId)
-        print('win_id=',win_id)
+        # print('win_id=',win_id)
         l_int = c_long(win_id)
         # lib.cpp_disableGLHiDPI(4621918512)
         # lib.cpp_disableGLHiDPI(l_int)

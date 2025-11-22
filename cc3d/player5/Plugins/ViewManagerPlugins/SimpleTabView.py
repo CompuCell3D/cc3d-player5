@@ -2221,7 +2221,15 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :param step:  - current MCS
         :return: None
         """
-        self.mcSteps.setText(f"MC Step: {step}")
+
+        display_units = Configuration.getSetting('DisplayUnits')
+        time_unit, time_scaling_factor, length_unit, length_scaling_factor = CompuCellSetup.persistent_globals.conversion_factors
+
+        if display_units and time_unit.strip() and time_scaling_factor>0.0:
+            msg = f"{step*time_scaling_factor:.3g} {time_unit}"
+        else:
+            msg = f"MC Step: {step}"
+        self.mcSteps.setText(msg)
 
     def __pauseSim(self):
         """
