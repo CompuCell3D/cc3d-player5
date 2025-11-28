@@ -37,6 +37,12 @@ class ScreenshotDescriptionBrowser(QDialog, ui_screenshot_description_browser.Ui
         :return:
         """
         self.clear_screenshots_PB.clicked.connect(self.clear_screenshots)
+        self.delete_selected_PB.clicked.connect(self.delete_selected_screenshot)
+        self.scr_list_LW.currentItemChanged.connect(self.handle_selection_change)
+
+    def handle_selection_change(self):
+        has_selection = self.scr_list_LW.currentItem() is not None
+        self.delete_selected_PB.setEnabled(has_selection)
 
     def clear_screenshots(self):
         print('deleting your screenshots')
@@ -55,6 +61,48 @@ class ScreenshotDescriptionBrowser(QDialog, ui_screenshot_description_browser.Ui
     def enable_delete_screenshots(self, flag: bool) -> None:
         self.clear_screenshots_PB.setEnabled(flag)
 
+    def delete_selected_screenshot(self):
+        item = self.scr_list_LW.currentItem()
+        if not item:
+            return
+
+        key = item.text()
+
+        ret = QMessageBox.warning(
+            self,
+            'Delete Screenshot Definition',
+            f'Are you sure you want to delete screenshot:\n\n{key}',
+            QMessageBox.Yes | QMessageBox.No
+        )
+        if ret != QMessageBox.Yes:
+            return
+
+        stv = self.stv()
+        scr_desc_json_pth = self.get_screenshot_description_fname(stv)
+
+        if scr_desc_json_pth is None or not scr_desc_json_pth.exists():
+            QMessageBox.warning(self, "Error", "Screenshot description file not found.")
+            return
+
+        # load JSON
+        with open(scr_desc_json_pth, "r") as f:
+            document = json.load(f)
+
+        # delete entry
+        ss_data = document.get("ScreenshotData", {})
+        if key in ss_data:
+            del ss_data[key]
+        else:
+            QMessageBox.warning(self, "Error", f"Screenshot key '{key}' not found.")
+            return
+
+        # save JSON
+        with open(scr_desc_json_pth, "w") as f:
+            json.dump(document, f, indent=4)
+
+        # refresh UI
+        self.load()
+
     def load(self):
         stv: cc3d.player5.Plugins.ViewManagerPlugins.SimpleTabView.SimpleTabView = self.stv()
 
@@ -67,10 +115,15 @@ class ScreenshotDescriptionBrowser(QDialog, ui_screenshot_description_browser.Ui
         self.enable_delete_screenshots(False)
 
         if scr_desc_json_pth is None:
-            self.scr_list_TE.setPlainText(scr_desc_no_found_msg_str)
+            # Populate the list with a message
+            self.scr_list_LW.clear()
+            self.scr_list_LW.addItem(scr_desc_no_found_msg_str)
+
+            # Clear JSON tree
             if self.model is not None:
                 document = {}
                 self.model.load(document)
+
             return
 
         self.view = QJsonTreeView()
@@ -88,7 +141,8 @@ class ScreenshotDescriptionBrowser(QDialog, ui_screenshot_description_browser.Ui
         except KeyError:
             available_screenshots_str = 'COULD NOT FIND SCREENSHOT CONFIGURATION'
 
-        self.scr_list_TE.setPlainText(available_screenshots_str)
+        self.scr_list_LW.clear()
+        self.scr_list_LW.addItems(available_screenshots)
 
         self.model.load(document)
         # Sanity check

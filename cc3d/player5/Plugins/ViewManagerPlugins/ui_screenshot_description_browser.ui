@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>541</width>
-    <height>424</height>
+    <width>600</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,16 +24,16 @@
       </widget>
      </item>
      <item>
-      <widget class="QPlainTextEdit" name="scr_list_TE">
-       <property name="readOnly">
-        <bool>true</bool>
+      <widget class="QListWidget" name="scr_list_LW">
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SingleSelection</enum>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QLabel" name="label_2">
        <property name="text">
-        <string>Screenshot Description </string>
+        <string>Screenshot Description</string>
        </property>
       </widget>
      </item>
@@ -45,13 +45,23 @@
        <property name="sizeHint" stdset="0">
         <size>
          <width>20</width>
-         <height>40</height>
+         <height>200</height>
         </size>
        </property>
       </spacer>
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QPushButton" name="delete_selected_PB">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="text">
+          <string>Delete Selected Screenshot</string>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QPushButton" name="clear_screenshots_PB">
          <property name="text">
