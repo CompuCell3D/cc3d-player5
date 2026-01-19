@@ -3,7 +3,7 @@ import sys
 import subprocess
 import cc3d.player5.Configuration as Configuration
 from PyQt5.QtWidgets import QMessageBox
-from cc3d.core.GraphicsUtils.MovieCreator import makeMovieAsync
+from cc3d.core.GraphicsUtils.MovieCreator import makeMovieAsync, subscribeToMovieStatus
 from os import startfile
 
 def getLastSimulationDir() -> Path:
@@ -45,6 +45,13 @@ def makeMovieWithSettings() -> None:
 
     except Exception as ex:
         print("There was a problem generating the movie. You can try generating another one from the Configuration menu.", ex)
+
+
+def setupMovieStatusHandler(textHandler):
+    """
+    :param textHandler: a function that accepts a string parameter (i.e. the movie result message) and displays it
+    """
+    subscribeToMovieStatus(textHandler)
 
 
 def showMovieInFileExplorer(self) -> None:
