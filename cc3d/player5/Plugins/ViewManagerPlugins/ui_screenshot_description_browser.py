@@ -57,6 +57,6 @@ class Ui_screenshotDescriptionDialog(object):
         screenshotDescriptionDialog.setWindowTitle(_translate("screenshotDescriptionDialog", "Screenshot Description Browser"))
         self.label.setText(_translate("screenshotDescriptionDialog", "Available Screenshot Labels"))
         self.label_2.setText(_translate("screenshotDescriptionDialog", "Screenshot Description"))
-        self.delete_selected_PB.setText(_translate("screenshotDescriptionDialog", "Delete Selected Screenshot"))
+        self.delete_selected_PB.setText(_translate("screenshotDescriptionDialog", "Delete Screenshot Definition"))
         self.clear_screenshots_PB.setText(_translate("screenshotDescriptionDialog", "Clear Screenshots"))
         self.ok_PB.setText(_translate("screenshotDescriptionDialog", "OK"))

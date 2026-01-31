@@ -58,7 +58,7 @@
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>Delete Selected Screenshot</string>
+          <string>Delete Screenshot Definition</string>
          </property>
         </widget>
        </item>
