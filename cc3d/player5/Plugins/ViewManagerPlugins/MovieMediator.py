@@ -4,7 +4,7 @@ import subprocess
 import cc3d.player5.Configuration as Configuration
 from PyQt5.QtWidgets import QMessageBox
 from cc3d.core.GraphicsUtils.MovieCreator import makeMovieAsync, subscribeToMovieStatus
-from os import startfile
+import os
 
 def getLastSimulationDir() -> Path:
     try:
@@ -72,7 +72,7 @@ def showMovieInFileExplorer(self) -> None:
             return
 
         if sys.platform.startswith('win'):
-            startfile(dirToOpen)
+            os.startfile(dirToOpen)
         elif sys.platform.startswith('darwin'):
             subprocess.run(['open', '-R', dirToOpen])
         elif sys.platform.startswith('linux'):
