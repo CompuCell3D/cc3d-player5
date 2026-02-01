@@ -36,7 +36,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
       <widget class="QLabel" name="label_4">
        <property name="text">
@@ -45,12 +45,12 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="simulation_output_folder"/>
+      <widget class="QLineEdit" name="simulation_output_folder_LE"/>
      </item>
      <item>
-      <widget class="QPushButton" name="generate_movies_PB">
+      <widget class="QPushButton" name="browse_PB">
        <property name="text">
-        <string>Generate Movies</string>
+        <string>Browse...</string>
        </property>
       </widget>
      </item>
@@ -139,7 +139,7 @@
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
+    <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <spacer name="horizontalSpacer_5">
        <property name="orientation">
@@ -154,9 +154,9 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="ok_PB">
+      <widget class="QPushButton" name="generate_movies_PB">
        <property name="text">
-        <string>Close</string>
+        <string>Generate Movies</string>
        </property>
       </widget>
      </item>
@@ -165,22 +165,5 @@
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>ok_PB</sender>
-   <signal>clicked()</signal>
-   <receiver>MovieGeneratorDialog</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>197</x>
-     <y>282</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>342</x>
-     <y>247</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>
