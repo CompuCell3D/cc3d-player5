@@ -1133,6 +1133,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.restart_snapshot_from_simulation_act.triggered.connect(self.generate_restart_snapshot)
         self.screenshot_description_browser_act.triggered.connect(self.open_screenshot_description_browser)
 
+        self.movie_generator_act.triggered.connect(self.generate_simulation_movies)
+
         # window menu actions
         self.new_graphics_window_act.triggered.connect(self.add_new_graphics_window)
 
@@ -3605,6 +3607,14 @@ class SimpleTabView(MainArea, SimpleViewManager):
             print('Screenshots shown')
 
         print('opening scr browser')
+
+    def generate_simulation_movies(self):
+        from cc3d.player5.Plugins.ViewManagerPlugins.MovieGeneratorDialog import MovieGeneratorDialog
+
+        dlg = MovieGeneratorDialog(self)
+        dlg.exec_()
+    # def generate_simulation_movies(self):
+    #     pass
 
     def trigger_configs_changed(self):
         """
