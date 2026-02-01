@@ -53,7 +53,7 @@ from cc3d.player5.Utilities.unzipper import Unzipper
 from weakref import ref
 from subprocess import Popen
 from cc3d.player5.Utilities.terminal import Terminal
-from cc3d.player5.Plugins.ViewManagerPlugins.MovieMediator import makeMovieWithSettings
+from cc3d.player5.Plugins.ViewManagerPlugins.MovieMediator import makeMovieWithSettings, setupMovieStatusHandler
 
 
 MODULENAME = '---- SimpleTabView.py: '
@@ -2231,6 +2231,9 @@ class SimpleTabView(MainArea, SimpleViewManager):
             msg = f"MC Step: {step}"
         self.mcSteps.setText(msg)
 
+    def displayStatusInfo(self, text):
+        self.statusLabel.setText(text)
+
     def __pauseSim(self):
         """
         slot that pauses simulation
@@ -3640,12 +3643,15 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.mcSteps = QLabel()
         self.mcSteps.setStyleSheet("QLabel { color : red; }")
 
-        self.conSteps = QLabel()
-        self.conSteps.setStyleSheet("QLabel { color : blue; }")
-
         self.warnings = QLabel()
         self.warnings.setStyleSheet("QLabel { color : red; }")
 
+        self.statusLabel = QLabel()
+        self.setupStatusLabelSubscribers()
+
         self.__statusBar.addWidget(self.mcSteps)
-        self.__statusBar.addWidget(self.conSteps)
         self.__statusBar.addWidget(self.warnings)
+        self.__statusBar.addWidget(self.statusLabel)
+
+    def setupStatusLabelSubscribers(self):
+        setupMovieStatusHandler(self.displayStatusInfo)
