@@ -88,7 +88,7 @@ def label_styling(text, q_label_obj, color="#000000", font_weight=400):
 
 
 def create_movies_runner(
-    status_label_obj, simulation_path, ffmpeg_path, frame_rate, quality, enable_drawing_mcs, display_movie_callback
+    status_label_obj, simulation_path,  frame_rate, quality, enable_drawing_mcs, display_movie_callback
 ):
     try:
         label_styling("", status_label_obj, "black", 600)

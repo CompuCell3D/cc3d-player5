@@ -30,7 +30,7 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
         self.setWindowFlags(self.windowFlags() | Qt.Dialog)
         self.setupUi(self)
 
-        self.moviesCreatedSignal.connect(self.displayMovieResult)
+        self.moviesCreatedSignal.connect(self.display_movie_result)
 
         # Wire buttons
         self.pushButton.clicked.connect(self.on_detect_ffmpeg)
@@ -51,11 +51,11 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
         self.frame_rate_SB.setValue(int(self.frame_rate))
 
     def on_detect_ffmpeg(self):
-        self.resetFfmpegLocation()
+        self.reset_ffmpeg_location()
 
     def on_generate_movies(self):
 
-        self.createMovieButtonClicked()
+        self.create_movie_button_clicked()
 
     def on_browse(self):
 
@@ -66,18 +66,18 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
             self.simulation_output_folder_LE.setText(str(self.simulation_path))
             self.generate_movies_PB.setEnabled(True)
 
-    def resetFfmpegLocation(self):
-        ffmpegLocation = find_ffmpeg()
+    def reset_ffmpeg_location(self):
+        ffmpeg_location = find_ffmpeg()
 
-        if not ffmpegLocation:
-            self.showFfmpegWarning()
+        if not ffmpeg_location:
+            self.show_ffmpeg_warning()
             return None
 
-        self.ffmpeg_path_LE.setText(ffmpegLocation)
+        self.ffmpeg_path_LE.setText(ffmpeg_location)
         label_styling("Successfully Detected FFMPEG", self.status_LB, "dodgerblue", 600)
-        return ffmpegLocation
+        return ffmpeg_location
 
-    def showFfmpegWarning(self):
+    def show_ffmpeg_warning(self):
         QMessageBox.warning(
             None,
             "WARN",
@@ -87,30 +87,36 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
             QMessageBox.Ok,
         )
 
-    def createMovieButtonClicked(self):
-        if not Path(self.ffmpeg_path).exists():
-            self.showFfmpegWarning()
-            return
+    def create_movie_button_clicked(self):
+        try:
+            if not Path(self.ffmpeg_path).exists():
+                self.show_ffmpeg_warning()
+                return
 
-        def display_movie_callback(future):
-            movieCount, moviePath = future.result()
-            self.moviesCreatedSignal.emit(movieCount)
+            def display_movie_callback(future):
+                movie_count, movie_path = future.result()
+                self.moviesCreatedSignal.emit(movie_count)
 
-        create_movies_runner(
-            status_label_obj=self.status_LB,
-            simulation_path=self.simulation_path,
-            ffmpeg_path=self.ffmpeg_path,
-            frame_rate=self.frame_rate_SB.value(),
-            quality=self.quality_SB.value(),
-            enable_drawing_mcs=self.mcs_on_frame_CB.isChecked(),
-            display_movie_callback=display_movie_callback,
-        )
+            create_movies_runner(
+                status_label_obj=self.status_LB,
+                simulation_path=self.simulation_path,
+                frame_rate=self.frame_rate_SB.value(),
+                quality=self.quality_SB.value(),
+                enable_drawing_mcs=self.mcs_on_frame_CB.isChecked(),
+                display_movie_callback=display_movie_callback,
+            )
+        except Exception as e:
+            print(e)
+            QMessageBox.warning(None, "WARN",
+                            "There was a problem creating the movie. "
+                            "Please reach out to us on Reddit or GitHub Issues if this problem persists.",
+                            QMessageBox.Ok)
 
     def closeEvent(self, a0, QCloseEvent=None):
         Configuration.setSetting("FrameRate", self.frame_rate_SB.value())
         Configuration.setSetting("Quality", self.quality_SB.value())
 
-    def displayMovieResult(self, movieCount):
-        display_movie_creation_result(movie_count=movieCount, q_label_obj=self.status_LB)
+    def display_movie_result(self, movie_count):
+        display_movie_creation_result(movie_count=movie_count, q_label_obj=self.status_LB)
 
 
