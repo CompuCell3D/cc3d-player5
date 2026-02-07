@@ -13,7 +13,8 @@ from pathlib import Path
 def choose_movie_directory(parent=None):
     current_project_dir = Configuration.getSetting("OutputLocation")
     if not current_project_dir or not Path(current_project_dir).exists():
-        current_project_dir = "/"
+        root = Path("/").resolve().anchor
+        current_project_dir = str(root)
     dir_name = QFileDialog.getExistingDirectory(
         parent, "Specify CC3D Project Directory", current_project_dir, QFileDialog.ShowDirsOnly
     )

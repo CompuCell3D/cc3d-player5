@@ -13,7 +13,7 @@ from cc3d.player5.Plugins.ViewManagerPlugins.movies.utils import (
     label_styling,
     display_movie_creation_result,
 )
-from cc3d.player5.Utilities import safe_callback
+from cc3d.player5.Utilities import safe_callback, open_folder_in_file_browser
 
 
 class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
@@ -36,6 +36,8 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
         self.generate_movies_PB.clicked.connect(self.on_generate_movies)
         self.generate_movies_PB.setEnabled(False)
         self.browse_PB.clicked.connect(self.on_browse)
+        self.show_movies_folder_PB.setEnabled(False)
+        self.show_movies_folder_PB.clicked.connect(self.show_movies_folder)
 
         # initialize
         self.ffmpeg_path = Configuration.getSetting("FfmpegLocation")
@@ -48,6 +50,10 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
 
         self.quality_SB.setValue(int(self.quality))
         self.frame_rate_SB.setValue(int(self.frame_rate))
+
+    @safe_callback
+    def show_movies_folder(self, *args, **kwargs):
+        open_folder_in_file_browser(self.simulation_path, parent=self)
 
     @safe_callback
     def on_detect_ffmpeg(self, *args, **kwargs):
@@ -90,7 +96,7 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
 
     @safe_callback
     def create_movie_button_clicked(self):
-
+        self.show_movies_folder_PB.setEnabled(False)
         if not Path(self.ffmpeg_path).exists():
             self.show_ffmpeg_warning()
             return
@@ -98,6 +104,7 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
         def display_movie_callback(future):
             movie_count, movie_path = future.result()
             self.moviesCreatedSignal.emit(movie_count)
+
 
         create_movies_runner(
             status_label_obj=self.status_LB,
@@ -114,5 +121,7 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
 
     def display_movie_result(self, movie_count):
         display_movie_creation_result(movie_count=movie_count, q_label_obj=self.status_LB)
+        if movie_count > 0:
+            self.show_movies_folder_PB.setEnabled(True)
 
 

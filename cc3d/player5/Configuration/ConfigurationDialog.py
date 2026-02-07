@@ -167,7 +167,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
 
     # -------- Movie widgets CBs
     @safe_callback
-    def createMovieButtonClicked(self):
+    def createMovieButtonClicked(self, *args, **kwargs):
         try:
             self.createMovieResultLabel.setText("")
             if not Path(Configuration.getSetting('FfmpegLocation')).exists():

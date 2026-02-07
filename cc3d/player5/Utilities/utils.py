@@ -1,10 +1,12 @@
 # From core; do not remove unless you're looking for trouble, or making Player-specific implementations!
+from pathlib import Path
+
 from cc3d.core.GraphicsUtils.utils import *
 from cc3d.player5.UI.cell_type_colors import default_cell_type_color_list
 from collections import namedtuple, OrderedDict
 from typing import Dict, Optional
-from PyQt5.QtGui import QColor
-from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QColor, QDesktopServices
+from PyQt5.QtCore import Qt, QUrl
 import traceback
 from functools import wraps
 from PyQt5.QtWidgets import QMessageBox, QLabel, QTextEdit
@@ -94,6 +96,52 @@ def safe_callback(func):
             )
 
     return wrapper
+
+
+def open_folder_in_file_browser(path, parent=None) -> bool:
+    """
+    Opens the given folder in the system file browser.
+
+    Returns True if successful, False otherwise.
+    """
+
+    if not path:
+        QMessageBox.warning(
+            parent,
+            "Folder not available",
+            "Path is not set.",
+            QMessageBox.Ok,
+        )
+        return False
+
+    folder = Path(path)
+
+    if not folder.exists():
+        QMessageBox.warning(
+            parent,
+            "Folder not found",
+            f"The folder does not exist:\n{folder}",
+            QMessageBox.Ok,
+        )
+        return False
+
+    # If file, open parent folder
+    if folder.is_file():
+        folder = folder.parent
+
+    url = QUrl.fromLocalFile(str(folder))
+
+    success = QDesktopServices.openUrl(url)
+
+    if not success:
+        QMessageBox.warning(
+            parent,
+            "Error",
+            f"Could not open folder:\n{folder}",
+            QMessageBox.Ok,
+        )
+
+    return success
 
 
 def qcolor_to_rgba(qcolor: object) -> tuple:
