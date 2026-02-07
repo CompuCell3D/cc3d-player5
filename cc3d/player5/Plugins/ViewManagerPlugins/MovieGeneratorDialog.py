@@ -2,7 +2,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import cc3d.player5.Configuration as Configuration
-
+import traceback
 from cc3d.player5.Plugins.ViewManagerPlugins.ui_movie_generator_dialog import Ui_MovieGeneratorDialog
 
 import sys
@@ -15,6 +15,7 @@ from cc3d.player5.Plugins.ViewManagerPlugins.movies.utils import (
     label_styling,
     display_movie_creation_result,
 )
+from cc3d.player5.Utilities import safe_callback
 
 
 class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
@@ -50,14 +51,17 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
         self.quality_SB.setValue(int(self.quality))
         self.frame_rate_SB.setValue(int(self.frame_rate))
 
-    def on_detect_ffmpeg(self):
+    @safe_callback
+    def on_detect_ffmpeg(self, *args, **kwargs):
         self.reset_ffmpeg_location()
 
-    def on_generate_movies(self):
+    @safe_callback
+    def on_generate_movies(self, *args, **kwargs):
 
         self.create_movie_button_clicked()
 
-    def on_browse(self):
+    @safe_callback
+    def on_browse(self, *args, **kwargs):
 
         self.simulation_path = choose_movie_directory(parent=self)
         if self.simulation_path is None:
@@ -68,7 +72,6 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
 
     def reset_ffmpeg_location(self):
         ffmpeg_location = find_ffmpeg()
-
         if not ffmpeg_location:
             self.show_ffmpeg_warning()
             return None
@@ -94,8 +97,21 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
                 return
 
             def display_movie_callback(future):
-                movie_count, movie_path = future.result()
-                self.moviesCreatedSignal.emit(movie_count)
+                try:
+                    movie_count, movie_path = future.result()
+                    self.moviesCreatedSignal.emit(movie_count)
+
+                except Exception as e:
+                    traceback.print_exc()
+
+                    QTimer.singleShot(0, lambda:
+                    QMessageBox.warning(
+                        None,
+                        "Movie Creation Failed",
+                        str(e),
+                        QMessageBox.Ok,
+                    )
+                                      )
 
             create_movies_runner(
                 status_label_obj=self.status_LB,
