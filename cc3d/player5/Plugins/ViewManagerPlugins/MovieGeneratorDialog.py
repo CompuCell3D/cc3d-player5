@@ -2,9 +2,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import cc3d.player5.Configuration as Configuration
-import traceback
 from cc3d.player5.Plugins.ViewManagerPlugins.ui_movie_generator_dialog import Ui_MovieGeneratorDialog
-
 import sys
 from pathlib import Path
 
@@ -90,43 +88,25 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
             QMessageBox.Ok,
         )
 
+    @safe_callback
     def create_movie_button_clicked(self):
-        try:
-            if not Path(self.ffmpeg_path).exists():
-                self.show_ffmpeg_warning()
-                return
 
-            def display_movie_callback(future):
-                try:
-                    movie_count, movie_path = future.result()
-                    self.moviesCreatedSignal.emit(movie_count)
+        if not Path(self.ffmpeg_path).exists():
+            self.show_ffmpeg_warning()
+            return
 
-                except Exception as e:
-                    traceback.print_exc()
+        def display_movie_callback(future):
+            movie_count, movie_path = future.result()
+            self.moviesCreatedSignal.emit(movie_count)
 
-                    QTimer.singleShot(0, lambda:
-                    QMessageBox.warning(
-                        None,
-                        "Movie Creation Failed",
-                        str(e),
-                        QMessageBox.Ok,
-                    )
-                                      )
-
-            create_movies_runner(
-                status_label_obj=self.status_LB,
-                simulation_path=self.simulation_path,
-                frame_rate=self.frame_rate_SB.value(),
-                quality=self.quality_SB.value(),
-                enable_drawing_mcs=self.mcs_on_frame_CB.isChecked(),
-                display_movie_callback=display_movie_callback,
-            )
-        except Exception as e:
-            print(e)
-            QMessageBox.warning(None, "WARN",
-                            "There was a problem creating the movie. "
-                            "Please reach out to us on Reddit or GitHub Issues if this problem persists.",
-                            QMessageBox.Ok)
+        create_movies_runner(
+            status_label_obj=self.status_LB,
+            simulation_path=self.simulation_path,
+            frame_rate=self.frame_rate_SB.value(),
+            quality=self.quality_SB.value(),
+            enable_drawing_mcs=self.mcs_on_frame_CB.isChecked(),
+            display_movie_callback=display_movie_callback,
+        )
 
     def closeEvent(self, a0, QCloseEvent=None):
         Configuration.setSetting("FrameRate", self.frame_rate_SB.value())

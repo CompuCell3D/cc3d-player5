@@ -90,27 +90,15 @@ def label_styling(text, q_label_obj, color="#000000", font_weight=400):
 def create_movies_runner(
     status_label_obj, simulation_path,  frame_rate, quality, enable_drawing_mcs, display_movie_callback
 ):
-    try:
-        label_styling("", status_label_obj, "black", 600)
 
-        label_styling(f"Generating movies...", status_label_obj, "#007AFF", 600)
+    label_styling("", status_label_obj, "black", 600)
+    label_styling(f"Generating movies...", status_label_obj, "#007AFF", 600)
 
-        quality = max(quality, 1)
-        # Convert from 1-10 domain to 0-51 domain
-        quality = int((1.0 - (quality / 10.0)) * 52.0) - 1
-
-        makeMovieAsync(simulation_path, frame_rate, quality, enable_drawing_mcs, display_movie_callback)
-        Configuration.setSetting("RecentMoviePath", str(simulation_path))
-
-    except Exception as e:
-        print(e)
-        QMessageBox.warning(
-            None,
-            "WARN",
-            "There was a problem creating the movie. "
-            "Please reach out to us on Reddit or GitHub Issues if this problem persists.",
-            QMessageBox.Ok,
-        )
+    quality = max(quality, 1)
+    # Convert from 1-10 domain to 0-51 domain
+    quality = int((1.0 - (quality / 10.0)) * 52.0) - 1
+    makeMovieAsync(simulation_path, frame_rate, quality, enable_drawing_mcs, display_movie_callback)
+    Configuration.setSetting("RecentMoviePath", str(simulation_path))
 
 
 def find_ffmpeg():

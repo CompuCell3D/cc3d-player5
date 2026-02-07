@@ -16,8 +16,9 @@ from cc3d.player5.styles.StyleManager import publish_style_sheet
 
 import shutil
 
-from ..Plugins.ViewManagerPlugins.movies.utils import choose_movie_directory, label_styling, create_movies_runner, \
+from cc3d.player5.Plugins.ViewManagerPlugins.movies.utils import choose_movie_directory, label_styling, create_movies_runner, \
     display_movie_creation_result, find_ffmpeg
+from cc3d.player5.Utilities import safe_callback
 
 MAC = "qt_mac_set_native_menubar" in dir()
 
@@ -165,7 +166,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
             self.outputLocationButton.setEnabled(True)
 
     # -------- Movie widgets CBs
-
+    @safe_callback
     def createMovieButtonClicked(self):
         try:
             self.createMovieResultLabel.setText("")
