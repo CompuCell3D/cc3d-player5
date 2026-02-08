@@ -61,11 +61,9 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
 
     @safe_callback
     def show_movies_folder(self, *args, **kwargs):
-
+        # use root folder as a failsafe option
         folder_with_movies = Path("/").resolve().anchor
-        if Path(self.simulation_path).exists() and Path(self.simulation_path).is_dir():
-            folder_with_movies = self.simulation_path
-        elif Configuration.check_if_setting_exists("RecentMoviePath"):
+        if Configuration.check_if_setting_exists("RecentMoviePath"):
             folder_with_movies_tmp =  Configuration.getSetting("RecentMoviePath")
             if Path(folder_with_movies_tmp).exists() and Path(folder_with_movies_tmp).is_dir():
                 folder_with_movies = Path(folder_with_movies_tmp)
