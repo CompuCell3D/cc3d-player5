@@ -36,7 +36,11 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
         self.generate_movies_PB.clicked.connect(self.on_generate_movies)
         self.generate_movies_PB.setEnabled(False)
         self.browse_PB.clicked.connect(self.on_browse)
-        self.show_movies_folder_PB.setEnabled(False)
+
+        self.simulation_output_folder_LE.textChanged.connect(
+            self.on_simulation_folder_text_changed
+        )
+
         self.show_movies_folder_PB.clicked.connect(self.show_movies_folder)
 
         # initialize
@@ -45,6 +49,10 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
         self.status_LB.setText("")
 
         self.simulation_path = None
+        if Configuration.check_if_setting_exists("RecentMoviePath"):
+            self.simulation_path = Configuration.getSetting("RecentMoviePath")
+            self.set_up_simulation_output_folder()
+
         self.frame_rate = Configuration.getSetting("FrameRate")
         self.quality = Configuration.getSetting("Quality")
 
@@ -53,7 +61,29 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
 
     @safe_callback
     def show_movies_folder(self, *args, **kwargs):
-        open_folder_in_file_browser(self.simulation_path, parent=self)
+
+        folder_with_movies = Path("/").resolve().anchor
+        if Path(self.simulation_path).exists() and Path(self.simulation_path).is_dir():
+            folder_with_movies = self.simulation_path
+        elif Configuration.check_if_setting_exists("RecentMoviePath"):
+            folder_with_movies_tmp =  Configuration.getSetting("RecentMoviePath")
+            if Path(folder_with_movies_tmp).exists() and Path(folder_with_movies_tmp).is_dir():
+                folder_with_movies = Path(folder_with_movies_tmp)
+
+
+
+        open_folder_in_file_browser(folder_with_movies, parent=self)
+
+    @safe_callback
+    def on_simulation_folder_text_changed(self, text):
+
+        path = Path(text).expanduser()
+
+        if path.exists() and path.is_dir():
+            self.simulation_path = str(path)
+            self.generate_movies_PB.setEnabled(True)
+        else:
+            self.generate_movies_PB.setEnabled(False)
 
     @safe_callback
     def on_detect_ffmpeg(self, *args, **kwargs):
@@ -65,14 +95,18 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
         self.create_movie_button_clicked()
 
     @safe_callback
+    def set_up_simulation_output_folder(self):
+        if Path(self.simulation_path).exists() and Path(self.simulation_path).is_dir():
+            self.simulation_output_folder_LE.setText(str(self.simulation_path))
+            self.generate_movies_PB.setEnabled(True)
+
+    @safe_callback
     def on_browse(self, *args, **kwargs):
 
         self.simulation_path = choose_movie_directory(parent=self)
         if self.simulation_path is None:
             return
-        if Path(self.simulation_path).exists() and Path(self.simulation_path).is_dir():
-            self.simulation_output_folder_LE.setText(str(self.simulation_path))
-            self.generate_movies_PB.setEnabled(True)
+        self.set_up_simulation_output_folder()
 
     def reset_ffmpeg_location(self):
         ffmpeg_location = find_ffmpeg()
@@ -96,13 +130,17 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
 
     @safe_callback
     def create_movie_button_clicked(self):
-        self.show_movies_folder_PB.setEnabled(False)
         if not Path(self.ffmpeg_path).exists():
             self.show_ffmpeg_warning()
             return
 
         def display_movie_callback(future):
-            movie_count, movie_path = future.result()
+            try:
+                movie_count, movie_path = future.result()
+            except TypeError:
+                label_styling(f"Failed to generate movies in folder {self.simulation_path}. Check if the folder exists", self.status_LB, "dodgerblue", 600)
+                return
+
             self.moviesCreatedSignal.emit(movie_count)
 
 
@@ -122,6 +160,8 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
     def display_movie_result(self, movie_count):
         display_movie_creation_result(movie_count=movie_count, q_label_obj=self.status_LB)
         if movie_count > 0:
-            self.show_movies_folder_PB.setEnabled(True)
+            Configuration.setSetting("RecentMoviePath", str(self.simulation_path))
+
+
 
 
