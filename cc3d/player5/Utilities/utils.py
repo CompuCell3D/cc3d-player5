@@ -1,12 +1,147 @@
 # From core; do not remove unless you're looking for trouble, or making Player-specific implementations!
+from pathlib import Path
+
 from cc3d.core.GraphicsUtils.utils import *
 from cc3d.player5.UI.cell_type_colors import default_cell_type_color_list
 from collections import namedtuple, OrderedDict
 from typing import Dict, Optional
-from PyQt5.QtGui import QColor
-
+from PyQt5.QtGui import QColor, QDesktopServices
+from PyQt5.QtCore import Qt, QUrl
+import traceback
+from functools import wraps
+from PyQt5.QtWidgets import QMessageBox, QLabel, QTextEdit
+import sys
 
 cell_type_color_props = namedtuple('cell_type_color_props', 'color type_name invisible')
+
+
+
+def get_monospace_font_stack():
+    if sys.platform == "darwin":
+        return "Menlo, Monaco, monospace"
+    elif sys.platform.startswith("win"):
+        return "Consolas, Courier New, monospace"
+    else:
+        return "DejaVu Sans Mono, Liberation Mono, monospace"
+
+def show_exception_messagebox(
+    title: str,
+    message: str,
+    exception: Exception,
+    parent=None,
+):
+    tb_str = "".join(traceback.format_exception(
+        type(exception), exception, exception.__traceback__)
+    )
+
+    msg = QMessageBox(parent)
+
+    msg.setIcon(QMessageBox.Critical)
+    msg.setWindowTitle(title)
+
+    msg.setText(f"<b>{message}</b>")
+    font_stack = get_monospace_font_stack()
+
+    msg.setInformativeText(
+        f"<pre style='font-family: {font_stack};'>"
+        f"{str(exception)}</pre>"
+    )
+
+    msg.setDetailedText(tb_str)
+
+    msg.setStandardButtons(QMessageBox.Ok)
+
+    msg.setTextInteractionFlags(Qt.TextSelectableByMouse)
+
+    # ---- FORCE WIDER DIALOG ----
+    desired_width = 800
+
+    # Resize main dialog
+    msg.resize(desired_width, msg.sizeHint().height())
+
+    # Resize internal label
+    label = msg.findChild(QLabel, "qt_msgbox_label")
+    if label:
+        label.setMinimumWidth(desired_width)
+
+    # Resize informative label
+    info_label = msg.findChild(QLabel, "qt_msgbox_informativelabel")
+    if info_label:
+        info_label.setMinimumWidth(desired_width)
+
+    # Resize detailed traceback area
+    text_edit = msg.findChild(QTextEdit)
+    if text_edit:
+        text_edit.setMinimumWidth(desired_width)
+        text_edit.setMinimumHeight(300)
+
+    msg.exec_()
+
+
+
+def safe_callback(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+
+        except Exception as e:
+            traceback.print_exc()
+
+            show_exception_messagebox(
+                title="Player Error",
+                message="An unexpected error occurred while executing the operation.",
+                exception=e,
+                parent=None,
+            )
+
+    return wrapper
+
+
+def open_folder_in_file_browser(path, parent=None) -> bool:
+    """
+    Opens the given folder in the system file browser.
+
+    Returns True if successful, False otherwise.
+    """
+
+    if not path:
+        QMessageBox.warning(
+            parent,
+            "Folder not available",
+            "Path is not set.",
+            QMessageBox.Ok,
+        )
+        return False
+
+    folder = Path(path)
+
+    if not folder.exists():
+        QMessageBox.warning(
+            parent,
+            "Folder not found",
+            f"The folder does not exist:\n{folder}",
+            QMessageBox.Ok,
+        )
+        return False
+
+    # If file, open parent folder
+    if folder.is_file():
+        folder = folder.parent
+
+    url = QUrl.fromLocalFile(str(folder))
+
+    success = QDesktopServices.openUrl(url)
+
+    if not success:
+        QMessageBox.warning(
+            parent,
+            "Error",
+            f"Could not open folder:\n{folder}",
+            QMessageBox.Ok,
+        )
+
+    return success
 
 
 def qcolor_to_rgba(qcolor: object) -> tuple:
