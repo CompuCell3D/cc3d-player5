@@ -1,9 +1,9 @@
 import os
 import sys
 
-# Disable MaBoSS (critical for Windows CI stability)
-if  sys.platform.startswith("win"):
-    os.environ["CC3D_DISABLE_MABOSS"] = "1"
+# # Disable MaBoSS (critical for Windows CI stability)
+# if  sys.platform.startswith("win"):
+#     os.environ["CC3D_DISABLE_MABOSS"] = "1"
 
 print("Testing CC3D Player5 import...")
 
