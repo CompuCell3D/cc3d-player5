@@ -359,7 +359,7 @@ class SyntaxErrorLexer(QsciLexerCustom):
 
         return Qsci.QsciLexerCustom.defaultPaper(self, style)
 
-        # To colorize entire line containit Search or File info we use  defaultEolFill fcn
+        # To colorize entire line constraint Search or File info we use  defaultEolFill fcn
 
     def defaultEolFill(self, style):
         # This allowed to colorize all the background of a line.
