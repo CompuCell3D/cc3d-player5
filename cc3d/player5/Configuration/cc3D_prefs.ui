@@ -3077,6 +3077,13 @@
               </property>
              </widget>
             </item>
+            <item>
+             <widget class="QCheckBox" name="displayUnitsCB">
+              <property name="text">
+               <string>Display Units</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </widget>
          </item>

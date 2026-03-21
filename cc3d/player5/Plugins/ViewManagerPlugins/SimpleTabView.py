@@ -948,13 +948,13 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         self.simulation.visFieldCreatedSignal.connect(self.handle_vis_field_created)
 
-        if re.match(".*\.cc3d$", file_name):
+        if re.match(r".*\.cc3d$", file_name):
             self.__loadCC3DFile(file_name)
 
             self.UI.toggleLatticeData(False)
             self.UI.toggleModelEditor(True)
 
-        elif re.match(".*\.dml$", file_name):
+        elif re.match(r".*\.dml$", file_name):
             self.__loadDMLFile(file_name=file_name)
 
         Configuration.setSetting("RecentFile", os.path.abspath(self.__sim_file_name))
@@ -1132,6 +1132,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.pif_from_vtk_act.triggered.connect(self.__generatePIFFromVTK)
         self.restart_snapshot_from_simulation_act.triggered.connect(self.generate_restart_snapshot)
         self.screenshot_description_browser_act.triggered.connect(self.open_screenshot_description_browser)
+
+        self.movie_generator_act.triggered.connect(self.generate_simulation_movies)
 
         # window menu actions
         self.new_graphics_window_act.triggered.connect(self.add_new_graphics_window)
@@ -2221,7 +2223,15 @@ class SimpleTabView(MainArea, SimpleViewManager):
         :param step:  - current MCS
         :return: None
         """
-        self.mcSteps.setText(f"MC Step: {step}")
+
+        display_units = Configuration.getSetting('DisplayUnits')
+        time_unit, time_scaling_factor, length_unit, length_scaling_factor = CompuCellSetup.persistent_globals.conversion_factors
+
+        if display_units and time_unit.strip() and time_scaling_factor>0.0:
+            msg = f"{step*time_scaling_factor:.3g} {time_unit}"
+        else:
+            msg = f"MC Step: {step}"
+        self.mcSteps.setText(msg)
 
     def displayStatusInfo(self, text):
         self.statusLabel.setText(text)
@@ -3597,6 +3607,14 @@ class SimpleTabView(MainArea, SimpleViewManager):
             print('Screenshots shown')
 
         print('opening scr browser')
+
+    def generate_simulation_movies(self):
+        from cc3d.player5.Plugins.ViewManagerPlugins.MovieGeneratorDialog import MovieGeneratorDialog
+
+        dlg = MovieGeneratorDialog(self)
+        dlg.exec_()
+    # def generate_simulation_movies(self):
+    #     pass
 
     def trigger_configs_changed(self):
         """

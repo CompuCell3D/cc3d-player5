@@ -239,8 +239,8 @@ class MainArea(QWidget):
         :return:None
         """
 
-        print('INSTANCE OF GraphicsFrameWidget =  ',
-              isinstance(widget, Graphics.GraphicsFrameWidget.GraphicsFrameWidget))
+        # print('INSTANCE OF GraphicsFrameWidget =  ',
+        #       isinstance(widget, Graphics.GraphicsFrameWidget.GraphicsFrameWidget))
         obj_type = 'other'
         if isinstance(widget, Graphics.GraphicsFrameWidget.GraphicsFrameWidget):
             obj_type = GRAPHICS_WINDOW_LABEL

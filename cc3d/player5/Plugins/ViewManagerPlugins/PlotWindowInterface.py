@@ -267,8 +267,18 @@ class PlotWindowInterface(QtCore.QObject):
         set_data_fcn = self.set_data_default
 
         if style.lower() == 'dots':
+            # --- FIX: ScatterPlotItem breaks on log scales -> use PlotDataItem ---
+            plot_obj = pg.PlotDataItem(
+                x=xd,
+                y=yd,
+                pen=None,
+                symbol='o',
+                symbolSize=size,
+                symbolBrush=color,
+                symbolPen=None,
+                name=plot_name
+            )
 
-            plot_obj = pg.ScatterPlotItem(y=yd, x=xd, pen=color, size=size, name=plot_name)
 
         elif style.lower() == 'lines':
             pen = pg.mkPen(color=color, width=size)
@@ -285,8 +295,17 @@ class PlotWindowInterface(QtCore.QObject):
             set_data_fcn = self.set_data_bar_graph_item
 
         else:
-            # dots is the default
-            plot_obj = pg.ScatterPlotItem(y=yd, x=xd, pen=color, size=size, name=plot_name)
+            # Default to dots (symbol-based PlotDataItem)
+            plot_obj = pg.PlotDataItem(
+                x=xd,
+                y=yd,
+                pen=None,
+                symbol='o',
+                symbolSize=size,
+                symbolBrush=color,
+                symbolPen=None,
+                name=plot_name
+            )
 
         return plot_obj, set_data_fcn
 

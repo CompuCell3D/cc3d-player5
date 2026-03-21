@@ -1,6 +1,32 @@
 Release Notes
 =============
 
+Version 4.8.0
+-------------
+**2026-02-14**
+
+New features:
+ - New movie generation workflow with graphical dialog, toolbar integration, and asynchronous execution
+ - Added support for optional display of physical units in 2D and 3D visualizations
+ - Added option to open the folder containing generated movies directly from the Player
+ - Added improved error handling framework with safe callback mechanism and enhanced error reporting
+
+Improvements:
+ - Improved stability and responsiveness of movie generation and file handling
+ - Refactored movie generation code into reusable shared modules
+ - Improved status reporting for long-running operations such as movie generation
+ - Improved handling of Player settings, including movie, logging, and display configuration
+ - Improved replay and simulation launch behavior, including CLI and relaunch options
+ - Improved internal code structure, maintainability, and cross-platform compatibility
+
+Bug fixes:
+ - Fixed issues with movie generation folder handling and access
+ - Fixed platform-specific issues, including Windows-only code fragments
+ - Fixed visualization issues related to logarithmic plot scaling
+ - Fixed configuration handling and settings persistence issues
+ - Multiple minor bug fixes and stability improvements
+
+
 Version 4.7.0
 -------------
 **2022-06-21**

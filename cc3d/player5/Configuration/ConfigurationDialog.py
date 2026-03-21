@@ -16,6 +16,10 @@ from cc3d.player5.styles.StyleManager import publish_style_sheet
 
 import shutil
 
+from cc3d.player5.Plugins.ViewManagerPlugins.movies.utils import choose_movie_directory, label_styling, create_movies_runner, \
+    display_movie_creation_result, find_ffmpeg
+from cc3d.player5.Utilities import safe_callback
+
 MAC = "qt_mac_set_native_menubar" in dir()
 
 MODULENAME = '------- ConfigurationDialog.py: '
@@ -46,7 +50,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         #            self.cancelButton.setFocusPolicy(Qt.NoFocus)
 
         self.tabWidget.currentChanged.connect(self.currentTabChanged)
-        comma_separated_list_validator = QRegExpValidator(QRegExp('(\d+)(,\d+)*'))
+        comma_separated_list_validator = QRegExpValidator(QRegExp(r'(\d+)(,\d+)*'))
 
         self.canChangeTheme = False #wait for SimpleTabView to populate it.
         self.themeComboBox.currentIndexChanged.connect(self.themeComboBoxClicked)
@@ -102,7 +106,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         
         # Setup tab
         self.ffmpegLocationLineEdit.textChanged.connect(self.ffmpegLocationLineEditChanged)
-        self.resetFfmpegLocationButton.clicked.connect(self.resetFfmpegLocation)
+        self.resetFfmpegLocationButton.clicked.connect(self.reset_ffmpeg_location)
 
         self.demosLocationLineEdit.textChanged.connect(self.demosLocationLineEditChanged)
         self.demosLocationButton.clicked.connect(self.chooseDemosLocation)
@@ -162,70 +166,30 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
             self.outputLocationButton.setEnabled(True)
 
     # -------- Movie widgets CBs
-
-    def chooseMovieDirectory(self):
-        currentProjectDir = Configuration.getSetting('OutputLocation')
-        if not currentProjectDir or not Path(currentProjectDir).exists():
-            currentProjectDir = "/"
-        dirName = QFileDialog.getExistingDirectory(self, "Specify CC3D Project Directory", currentProjectDir,
-                                                    QFileDialog.ShowDirsOnly)
-        dirName = str(dirName)
-        dirName.rstrip()
-        if dirName == "":
-            return None
-
-        simulationPath = Path(dirName).resolve()
-
-        hasProjectFile = False
-        hasSimulationDir = False
-
-        for p in simulationPath.glob('*'):
-            if p.is_dir():
-                if p.stem.lower() == "simulation":
-                    hasSimulationDir = True
-            else:
-                if p.suffix.lower() == ".cc3d":
-                    hasProjectFile = True
-
-        if not hasSimulationDir or not hasProjectFile:
-            QMessageBox.warning(None, "WARN",
-                                "This does not look like a simulation directory. "
-                                "Please choose a folder inside your CompuCell3D Workspace that "
-                                "contains a .cc3d file, a Simulation sub-directory, and at least "
-                                "one sub-directory with .png files created from screenshots.",
-                                QMessageBox.Ok)
-            return None
-
-        return simulationPath
-
-
-    def createMovieButtonClicked(self):
+    @safe_callback
+    def createMovieButtonClicked(self, *args, **kwargs):
         try:
             self.createMovieResultLabel.setText("")
             if not Path(Configuration.getSetting('FfmpegLocation')).exists():
-                self.showFfmpegWarning()
+                self.show_ffmpeg_warning()
                 return
 
-            simulationPath = self.chooseMovieDirectory()
+            simulationPath = choose_movie_directory(parent=self)
             if not simulationPath:
                 return
 
-            self.createMovieResultLabel.setText("Generating movies...")
+            def display_movie_callback(future):
+                movie_count, movie_path = future.result()
+                self.moviesCreatedSignal.emit(movie_count)
 
-            frameRate = max(self.frameRateSpinBox.value(), 1)
-            quality = float(self.movieQualitySpinBox.value())
-            quality = max(quality, 1)
-            # Convert from 1-10 domain to 0-51 domain
-            quality = int((1.0 - (quality / 10.0)) * 52.0) - 1
-            enableDrawingMCS = self.writeMCSCheckbox.isChecked()
-
-            def displayMovieCallback(future):
-                movieCount, moviePath = future.result()
-                self.moviesCreatedSignal.emit(movieCount)
-
-            makeMovieAsync(simulationPath, frameRate, quality, enableDrawingMCS, displayMovieCallback)
-            Configuration.setSetting("RecentMoviePath", str(simulationPath))
-
+            create_movies_runner(
+                status_label_obj=self.createMovieResultLabel,
+                simulation_path=simulationPath,
+                frame_rate=self.frameRateSpinBox.value(),
+                quality=self.movieQualitySpinBox.value(),
+                enable_drawing_mcs=self.writeMCSCheckbox.isChecked(),
+                display_movie_callback=display_movie_callback,
+            )
         except Exception as e:
             print(e)
             QMessageBox.warning(None, "WARN",
@@ -234,31 +198,27 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
                             QMessageBox.Ok)
 
 
+
     def displayMovieResult(self, movieCount):
-        if movieCount < 1:
-            self.createMovieResultLabel.setText("No movies were made")
-        elif movieCount == 1:
-            self.createMovieResultLabel.setText("Movie successfully made")
-        else:
-            self.createMovieResultLabel.setText(str(movieCount) + " movies successfully made")
-        self.createMovieResultLabel.setVisible(True)
+        display_movie_creation_result(movie_count=movieCount, q_label_obj=self.createMovieResultLabel)
+
 
     def ffmpegLocationLineEditChanged(self, newText):
         if newText and Path(newText).exists:
             Configuration.setSetting('FfmpegLocation', newText)
 
-    def resetFfmpegLocation(self):
-        ffmpegLocation = shutil.which("ffmpeg")
-        if not ffmpegLocation:
-            self.showFfmpegWarning()
+    def reset_ffmpeg_location(self):
+        ffmpeg_location = find_ffmpeg()
+        if not ffmpeg_location:
+            self.show_ffmpeg_warning()
             return
 
-        Configuration.setSetting("FfmpegLocation", ffmpegLocation)
-        self.ffmpegLocationLineEdit.setText(ffmpegLocation)
+        Configuration.setSetting("FfmpegLocation", ffmpeg_location)
+        self.ffmpegLocationLineEdit.setText(ffmpeg_location)
 
-        return ffmpegLocation
+        return ffmpeg_location
 
-    def showFfmpegWarning(self):
+    def show_ffmpeg_warning(self):
         QMessageBox.warning(None, "WARN",
                             "FFMPEG executable not found. "
                             "Please install FFMPEG or, if you already have it, specify its path manually "
@@ -830,6 +790,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         Configuration.setSetting("ShowAxes", self.showAxesCB.isChecked())
         Configuration.setSetting("ShowHorizontalAxesLabels", self.showHorizontalAxesLabelsCB.isChecked())
         Configuration.setSetting("ShowVerticalAxesLabels", self.showVerticalAxesLabelsCB.isChecked())
+        Configuration.setSetting("DisplayUnits", self.displayUnitsCB.isChecked())
 
         # restart section
         Configuration.setSetting("RestartOutputEnable", self.restart_CB.isChecked())
@@ -893,7 +854,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.createMovieResultLabel.setText("")
         ffmpegLocation = Configuration.getSetting("FfmpegLocation")
         if not ffmpegLocation:
-            ffmpegLocation = self.resetFfmpegLocation()
+            ffmpegLocation = self.reset_ffmpeg_location()
         self.ffmpegLocationLineEdit.setText(ffmpegLocation)
 
         # Cell Type/Colors
@@ -983,6 +944,7 @@ class ConfigurationDialog(QDialog, ui_configurationdlg.Ui_CC3DPrefs, Configurati
         self.showAxesCB.setChecked(Configuration.getSetting("ShowAxes"))
         self.showHorizontalAxesLabelsCB.setChecked(Configuration.getSetting("ShowHorizontalAxesLabels"))
         self.showVerticalAxesLabelsCB.setChecked(Configuration.getSetting("ShowVerticalAxesLabels"))
+        self.displayUnitsCB.setChecked(Configuration.getSetting("DisplayUnits"))
 
         color = Configuration.getSetting("BoundingBoxColor")
         pm = QPixmap(size.width(), size.height())

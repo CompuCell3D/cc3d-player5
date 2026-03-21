@@ -47,8 +47,4 @@ requirements:
     - requests
     - pyqt=5
     - pyqtgraph
-
-test:
-  imports:
-    - sys
-    - cc3d.player5
+    - lxml

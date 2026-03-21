@@ -306,7 +306,7 @@ try:
             CompuCellSetup.simulationFileName = fileName
 
             # print 'GOT HERE'
-            if re.match(".*\.xml$", fileName):  # If filename ends with .xml
+            if re.match(r".*\.xml$", fileName):  # If filename ends with .xml
                 print("GOT FILE ", fileName)
 
                 pythonScriptName = CompuCellSetup.ExtractPythonScriptNameFromXML(fileName)
@@ -314,11 +314,11 @@ try:
 
                 if pythonScriptName != "":
                     CompuCellSetup.simulationPaths.setPythonScriptNameFromXML(pythonScriptName)
-            elif re.match(".*\.py$", fileName):
+            elif re.match(r".*\.py$", fileName):
                 # NOTE: extracting of xml file name from python script is done during script run time so we cannot use CompuCellSetup.simulationPaths.setXmlFileNameFromPython function here
                 CompuCellSetup.simulationPaths.setPlayerSimulationPythonScriptName(fileName)
 
-            elif re.match(".*\.cc3d$", fileName):
+            elif re.match(r".*\.cc3d$", fileName):
                 # cc3dSimulationDataHandler=loadCC3DFile(fileName,False)           
                 cc3dSimulationDataHandler = readCC3DFile(fileName)
                 import Version
@@ -329,7 +329,8 @@ try:
                 projectVersionInt = projectVersion.replace('.', '')
                 if int(projectVersionInt) > int(currentVersionInt):
                     print('\n\n\n--------------- COMPUCELL3D VERSION MISMATCH\n\n')
-                    print('Your CompuCell3D version %s might be too old for the project you are trying to run.\n The least version project requires is %s. \n You may run project at your own risk' % (
+                    print('Your CompuCell3D version %s might be too old for the project you are trying to run.\n '
+                          'The least version project requires is %s. \n You may run project at your own risk' % (
                         currentVersion, projectVersion))
                     import time
 
