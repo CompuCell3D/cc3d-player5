@@ -135,15 +135,55 @@ def setUsedFieldNames(fieldNamesList):
     setSetting('FieldParams', cleanedFieldParams)
 
 
+def _ensure_settings_storage(settings_obj, settings_path, load_fcn):
+    if settings_obj is None:
+        if settings_path:
+            return load_fcn(settings_path)
+        return None, settings_path
+
+    if getattr(settings_obj, 'conn', None) is None:
+        return load_fcn(settings_path)
+
+    return settings_obj, settings_path
+
+
+def _write_settings_storage(settings_obj):
+    if settings_obj is None:
+        return
+
+    on_close_fcn = getattr(settings_obj, 'on_close', None)
+    if on_close_fcn is not None:
+        on_close_fcn()
+    else:
+        settings_obj.close()
+
+
 def writeAllSettings():
     """
-    Kept to satisfy legacy API - not needed with sql-based settings
+    Flushes in-memory settings caches to the backing sqlite files.
     :return: None
     """
-    pass
+    Configuration.myGlobalSettings, Configuration.myGlobalSettingsPath = _ensure_settings_storage(
+        settings_obj=Configuration.myGlobalSettings,
+        settings_path=Configuration.myGlobalSettingsPath,
+        load_fcn=loadSettings if Configuration.myGlobalSettingsPath else loadGlobalSettings
+    )
+    _write_settings_storage(Configuration.myGlobalSettings)
 
 
-def writeSettingsForSingleSimulation(path):
+    if Configuration.myCustomSettingsPath:
+        Configuration.myCustomSettings, Configuration.myCustomSettingsPath = _ensure_settings_storage(
+            settings_obj=Configuration.myCustomSettings,
+            settings_path=Configuration.myCustomSettingsPath,
+            load_fcn=loadSettings
+        )
+        _write_settings_storage(Configuration.myCustomSettings)
+    else:
+        Configuration.myCustomSettings = None
+        Configuration.myCustomSettingsPath = ''
+
+
+def load_or_create_simulation_settings(path):
     """
     Here we are creating settings for a single simulation or loading them if they already exist
     :param path: {src} abs path to local settings
