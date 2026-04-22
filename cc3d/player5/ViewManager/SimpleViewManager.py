@@ -190,6 +190,7 @@ class SimpleViewManager(QObject):
         menu.addSeparator()
         menu.addAction(self.config_act)
         menu.addAction(self.export_settings_to_xml_act)
+        self.export_settings_to_xml_act.setEnabled(False)
 
         menu.addAction(self.pif_from_simulation_act)
         self.pif_from_simulation_act.setEnabled(False)
