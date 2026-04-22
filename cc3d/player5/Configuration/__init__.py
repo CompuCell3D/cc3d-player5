@@ -21,6 +21,7 @@
 import os
 from .SettingUtils import *
 from .SettingUtils import _global_setting_path
+from cc3d.core.Configuration.SettingUtils import simulation_setting_names, serialize_settings_to_xml
 
 # the imports have to be fixed in the entire CC3D!!!!
 # try:
@@ -204,6 +205,46 @@ def initializeCustomSettings(filename):
     :return: None
     """
     Configuration.myCustomSettings, Configuration.myCustomSettingsPath = loadSettings(str(filename))
+
+
+def get_settings_storage(scope='active'):
+    """
+    Returns settings storage for a given scope.
+
+    :param scope: {'active', 'custom', 'global'}
+    :return: {SettingsSQL}
+    """
+    if scope == 'custom':
+        if Configuration.myCustomSettings is None:
+            raise RuntimeError('Custom settings are not initialized')
+        return Configuration.myCustomSettings
+
+    if scope == 'global':
+        return Configuration.myGlobalSettings
+
+    if Configuration.myCustomSettings is not None:
+        return Configuration.myCustomSettings
+    return Configuration.myGlobalSettings
+
+
+def export_settings_to_xml(xml_file_path, scope='active', setting_names=None):
+    """
+    Serializes selected settings to XML.
+
+    :param xml_file_path: {str} output XML path
+    :param scope: {'active', 'custom', 'global'}
+    :param setting_names: {iterable of str|None}
+    :return: {dict}
+    """
+    settings_storage = get_settings_storage(scope=scope)
+    if setting_names is None:
+        setting_names = simulation_setting_names(settings_storage)
+
+    return serialize_settings_to_xml(
+        settings_object=settings_storage,
+        xml_file_path=xml_file_path,
+        setting_names=setting_names
+    )
 
 
 def getDefaultFieldParams():

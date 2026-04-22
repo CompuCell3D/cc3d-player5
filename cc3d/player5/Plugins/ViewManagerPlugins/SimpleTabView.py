@@ -1131,6 +1131,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.pif_from_simulation_act.triggered.connect(self.__generatePIFFromCurrentSnapshot)
         self.pif_from_vtk_act.triggered.connect(self.__generatePIFFromVTK)
         self.restart_snapshot_from_simulation_act.triggered.connect(self.generate_restart_snapshot)
+        self.export_settings_to_xml_act.triggered.connect(self.export_settings_to_xml)
         self.screenshot_description_browser_act.triggered.connect(self.open_screenshot_description_browser)
 
         self.movie_generator_act.triggered.connect(self.generate_simulation_movies)
@@ -2418,6 +2419,58 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.restore_default_settings_local_flag = True
         self.__stopSim()
         # Configuration.replace_custom_settings_with_defaults()
+
+    def export_settings_to_xml(self):
+        """
+        Exports current simulation-relevant settings to XML.
+
+        :return: None
+        """
+        current_simulation_path = os.path.abspath(str(self.__sim_file_name)) if self.__sim_file_name else ''
+        if not current_simulation_path or not os.path.isfile(current_simulation_path):
+            QMessageBox.warning(
+                self,
+                "Export Settings to XML",
+                "No active .cc3d project is loaded. Open a simulation first."
+            )
+            return
+
+        default_dir = os.path.dirname(current_simulation_path)
+        default_base_name = os.path.splitext(os.path.basename(current_simulation_path))[0] + "_settings.xml"
+        default_path = os.path.join(default_dir, default_base_name)
+
+        selected_path = QFileDialog.getSaveFileName(
+            self,
+            "Export Settings to XML",
+            default_path,
+            "XML files (*.xml)"
+        )
+
+        if isinstance(selected_path, tuple):
+            selected_path = selected_path[0]
+
+        selected_path = str(selected_path).strip()
+        if not selected_path:
+            return
+
+        if not selected_path.lower().endswith('.xml'):
+            selected_path += '.xml'
+
+        try:
+            Configuration.export_settings_to_xml(xml_file_path=selected_path, scope='custom')
+        except Exception as e:
+            QMessageBox.warning(
+                self,
+                "Export Settings to XML",
+                f"Could not export settings to:\n{selected_path}\n\n{e}"
+            )
+            return
+
+        QMessageBox.information(
+            self,
+            "Export Settings to XML",
+            f"Exported simulation settings to:\n{selected_path}"
+        )
 
 
     def restore_default_global_settings(self):
