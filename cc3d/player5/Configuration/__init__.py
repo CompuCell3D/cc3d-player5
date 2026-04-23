@@ -21,7 +21,7 @@
 import os
 from .SettingUtils import *
 from .SettingUtils import _global_setting_path
-from cc3d.core.Configuration.SettingUtils import simulation_setting_names, serialize_settings_to_xml
+from cc3d.core.Configuration.SettingUtils import simulation_setting_names, serialize_settings_to_xml, deserialize_settings_xml_to_sql
 
 # the imports have to be fixed in the entire CC3D!!!!
 # try:
@@ -49,6 +49,7 @@ class Configuration:
     # stores simulation-specific settings for  i.e. ones which are associated with individual cc3d project
     myCustomSettings = None
     myCustomSettingsPath = ''
+    myCustomSettingsPathXML = ''
 
     globalOnlySettings = ['RecentSimulations', 'NumberOfRecentSimulations', 'OutputLocation', 'ProjectLocation',
                           'FloatingWindows', 'MainWindowSizeDefault', 'MainWindowSizeDefault', 'ScreenGeometry',
@@ -72,6 +73,18 @@ def initConfiguration():
                                         Configuration.myGlobalSettingsPath)
     Configuration.myCustomSettings = None
     Configuration.myCustomSettingsPath = ''
+    Configuration.myCustomSettingsPathXML = ''
+
+
+def _apply_custom_settings_xml_overrides():
+    if Configuration.myCustomSettings is None or not Configuration.myCustomSettingsPathXML:
+        return None
+    if not os.path.isfile(Configuration.myCustomSettingsPathXML):
+        return None
+    return deserialize_settings_xml_to_sql(
+        xml_file_path=Configuration.myCustomSettingsPathXML,
+        settings_object=Configuration.myCustomSettings
+    )
 
 
 def replace_custom_settings_with_defaults():
@@ -86,6 +99,7 @@ def replace_custom_settings_with_defaults():
 
     Configuration.myCustomSettings, Configuration.myCustomSettingsPath = loadSettings(
         Configuration.myCustomSettingsPath)
+    _apply_custom_settings_xml_overrides()
 
 
 def restore_default_global_settings():
@@ -182,14 +196,17 @@ def writeAllSettings():
     else:
         Configuration.myCustomSettings = None
         Configuration.myCustomSettingsPath = ''
+        Configuration.myCustomSettingsPathXML = ''
 
 
-def load_or_create_simulation_settings(path):
+def load_or_create_simulation_settings(path, path_xml=''):
     """
     Here we are creating settings for a single simulation or loading them if they already exist
     :param path: {src} abs path to local settings
     :return: None
     """
+    Configuration.myCustomSettingsPathXML = str(path_xml) if path_xml and os.path.isfile(path_xml) else ''
+
     if not os.path.isfile(path):
         copy_settings(src_setting_path=_global_setting_path(), dst_setting_dir=os.path.dirname(path))
         Configuration.myCustomSettings, Configuration.myCustomSettingsPath = load_settings(path)
@@ -197,14 +214,18 @@ def load_or_create_simulation_settings(path):
     else:
         Configuration.myCustomSettings, Configuration.myCustomSettingsPath = load_settings(path)
 
+    _apply_custom_settings_xml_overrides()
 
-def initializeCustomSettings(filename):
+
+def initializeCustomSettings(filename, filename_xml=''):
     """
     Loads simulation-specific settings
     :param filename: {str} absolute path to the simulation-specific setting file
     :return: None
     """
+    Configuration.myCustomSettingsPathXML = str(filename_xml) if filename_xml and os.path.isfile(filename_xml) else ''
     Configuration.myCustomSettings, Configuration.myCustomSettingsPath = loadSettings(str(filename))
+    _apply_custom_settings_xml_overrides()
 
 
 def get_settings_storage(scope='active'):
