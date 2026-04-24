@@ -2441,9 +2441,12 @@ class SimpleTabView(MainArea, SimpleViewManager):
             )
             return
 
-        default_dir = os.path.dirname(current_simulation_path)
-        default_base_name = os.path.splitext(os.path.basename(current_simulation_path))[0] + "_settings.xml"
-        default_path = os.path.join(default_dir, default_base_name)
+        default_dir = Path(current_simulation_path).parent.joinpath("Simulation")
+        default_base_name = "_custom_settings.xml"
+        default_path = str(default_dir.joinpath(default_base_name))
+
+            # (
+            # os.path.join(default_dir, default_base_name))
 
         selected_path = QFileDialog.getSaveFileName(
             self,
