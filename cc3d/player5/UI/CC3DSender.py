@@ -388,7 +388,7 @@ class CC3DSender(QObject):
         twedit_process = Popen(popen_args)
 
 
-        print("\n\n\n\n\STARTED TWEDIT++\n\n\n\n\n")
+        print(r"\n\n\n\n\STARTED TWEDIT++\n\n\n\n\n")
 
 
     def serverHasError(self, error):
