@@ -1092,7 +1092,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 os.path.join(self.cc3dSimulationDataHandler.cc3dSimulationData.basePath, 'Simulation',
                              settings_data.SETTINGS_FILE_NAME))
 
-            Configuration.writeSettingsForSingleSimulation(self.customSettingPath)
+            Configuration.load_or_create_simulation_settings(self.customSettingPath)
 
     def __setConnects(self):
         """
@@ -2477,20 +2477,22 @@ class SimpleTabView(MainArea, SimpleViewManager):
         # self.__save_windows_layout()
         # saving settings with the simulation
 
+        # Since we cache settings in memory for the duration of simulation, first thing we must do after the
+        # simulation is over is to write memory content to the DB because at this point  on-disk db must
+        # be storing the  updated settings
+        Configuration.writeAllSettings()
+        Configuration.initConfiguration()
+
+        # we will be copying updated settings here
         pg.copy_custom_settings_to_output_folder()
 
         if self.customSettingPath:
             if self.restore_default_settings_local_flag:
                 Configuration.replace_custom_settings_with_defaults()
             else:
-                Configuration.writeSettingsForSingleSimulation(self.customSettingPath)
+                Configuration.load_or_create_simulation_settings(self.customSettingPath)
 
             self.customSettingPath = ''
-
-        Configuration.writeAllSettings()
-        Configuration.initConfiguration()  # this flushes configuration
-        # copy _ettings.sqlite to the output simulation folder
-
 
         if Configuration.getSetting("ClosePlayerAfterSimulationDone") or self.closePlayerAfterSimulationDone:
             Configuration.setSetting("RecentFile", os.path.abspath(self.__sim_file_name))
@@ -2498,6 +2500,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
             Configuration.setSetting("RecentSimulations", os.path.abspath(self.__sim_file_name))
 
             # sys.exit(_exitCode)
+
+
             CompuCellSetup.resetGlobals()
             self.quit()
 
