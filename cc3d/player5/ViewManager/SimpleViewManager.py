@@ -419,7 +419,7 @@ class SimpleViewManager(QObject):
             """ with your prefered values.</p>"""
         )
 
-        self.export_settings_to_xml_act = QAction("Export Settings to XML...", self)
+        self.export_settings_to_xml_act = QAction("Manage Simulation Settings...", self)
 
         self.pif_from_vtk_act = QAction("& Generate PIF File from VTK output ...", self)
 
