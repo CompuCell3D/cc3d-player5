@@ -3,6 +3,8 @@
 import os.path
 import argparse
 
+from cc3d.core.DefaultSettingsData import SETTINGS_FOLDER
+
 
 class CMLParser(object):
     def __init__(self):
@@ -12,6 +14,7 @@ class CMLParser(object):
         self.__cml_args = None
         self.outputFrequency = 1
         self.outputFileCoreName = ''
+        self.globalSettingsDir = SETTINGS_FOLDER
 
     @property
     def fileName(self):
@@ -124,10 +127,16 @@ class CMLParser(object):
             help='Execute step at MCS 0 when this flag is present.'
         )
 
+        cml_parser.add_argument('--global-settings-dir', required=False, action='store',
+                                default=SETTINGS_FOLDER,
+                                help='directory under the user home directory for global settings files')
+
         if arg_list is None:
             arg_list = []
 
         self.__cml_args = cml_parser.parse_args(arg_list)
+        self.globalSettingsDir = self.__cml_args.global_settings_dir
+        self.__update_settings_config_dir(self.globalSettingsDir)
 
         # handling multiple versions of long options
         if self.__cml_args.output_frequency is not None:
@@ -154,3 +163,18 @@ class CMLParser(object):
         self.outputFrequency = self.__cml_args.outputFrequency
 
         return False
+
+    @staticmethod
+    def __update_settings_config_dir(global_settings_dir):
+        """
+        Overrides the global settings directory name before Player reads settings.
+        """
+        import cc3d.core.DefaultSettingsData as default_settings_data
+        import cc3d.core.Configuration.SettingUtils as core_setting_utils
+        import cc3d.player5.Configuration.SettingUtils as player_setting_utils
+        import cc3d.player5.Configuration as player_configuration
+
+        default_settings_data.SETTINGS_FOLDER = global_settings_dir
+        core_setting_utils.SETTINGS_FOLDER = global_settings_dir
+        player_setting_utils.SETTINGS_FOLDER = global_settings_dir
+        player_configuration.initConfiguration()
