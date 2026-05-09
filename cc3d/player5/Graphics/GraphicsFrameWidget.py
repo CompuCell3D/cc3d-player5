@@ -659,7 +659,6 @@ class GraphicsFrameWidget(QtWidgets.QFrame):
         :return: None
         """
         tvw = self.parentWidget()
-        print(MODULENAME, "  _takeShot():  self.renWin.GetSize()=", self.qvtkWidget.renWin.GetSize())
 
         if tvw.screenshotManager is not None:
             self.qvtkWidget.field_name = str(self.field_combo_box.currentText())
