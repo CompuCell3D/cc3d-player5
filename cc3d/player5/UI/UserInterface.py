@@ -149,9 +149,6 @@ class UserInterface(QMainWindow):
         :return:
         """
 
-        current_screen_geometry_settings = self.get_current_screen_geometry_settings()
-        saved_screen_geometry_settings = Configuration.getSetting("ScreenGeometry")
-
         main_window_size = Configuration.getSetting("MainWindowSizeDefault")
         main_window_position = Configuration.getSetting("MainWindowPositionDefault")
         if self.viewmanager.MDI_ON:
@@ -159,26 +156,22 @@ class UserInterface(QMainWindow):
         else:
             player_sizes = Configuration.getSetting("PlayerSizesFloatingDefault")
 
-        if current_screen_geometry_settings == saved_screen_geometry_settings:
-            # this indicates that saved screen geometry is the same as current screen geometry and we will use
-            # saved settings because we are working with same screen configuration so it is safe to restore
-            if self.viewmanager.MDI_ON:
-                # configuration of MDI
-                if Configuration.check_if_setting_exists("PlayerSizes"):
-                    main_window_size = Configuration.getSetting("MainWindowSize")
-                    main_window_position = Configuration.getSetting("MainWindowPosition")
-                    player_sizes = Configuration.getSetting("PlayerSizes")
-                else:
-                    return
-            else:
-                if Configuration.check_if_setting_exists("PlayerSizesFloating"):
+        if self.viewmanager.MDI_ON:
+            # configuration of MDI
+            if Configuration.check_if_setting_exists("PlayerSizes"):
+                main_window_size = Configuration.getSetting("MainWindowSize")
+                main_window_position = Configuration.getSetting("MainWindowPosition")
+                player_sizes = Configuration.getSetting("PlayerSizes")
+        else:
+            if Configuration.check_if_setting_exists("PlayerSizesFloating"):
+                main_window_size = Configuration.getSetting("MainWindowSizeFloating")
+                main_window_position = Configuration.getSetting("MainWindowPositionFloating")
+                player_sizes = Configuration.getSetting("PlayerSizesFloating")
 
-                    main_window_size = Configuration.getSetting("MainWindowSizeFloating")
-
-                    main_window_position = Configuration.getSetting("MainWindowPositionFloating")
-                    player_sizes = Configuration.getSetting("PlayerSizesFloating")
-                else:
-                    return
+        main_window_position = self.constrain_window_position_to_current_screens(
+            position=main_window_position,
+            size=main_window_size
+        )
 
         self.resize(main_window_size)
         # we want main window to move only during initial opening of the GUI but not upon loading new simulation
@@ -191,6 +184,24 @@ class UserInterface(QMainWindow):
             # all actions' check state e.g. View->Console reflect what is being shown on the screen
             # this is especially important when global settings and simulation differ in what windows they show
             self.synchronizes_dock_windows_actions()
+
+    def constrain_window_position_to_current_screens(self, position, size):
+        """
+        Keeps restored main-window geometry visible when monitor layout changes between Player runs.
+        """
+        saved_rect = QRect(position, size)
+        for screen in QApplication.screens():
+            if screen.availableGeometry().intersects(saved_rect):
+                return position
+
+        primary_screen = QApplication.primaryScreen()
+        if primary_screen is None:
+            return position
+
+        screen_rect = primary_screen.availableGeometry()
+        x = max(screen_rect.left(), min(position.x(), screen_rect.right() - size.width() + 1))
+        y = max(screen_rect.top(), min(position.y(), screen_rect.bottom() - size.height() + 1))
+        return QPoint(x, y)
 
     def synchronizes_dock_windows_actions(self):
         """

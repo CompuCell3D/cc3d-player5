@@ -52,8 +52,12 @@ class Configuration:
     myCustomSettingsPathXML = ''
 
     globalOnlySettings = ['RecentSimulations', 'NumberOfRecentSimulations', 'OutputLocation', 'ProjectLocation',
-                          'FloatingWindows', 'MainWindowSizeDefault', 'MainWindowSizeDefault', 'ScreenGeometry',
-                          "ThemeName", "RestartPlayerForNewSimulation"]
+                          'FloatingWindows', 'PlayerSizes', 'PlayerSizesDefault', 'PlayerSizesFloating',
+                          'PlayerSizesFloatingDefault', 'MainWindowSize', 'MainWindowSizeDefault',
+                          'MainWindowSizeFloating', 'MainWindowSizeFloatingDefault', 'MainWindowPosition',
+                          'MainWindowPositionDefault', 'MainWindowPositionFloating',
+                          'MainWindowPositionFloatingDefault', 'ScreenGeometry', "ThemeName",
+                          "RestartPlayerForNewSimulation"]
     customOnlySettings = ['WindowsLayout', 'Types3DInvisible']
 
     activeFieldNamesList = []
