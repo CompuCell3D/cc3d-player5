@@ -346,6 +346,7 @@ class ScreenshotManager(ScreenshotManagerCore):
             return
 
         bsd = self.get_basic_simulation_data()
+        bsd.current_step = mcs
 
         screenshot_directory_name = self.get_screenshot_dir_name()
 
