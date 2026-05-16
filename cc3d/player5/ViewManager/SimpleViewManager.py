@@ -255,6 +255,7 @@ class SimpleViewManager(QObject):
         tb.addAction(self.config_act)
         tb.addAction(self.twedit_act)
         tb.addAction(self.movie_generator_act)
+        tb.addAction(self.export_settings_to_xml_act)
 
         return tb
 
@@ -419,7 +420,11 @@ class SimpleViewManager(QObject):
             """ with your prefered values.</p>"""
         )
 
-        self.export_settings_to_xml_act = QAction("Manage Simulation Settings...", self)
+        self.export_settings_to_xml_act = QAction(
+            QIcon(gip("custom_settings.png")),
+            "Manage Simulation Settings...",
+            self
+        )
 
         self.pif_from_vtk_act = QAction("& Generate PIF File from VTK output ...", self)
 
