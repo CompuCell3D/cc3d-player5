@@ -77,6 +77,7 @@ class UserInterface(QMainWindow):
         self.origStderr = sys.stderr
 
         self.__toolbars = {}
+        self.__floating_dock_state_restored = False
         self.__configureDockOptions()
 
         # Setting self.viewmanager and dock windows
@@ -141,7 +142,8 @@ class UserInterface(QMainWindow):
             # in order to have all dock widgets expand (i.e. fill all available space)
             # we hide central widget when graphics windows are floating
             self.centralWidget().hide()
-            QTimer.singleShot(0, self.__normalizeFloatingDockSizes)
+            if not self.__floating_dock_state_restored:
+                QTimer.singleShot(0, self.__normalizeFloatingDockSizes)
 
     def __configureDockOptions(self):
         self.setDockOptions(
@@ -189,13 +191,17 @@ class UserInterface(QMainWindow):
         if allow_main_window_move:
             self.move(main_window_position)
 
+        restored_player_sizes = False
         if player_sizes and player_sizes.size() > 0:
-            self.restoreState(player_sizes)
+            restored_player_sizes = self.restoreState(player_sizes)
             # we are making sure here that after all windows have been restored that
             # all actions' check state e.g. View->Console reflect what is being shown on the screen
             # this is especially important when global settings and simulation differ in what windows they show
             self.synchronizes_dock_windows_actions()
-            if not self.viewmanager.MDI_ON:
+
+        if not self.viewmanager.MDI_ON:
+            self.__floating_dock_state_restored = restored_player_sizes
+            if not restored_player_sizes:
                 self.__arrangeFloatingDockStack()
 
     def constrain_window_position_to_current_screens(self, position, size):
