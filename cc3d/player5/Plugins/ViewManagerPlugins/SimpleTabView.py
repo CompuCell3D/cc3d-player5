@@ -29,6 +29,7 @@ from cc3d.player5.Simulation.CMLResultReader import CMLResultReader
 from cc3d.player5.Simulation.SimulationThread import SimulationThread
 from cc3d.player5.Launchers.param_scan_dialog import ParamScanDialog
 from cc3d.player5.Plugins.ViewManagerPlugins.ScreenshotDescriptionBrowser import ScreenshotDescriptionBrowser
+from cc3d.player5.Plugins.ViewManagerPlugins.simulation_settings_manager import SimulationSettingsManager
 from cc3d.core.GraphicsUtils.utils import extract_address_int_from_vtk_object
 from cc3d.player5 import Graphics
 from cc3d.core import XMLUtils
@@ -668,6 +669,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.open_act.setEnabled(True)
         self.demo_menu_act.setEnabled(True)
         self.open_lds_act.setEnabled(True)
+        self.export_settings_to_xml_act.setEnabled(False)
         self.pif_from_simulation_act.setEnabled(False)
         self.pif_from_vtk_act.setEnabled(False)
         self.restart_snapshot_from_simulation_act.setEnabled(False)
@@ -977,8 +979,9 @@ class SimpleTabView(MainArea, SimpleViewManager):
         persistent_globals = CompuCellSetup.persistent_globals
 
         custom_settings_path = persistent_globals.get_custom_settings_path()
+        custom_settings_path_xml = persistent_globals.get_custom_settings_path_xml()
         if custom_settings_path:
-            Configuration.initializeCustomSettings(custom_settings_path)
+            Configuration.initializeCustomSettings(custom_settings_path, custom_settings_path_xml)
         # Let's toggle these off (and not tell the user for now)
         # need to make it possible to save images from .dml/vtk files
         if Configuration.getSetting("LatticeOutputOn"):
@@ -1068,7 +1071,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
                                       QMessageBox.Ok)
 
         self.customSettingPath = self.cc3dSimulationDataHandler.cc3dSimulationData.custom_settings_path
-        Configuration.initializeCustomSettings(self.customSettingPath)
+        self.customSettingPathXML = self.cc3dSimulationDataHandler.cc3dSimulationData.custom_settings_path_xml
+        Configuration.initializeCustomSettings(self.customSettingPath, self.customSettingPathXML)
         self.__paramsChanged()
 
         pg = CompuCellSetup.persistent_globals
@@ -1092,7 +1096,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 os.path.join(self.cc3dSimulationDataHandler.cc3dSimulationData.basePath, 'Simulation',
                              settings_data.SETTINGS_FILE_NAME))
 
-            Configuration.load_or_create_simulation_settings(self.customSettingPath)
+            Configuration.load_or_create_simulation_settings(self.customSettingPath, self.customSettingPathXML)
 
     def __setConnects(self):
         """
@@ -1131,6 +1135,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.pif_from_simulation_act.triggered.connect(self.__generatePIFFromCurrentSnapshot)
         self.pif_from_vtk_act.triggered.connect(self.__generatePIFFromVTK)
         self.restart_snapshot_from_simulation_act.triggered.connect(self.generate_restart_snapshot)
+        self.export_settings_to_xml_act.triggered.connect(self.manage_simulation_settings)
         self.screenshot_description_browser_act.triggered.connect(self.open_screenshot_description_browser)
 
         self.movie_generator_act.triggered.connect(self.generate_simulation_movies)
@@ -1747,7 +1752,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
             # restoring geometry of the UI based on local settings
             if self.cc3dSimulationDataHandler is not None:
                 self.customSettingPath = self.cc3dSimulationDataHandler.cc3dSimulationData.custom_settings_path
-                Configuration.initializeCustomSettings(self.customSettingPath)
+                self.customSettingPathXML = self.cc3dSimulationDataHandler.cc3dSimulationData.custom_settings_path_xml
+                Configuration.initializeCustomSettings(self.customSettingPath, self.customSettingPathXML)
                 self.UI.initialize_gui_geometry(allow_main_window_move=False)
 
             if self.rollbackImporter:
@@ -1887,6 +1893,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 self.step_act.setEnabled(True)
                 self.stop_act.setEnabled(True)
                 self.pause_act.setEnabled(True)
+                self.export_settings_to_xml_act.setEnabled(True)
                 self.pif_from_simulation_act.setEnabled(True)
                 self.restart_snapshot_from_simulation_act.setEnabled(True)
 
@@ -1963,6 +1970,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
                 self.run_act.setEnabled(True)
                 self.pause_act.setEnabled(False)
                 self.stop_act.setEnabled(True)
+                self.export_settings_to_xml_act.setEnabled(True)
                 self.pif_from_simulation_act.setEnabled(True)
                 self.restart_snapshot_from_simulation_act.setEnabled(True)
                 self.open_act.setEnabled(False)
@@ -2419,6 +2427,27 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.__stopSim()
         # Configuration.replace_custom_settings_with_defaults()
 
+    def manage_simulation_settings(self):
+        """
+        Displays simulation settings management dialog.
+
+        :return: None
+        """
+        manager = SimulationSettingsManager(
+            parent=self,
+            simulation_file_name=self.__sim_file_name,
+            save_windows_layout=self.__save_windows_layout
+        )
+        manager.show_dialog()
+
+    def export_settings_to_xml(self):
+        """
+        Kept for compatibility with older action wiring.
+
+        :return: None
+        """
+        self.manage_simulation_settings()
+
 
     def restore_default_global_settings(self):
         """
@@ -2490,9 +2519,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
             if self.restore_default_settings_local_flag:
                 Configuration.replace_custom_settings_with_defaults()
             else:
-                Configuration.load_or_create_simulation_settings(self.customSettingPath)
+                Configuration.load_or_create_simulation_settings(self.customSettingPath, self.customSettingPathXML)
 
             self.customSettingPath = ''
+            self.customSettingPathXML = ''
 
         if Configuration.getSetting("ClosePlayerAfterSimulationDone") or self.closePlayerAfterSimulationDone:
             Configuration.setSetting("RecentFile", os.path.abspath(self.__sim_file_name))
