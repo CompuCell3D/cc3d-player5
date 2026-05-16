@@ -91,14 +91,16 @@ class SimulationSettingsManager:
             )
             return
 
-        status_parts = [f"Saved SQLite settings to:\n{sqlite_path}"]
+        saved_xml_path = None
+        xml_notice = None
+        if dlg.xml_format_enabled():
+            xml_saved, xml_notice = self.export_xml_settings(dlg=dlg, xml_path=xml_path)
+            if xml_saved:
+                saved_xml_path = str(xml_path)
 
-        if dlg.xml_format_enabled() and self.export_xml_settings(dlg=dlg, xml_path=xml_path):
-            status_parts.append(f"Saved XML settings to:\n{xml_path}")
+        dlg.set_saved_status(sqlite_path=str(sqlite_path), xml_path=saved_xml_path, notice=xml_notice)
 
-        dlg.set_status("\n\n".join(status_parts))
-
-    def export_xml_settings(self, dlg: SimulationSettingsDialog, xml_path: Path) -> bool:
+    def export_xml_settings(self, dlg: SimulationSettingsDialog, xml_path: Path) -> Tuple[bool, Optional[str]]:
         if xml_path.exists():
             ret = QMessageBox.question(
                 self.parent,
@@ -107,11 +109,9 @@ class SimulationSettingsManager:
                 QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel
             )
             if ret == QMessageBox.Cancel:
-                dlg.set_status("SQLite settings saved. XML export canceled.")
-                return False
+                return False, "XML export canceled."
             if ret == QMessageBox.No:
-                dlg.set_status("SQLite settings saved. XML export skipped.")
-                return False
+                return False, "XML export skipped."
 
         try:
             Configuration.export_settings_to_xml(xml_file_path=str(xml_path), scope='custom')
@@ -121,9 +121,9 @@ class SimulationSettingsManager:
                 TITLE,
                 f"Could not export XML settings to:\n{xml_path}\n\n{e}"
             )
-            return False
+            return False, "XML export failed."
 
-        return True
+        return True, None
 
     def delete_settings(self, dlg: SimulationSettingsDialog):
         sqlite_path, xml_path = self.settings_paths
@@ -161,6 +161,6 @@ class SimulationSettingsManager:
             return
 
         if deleted_paths:
-            dlg.set_status("Deleted:\n" + "\n".join(deleted_paths))
+            dlg.set_delete_status(deleted_paths)
         else:
-            dlg.set_status("No matching settings files were present.")
+            dlg.set_notice_status("No matching settings files were present.")
