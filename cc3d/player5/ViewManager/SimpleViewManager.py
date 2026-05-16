@@ -80,7 +80,7 @@ class SimpleViewManager(QObject):
         self.pif_from_vtk_act = None
         self.pif_from_simulation_act = None
         self.restart_snapshot_from_simulation_act = None
-        self.export_settings_to_xml_act = None
+        self.manage_custom_settings_act = None
         self.screenshot_description_browser_act = None
         self.movie_generator_act = None
 
@@ -189,8 +189,8 @@ class SimpleViewManager(QObject):
         menu = QMenu(QApplication.translate('ViewManager', '&Tools'), self.ui)
         menu.addSeparator()
         menu.addAction(self.config_act)
-        menu.addAction(self.export_settings_to_xml_act)
-        self.export_settings_to_xml_act.setEnabled(False)
+        menu.addAction(self.manage_custom_settings_act)
+        self.manage_custom_settings_act.setEnabled(False)
 
         menu.addAction(self.pif_from_simulation_act)
         self.pif_from_simulation_act.setEnabled(False)
@@ -255,7 +255,7 @@ class SimpleViewManager(QObject):
         tb.addAction(self.config_act)
         tb.addAction(self.twedit_act)
         tb.addAction(self.movie_generator_act)
-        tb.addAction(self.export_settings_to_xml_act)
+        tb.addAction(self.manage_custom_settings_act)
 
         return tb
 
@@ -420,7 +420,7 @@ class SimpleViewManager(QObject):
             """ with your prefered values.</p>"""
         )
 
-        self.export_settings_to_xml_act = QAction(
+        self.manage_custom_settings_act = QAction(
             QIcon(gip("custom_settings.png")),
             "Manage Simulation Settings...",
             self
