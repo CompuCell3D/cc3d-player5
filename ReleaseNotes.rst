@@ -1,6 +1,34 @@
 Release Notes
 =============
 
+Version 4.9.0
+-------------
+**2026-05-16**
+
+New features:
+ - Added Manage Simulation Settings dialog for exporting and deleting simulation-specific settings
+ - Added support for exporting Player settings to XML format
+ - Added support for loading custom simulation settings from ``Simulation/_custom_settings.xml``
+ - Added toolbar shortcut and icon for custom simulation settings management
+ - Added command line option ``--global-settings-dir-name`` to select an alternate global settings directory name under the user home directory
+ - Added in-memory settings cache to improve settings access performance and defer disk writes while simulations are running
+
+Improvements:
+ - Improved status reporting in the simulation settings and movie generation dialogs with styled in-dialog notification labels
+ - Improved custom settings export messages, including clearer reporting of written SQLite and XML settings files
+ - Improved restoration of Player dock window sizes and startup position from saved settings
+ - Improved resizing behavior of Model Editor, Cell Type Colors and Console dock windows in non-MDI layout
+ - Improved screenshot description browser clear-screenshot behavior
+ - Improved default path generation for ``_custom_settings.xml``
+
+Bug fixes:
+ - Fixed non-updating screenshots in headless ``run_script.py`` workflows
+ - Fixed Player startup position restoration from saved settings
+ - Fixed hard-to-resize dock widgets in non-MDI layout
+ - Fixed restore of dock window sizes from saved Player settings
+ - Multiple minor cleanup and stability fixes
+
+
 Version 4.8.0
 -------------
 **2026-02-14**
@@ -117,5 +145,4 @@ Version 4.3.0
 
 New features:
  - Split code into 3 separate packages - cc3d-core, Player, Twedit
-
 
