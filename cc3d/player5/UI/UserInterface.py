@@ -77,6 +77,7 @@ class UserInterface(QMainWindow):
         self.origStderr = sys.stderr
 
         self.__toolbars = {}
+        self.__configureDockOptions()
 
         # Setting self.viewmanager and dock windows
         self.__createViewManager()
@@ -134,11 +135,21 @@ class UserInterface(QMainWindow):
         self.modelEditorDock.setFloating(floating_non_graphics_flag)
         self.consoleDock.setFloating(floating_non_graphics_flag)
         self.latticeDataDock.setFloating(floating_non_graphics_flag)
+        self.cell_type_color_map_dock.setFloating(floating_non_graphics_flag)
 
         if floating_flag:
             # in order to have all dock widgets expand (i.e. fill all available space)
             # we hide central widget when graphics windows are floating
             self.centralWidget().hide()
+            QTimer.singleShot(0, self.__normalizeFloatingDockSizes)
+
+    def __configureDockOptions(self):
+        self.setDockOptions(
+            self.dockOptions()
+            | QMainWindow.AllowNestedDocks
+            | QMainWindow.AllowTabbedDocks
+            | QMainWindow.AnimatedDocks
+        )
 
 
     def initialize_gui_geometry(self, allow_main_window_move:bool=True):
@@ -184,6 +195,8 @@ class UserInterface(QMainWindow):
             # all actions' check state e.g. View->Console reflect what is being shown on the screen
             # this is especially important when global settings and simulation differ in what windows they show
             self.synchronizes_dock_windows_actions()
+            if not self.viewmanager.MDI_ON:
+                self.__arrangeFloatingDockStack()
 
     def constrain_window_position_to_current_screens(self, position, size):
         """
@@ -547,6 +560,43 @@ class UserInterface(QMainWindow):
         self.console = Console(self.consoleDock)
         self.consoleDock.setWidget(self.console)
         self.__setupDockWindow(self.consoleDock, Qt.BottomDockWidgetArea, self.console, "Console")
+        self.__configureResizableFloatingDocks()
+        if not self.viewmanager.MDI_ON:
+            self.__arrangeFloatingDockStack()
+
+    def __configureResizableFloatingDocks(self):
+        for dock, widget in (
+                (self.modelEditorDock, self.modelEditorDock.widget()),
+                (self.cell_type_color_map_dock, self.cell_type_color_map_dock.widget()),
+                (self.consoleDock, self.consoleDock.widget())):
+            dock.setAllowedAreas(Qt.AllDockWidgetAreas)
+            dock.setMinimumSize(QSize(160, 40))
+            dock.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            if widget is not None:
+                widget.setMinimumSize(QSize(0, 0))
+                widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+    def __arrangeFloatingDockStack(self):
+        self.splitDockWidget(self.modelEditorDock, self.cell_type_color_map_dock, Qt.Vertical)
+        self.splitDockWidget(self.cell_type_color_map_dock, self.consoleDock, Qt.Vertical)
+
+    def __normalizeFloatingDockSizes(self):
+        visible_docks = [
+            dock for dock in (self.modelEditorDock, self.cell_type_color_map_dock, self.consoleDock)
+            if dock.isVisible()
+        ]
+        if len(visible_docks) < 2:
+            return
+
+        preferred_heights = []
+        for dock in visible_docks:
+            if dock is self.modelEditorDock:
+                preferred_heights.append(220)
+            elif dock is self.cell_type_color_map_dock:
+                preferred_heights.append(140)
+            else:
+                preferred_heights.append(180)
+        self.resizeDocks(visible_docks, preferred_heights, Qt.Vertical)
 
     def __createDockWindow(self, name):
         """
