@@ -77,6 +77,8 @@ class UserInterface(QMainWindow):
         self.origStderr = sys.stderr
 
         self.__toolbars = {}
+        self.__floating_dock_state_restored = False
+        self.__configureDockOptions()
 
         # Setting self.viewmanager and dock windows
         self.__createViewManager()
@@ -134,11 +136,22 @@ class UserInterface(QMainWindow):
         self.modelEditorDock.setFloating(floating_non_graphics_flag)
         self.consoleDock.setFloating(floating_non_graphics_flag)
         self.latticeDataDock.setFloating(floating_non_graphics_flag)
+        self.cell_type_color_map_dock.setFloating(floating_non_graphics_flag)
 
         if floating_flag:
             # in order to have all dock widgets expand (i.e. fill all available space)
             # we hide central widget when graphics windows are floating
             self.centralWidget().hide()
+            if not self.__floating_dock_state_restored:
+                QTimer.singleShot(0, self.__normalizeFloatingDockSizes)
+
+    def __configureDockOptions(self):
+        self.setDockOptions(
+            self.dockOptions()
+            | QMainWindow.AllowNestedDocks
+            | QMainWindow.AllowTabbedDocks
+            | QMainWindow.AnimatedDocks
+        )
 
 
     def initialize_gui_geometry(self, allow_main_window_move:bool=True):
@@ -149,9 +162,6 @@ class UserInterface(QMainWindow):
         :return:
         """
 
-        current_screen_geometry_settings = self.get_current_screen_geometry_settings()
-        saved_screen_geometry_settings = Configuration.getSetting("ScreenGeometry")
-
         main_window_size = Configuration.getSetting("MainWindowSizeDefault")
         main_window_position = Configuration.getSetting("MainWindowPositionDefault")
         if self.viewmanager.MDI_ON:
@@ -159,38 +169,58 @@ class UserInterface(QMainWindow):
         else:
             player_sizes = Configuration.getSetting("PlayerSizesFloatingDefault")
 
-        if current_screen_geometry_settings == saved_screen_geometry_settings:
-            # this indicates that saved screen geometry is the same as current screen geometry and we will use
-            # saved settings because we are working with same screen configuration so it is safe to restore
-            if self.viewmanager.MDI_ON:
-                # configuration of MDI
-                if Configuration.check_if_setting_exists("PlayerSizes"):
-                    main_window_size = Configuration.getSetting("MainWindowSize")
-                    main_window_position = Configuration.getSetting("MainWindowPosition")
-                    player_sizes = Configuration.getSetting("PlayerSizes")
-                else:
-                    return
-            else:
-                if Configuration.check_if_setting_exists("PlayerSizesFloating"):
+        if self.viewmanager.MDI_ON:
+            # configuration of MDI
+            if Configuration.check_if_setting_exists("PlayerSizes"):
+                main_window_size = Configuration.getSetting("MainWindowSize")
+                main_window_position = Configuration.getSetting("MainWindowPosition")
+                player_sizes = Configuration.getSetting("PlayerSizes")
+        else:
+            if Configuration.check_if_setting_exists("PlayerSizesFloating"):
+                main_window_size = Configuration.getSetting("MainWindowSizeFloating")
+                main_window_position = Configuration.getSetting("MainWindowPositionFloating")
+                player_sizes = Configuration.getSetting("PlayerSizesFloating")
 
-                    main_window_size = Configuration.getSetting("MainWindowSizeFloating")
-
-                    main_window_position = Configuration.getSetting("MainWindowPositionFloating")
-                    player_sizes = Configuration.getSetting("PlayerSizesFloating")
-                else:
-                    return
+        main_window_position = self.constrain_window_position_to_current_screens(
+            position=main_window_position,
+            size=main_window_size
+        )
 
         self.resize(main_window_size)
         # we want main window to move only during initial opening of the GUI but not upon loading new simulation
         if allow_main_window_move:
             self.move(main_window_position)
 
+        restored_player_sizes = False
         if player_sizes and player_sizes.size() > 0:
-            self.restoreState(player_sizes)
+            restored_player_sizes = self.restoreState(player_sizes)
             # we are making sure here that after all windows have been restored that
             # all actions' check state e.g. View->Console reflect what is being shown on the screen
             # this is especially important when global settings and simulation differ in what windows they show
             self.synchronizes_dock_windows_actions()
+
+        if not self.viewmanager.MDI_ON:
+            self.__floating_dock_state_restored = restored_player_sizes
+            if not restored_player_sizes:
+                self.__arrangeFloatingDockStack()
+
+    def constrain_window_position_to_current_screens(self, position, size):
+        """
+        Keeps restored main-window geometry visible when monitor layout changes between Player runs.
+        """
+        saved_rect = QRect(position, size)
+        for screen in QApplication.screens():
+            if screen.availableGeometry().intersects(saved_rect):
+                return position
+
+        primary_screen = QApplication.primaryScreen()
+        if primary_screen is None:
+            return position
+
+        screen_rect = primary_screen.availableGeometry()
+        x = max(screen_rect.left(), min(position.x(), screen_rect.right() - size.width() + 1))
+        y = max(screen_rect.top(), min(position.y(), screen_rect.bottom() - size.height() + 1))
+        return QPoint(x, y)
 
     def synchronizes_dock_windows_actions(self):
         """
@@ -536,6 +566,43 @@ class UserInterface(QMainWindow):
         self.console = Console(self.consoleDock)
         self.consoleDock.setWidget(self.console)
         self.__setupDockWindow(self.consoleDock, Qt.BottomDockWidgetArea, self.console, "Console")
+        self.__configureResizableFloatingDocks()
+        if not self.viewmanager.MDI_ON:
+            self.__arrangeFloatingDockStack()
+
+    def __configureResizableFloatingDocks(self):
+        for dock, widget in (
+                (self.modelEditorDock, self.modelEditorDock.widget()),
+                (self.cell_type_color_map_dock, self.cell_type_color_map_dock.widget()),
+                (self.consoleDock, self.consoleDock.widget())):
+            dock.setAllowedAreas(Qt.AllDockWidgetAreas)
+            dock.setMinimumSize(QSize(160, 40))
+            dock.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            if widget is not None:
+                widget.setMinimumSize(QSize(0, 0))
+                widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+    def __arrangeFloatingDockStack(self):
+        self.splitDockWidget(self.modelEditorDock, self.cell_type_color_map_dock, Qt.Vertical)
+        self.splitDockWidget(self.cell_type_color_map_dock, self.consoleDock, Qt.Vertical)
+
+    def __normalizeFloatingDockSizes(self):
+        visible_docks = [
+            dock for dock in (self.modelEditorDock, self.cell_type_color_map_dock, self.consoleDock)
+            if dock.isVisible()
+        ]
+        if len(visible_docks) < 2:
+            return
+
+        preferred_heights = []
+        for dock in visible_docks:
+            if dock is self.modelEditorDock:
+                preferred_heights.append(220)
+            elif dock is self.cell_type_color_map_dock:
+                preferred_heights.append(140)
+            else:
+                preferred_heights.append(180)
+        self.resizeDocks(visible_docks, preferred_heights, Qt.Vertical)
 
     def __createDockWindow(self, name):
         """

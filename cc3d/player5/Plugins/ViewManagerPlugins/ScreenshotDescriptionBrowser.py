@@ -56,6 +56,8 @@ class ScreenshotDescriptionBrowser(QDialog, ui_screenshot_description_browser.Ui
             if scr_desc_json_pth is not None:
                 if scr_desc_json_pth.parent.is_dir():
                     shutil.rmtree(str(scr_desc_json_pth.parent))
+                    if stv is not None and stv.screenshotManager is not None:
+                        stv.screenshotManager.clear_screenshot_data()
                     self.load()
 
     def enable_delete_screenshots(self, flag: bool) -> None:
@@ -79,26 +81,34 @@ class ScreenshotDescriptionBrowser(QDialog, ui_screenshot_description_browser.Ui
 
         stv = self.stv()
         scr_desc_json_pth = self.get_screenshot_description_fname(stv)
+        screenshot_manager = None if stv is None else stv.screenshotManager
 
         if scr_desc_json_pth is None or not scr_desc_json_pth.exists():
             QMessageBox.warning(self, "Error", "Screenshot description file not found.")
             return
 
-        # load JSON
-        with open(scr_desc_json_pth, "r") as f:
-            document = json.load(f)
+        if screenshot_manager is not None:
+            if not screenshot_manager.delete_screenshot_data(item.text()):
+                QMessageBox.warning(self, "Error", f"Screenshot key '{key}' not found.")
+                return
 
-        # delete entry
-        ss_data = document.get("ScreenshotData", {})
-        if key in ss_data:
-            del ss_data[key]
+            screenshot_manager.serialize_screenshot_data()
         else:
-            QMessageBox.warning(self, "Error", f"Screenshot key '{key}' not found.")
-            return
+            # load JSON
+            with open(scr_desc_json_pth, "r") as f:
+                document = json.load(f)
 
-        # save JSON
-        with open(scr_desc_json_pth, "w") as f:
-            json.dump(document, f, indent=4)
+            # delete entry
+            ss_data = document.get("ScreenshotData", {})
+            if key in ss_data:
+                del ss_data[key]
+            else:
+                QMessageBox.warning(self, "Error", f"Screenshot key '{key}' not found.")
+                return
+
+            # save JSON
+            with open(scr_desc_json_pth, "w") as f:
+                json.dump(document, f, indent=4)
 
         # refresh UI
         self.load()

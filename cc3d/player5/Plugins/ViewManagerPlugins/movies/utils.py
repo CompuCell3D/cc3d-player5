@@ -3,6 +3,12 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 import cc3d.player5.Configuration as Configuration
 from cc3d.core.GraphicsUtils.MovieCreator import makeMovieAsync
+from cc3d.player5.Plugins.ViewManagerPlugins.status_label_utils import (
+    STATUS_DANGER,
+    STATUS_PANEL_ACCENT,
+    STATUS_SUCCESS,
+    set_status_message,
+)
 import os
 import sys
 import shutil
@@ -53,39 +59,16 @@ def choose_movie_directory(parent=None):
 
 def display_movie_creation_result(movie_count, q_label_obj):
     if movie_count < 1:
-        label_styling("No movies were made", q_label_obj, "red", 600)
+        label_styling("No movies were made", q_label_obj, STATUS_DANGER, 600)
     elif movie_count == 1:
-        label_styling("1 movie successfully made", q_label_obj, "green", 600)
+        label_styling("1 movie successfully made", q_label_obj, STATUS_SUCCESS, 600)
     else:
-        label_styling(f"{movie_count} movies successfully made", q_label_obj, "green", 600)
+        label_styling(f"{movie_count} movies successfully made", q_label_obj, STATUS_SUCCESS, 600)
     q_label_obj.setVisible(True)
 
 
 def label_styling(text, q_label_obj, color="#000000", font_weight=400):
-    """
-    Apply rich-text styling to a QLabel.
-
-    color may be:
-      - Hex: "#FF0000"
-      - Qt name: "darkRed", "royalblue", "green"
-      - Qt.GlobalColor (Qt.red, Qt.green, etc.)
-    """
-
-    # Convert color to QColor safely
-    if isinstance(color, QColor):
-        qcolor = color
-    else:
-        qcolor = QColor(color)
-
-    if not qcolor.isValid():
-        print(f"WARNING: Invalid color '{color}', falling back to black")
-        qcolor = QColor("black")
-
-    css_color = qcolor.name()  # always "#RRGGBB"
-
-    q_label_obj.setTextFormat(Qt.RichText)
-    q_label_obj.setText(f'<span style="color:{css_color}; font-weight:{font_weight};">{text}</span>')
-    q_label_obj.setVisible(True)
+    set_status_message(q_label_obj, text, color=color, font_weight=font_weight)
 
 
 def create_movies_runner(
@@ -93,7 +76,7 @@ def create_movies_runner(
 ):
 
     label_styling("", status_label_obj, "black", 600)
-    label_styling(f"Generating movies...", status_label_obj, "#007AFF", 600)
+    label_styling(f"Generating movies...", status_label_obj, STATUS_PANEL_ACCENT, 600)
 
     quality = max(quality, 1)
     # Convert from 1-10 domain to 0-51 domain

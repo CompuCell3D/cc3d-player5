@@ -13,6 +13,11 @@ from cc3d.player5.Plugins.ViewManagerPlugins.movies.utils import (
     label_styling,
     display_movie_creation_result,
 )
+from cc3d.player5.Plugins.ViewManagerPlugins.status_label_utils import (
+    STATUS_DANGER,
+    STATUS_SUCCESS,
+    configure_status_label,
+)
 from cc3d.player5.Utilities import safe_callback, open_folder_in_file_browser
 
 
@@ -46,7 +51,7 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
         # initialize
         self.ffmpeg_path = Configuration.getSetting("FfmpegLocation")
         self.ffmpeg_path_LE.setText(self.ffmpeg_path)
-        self.status_LB.setText("")
+        configure_status_label(self.status_LB)
 
         self.simulation_path = None
         if Configuration.check_if_setting_exists("RecentMoviePath"):
@@ -113,7 +118,7 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
             return None
 
         self.ffmpeg_path_LE.setText(ffmpeg_location)
-        label_styling("Successfully Detected FFMPEG", self.status_LB, "dodgerblue", 600)
+        label_styling("Successfully Detected FFMPEG", self.status_LB, STATUS_SUCCESS, 600)
         return ffmpeg_location
 
     def show_ffmpeg_warning(self):
@@ -136,7 +141,12 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
             try:
                 movie_count, movie_path = future.result()
             except TypeError:
-                label_styling(f"Failed to generate movies in folder {self.simulation_path}. Check if the folder exists", self.status_LB, "dodgerblue", 600)
+                label_styling(
+                    f"Failed to generate movies in folder {self.simulation_path}. Check if the folder exists",
+                    self.status_LB,
+                    STATUS_DANGER,
+                    600,
+                )
                 return
 
             self.moviesCreatedSignal.emit(movie_count)
@@ -159,7 +169,4 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
         display_movie_creation_result(movie_count=movie_count, q_label_obj=self.status_LB)
         if movie_count > 0:
             Configuration.setSetting("RecentMoviePath", str(self.simulation_path))
-
-
-
 

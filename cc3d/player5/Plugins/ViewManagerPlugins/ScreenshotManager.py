@@ -78,6 +78,32 @@ class ScreenshotManager(ScreenshotManagerCore):
         # writing in the original simulation location
         self.safe_write_screenshot_description_file(out_fname_in_sim_dir)
 
+    def clear_screenshot_data(self):
+        """
+        Clears all screenshot configurations stored in memory.
+
+        :return: None
+        """
+        self.screenshotDataDict.clear()
+        self.screenshot_config_counter = 0
+
+    def delete_screenshot_data(self, screenshot_uid: str) -> bool:
+        """
+        Deletes a screenshot configuration stored in memory.
+
+        :param screenshot_uid: screenshot configuration UID
+        :return: True if screenshot configuration was removed, False otherwise
+        """
+        try:
+            del self.screenshotDataDict[screenshot_uid]
+        except KeyError:
+            return False
+
+        if not self.screenshotDataDict:
+            self.screenshot_config_counter = 0
+
+        return True
+
     def store_gui_vis_config(self, scrData):
         """
         Stores visualization settings such as cell borders, on/or cell on/off etc...
@@ -320,6 +346,7 @@ class ScreenshotManager(ScreenshotManagerCore):
             return
 
         bsd = self.get_basic_simulation_data()
+        bsd.current_step = mcs
 
         screenshot_directory_name = self.get_screenshot_dir_name()
 

@@ -80,6 +80,7 @@ class SimpleViewManager(QObject):
         self.pif_from_vtk_act = None
         self.pif_from_simulation_act = None
         self.restart_snapshot_from_simulation_act = None
+        self.manage_custom_settings_act = None
         self.screenshot_description_browser_act = None
         self.movie_generator_act = None
 
@@ -188,6 +189,8 @@ class SimpleViewManager(QObject):
         menu = QMenu(QApplication.translate('ViewManager', '&Tools'), self.ui)
         menu.addSeparator()
         menu.addAction(self.config_act)
+        menu.addAction(self.manage_custom_settings_act)
+        self.manage_custom_settings_act.setEnabled(False)
 
         menu.addAction(self.pif_from_simulation_act)
         self.pif_from_simulation_act.setEnabled(False)
@@ -252,6 +255,7 @@ class SimpleViewManager(QObject):
         tb.addAction(self.config_act)
         tb.addAction(self.twedit_act)
         tb.addAction(self.movie_generator_act)
+        tb.addAction(self.manage_custom_settings_act)
 
         return tb
 
@@ -414,6 +418,12 @@ class SimpleViewManager(QObject):
             """<b>Configuration</b>"""
             """<p>Set the configuration items of the simulation"""
             """ with your prefered values.</p>"""
+        )
+
+        self.manage_custom_settings_act = QAction(
+            QIcon(gip("custom_settings.png")),
+            "Manage Simulation Settings...",
+            self
         )
 
         self.pif_from_vtk_act = QAction("& Generate PIF File from VTK output ...", self)
