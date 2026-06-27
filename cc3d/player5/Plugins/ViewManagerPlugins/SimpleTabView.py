@@ -350,9 +350,9 @@ class SimpleTabView(MainArea, SimpleViewManager):
         window_menu.clear()
         window_menu.addAction(self.new_graphics_window_act)
 
+        window_menu.addAction(self.tile_act)
+        window_menu.addAction(self.cascade_act)
         if self.MDI_ON:
-            window_menu.addAction(self.tile_act)
-            window_menu.addAction(self.cascade_act)
             window_menu.addAction(self.minimize_all_graphics_windows_act)
             window_menu.addAction(self.restore_all_graphics_windows_act)
         window_menu.addSeparator()

@@ -215,6 +215,15 @@ class SimpleViewManager(QObject):
         :return:
         """
         menu = QMenu(QApplication.translate('ViewManager', '&Window'), self.ui)
+        menu.menuAction().setMenuRole(QAction.NoRole)
+        menu.addAction(self.new_graphics_window_act)
+        menu.addAction(self.tile_act)
+        menu.addAction(self.cascade_act)
+        if getattr(self, 'MDI_ON', False):
+            menu.addAction(self.minimize_all_graphics_windows_act)
+            menu.addAction(self.restore_all_graphics_windows_act)
+        menu.addSeparator()
+        menu.addAction(self.close_active_window_act)
 
         # NOTE initialization of the menu is done in the updateWindowMenu function in SimpleTabView
 

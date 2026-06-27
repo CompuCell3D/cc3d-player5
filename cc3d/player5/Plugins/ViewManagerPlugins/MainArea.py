@@ -6,6 +6,7 @@ from cc3d.core.enums import *
 from cc3d.player5 import Graphics
 from .WindowInventory import WindowInventory
 import sys
+from math import ceil, sqrt
 from weakref import ref
 from gc import collect
 
@@ -281,19 +282,143 @@ class MainArea(QWidget):
 
     def tileSubWindows(self):
         """
-        dummy function to make conform to QMdiArea API
+        Tiles floating Player windows across the available screen area.
 
         :return: None
         """
-        pass
+        windows = self.__arrangeable_windows()
+        if not windows:
+            return
+
+        available_rect = self.__available_arrangement_rect(reserve_main_window=True)
+        margin = 12
+        spacing = 8
+        window_count = len(windows)
+        column_count = int(ceil(sqrt(window_count)))
+        row_count = int(ceil(float(window_count) / column_count))
+        tile_width = max(240, int((available_rect.width() - 2 * margin - spacing * (column_count - 1)) / column_count))
+        tile_height = max(200, int((available_rect.height() - 2 * margin - spacing * (row_count - 1)) / row_count))
+
+        for idx, win in enumerate(windows):
+            row = int(idx / column_count)
+            column = idx % column_count
+            x = available_rect.x() + margin + column * (tile_width + spacing)
+            y = available_rect.y() + margin + row * (tile_height + spacing)
+            win.showNormal()
+            win.setGeometry(x, y, tile_width, tile_height)
+            win.raise_()
+
+        self.setActiveSubWindow(windows[-1])
 
     def cascadeSubWindows(self):
         """
-        dummy function to make conform to QMdiArea API
+        Cascades floating Player windows across the available screen area.
 
         :return: None
         """
-        pass
+        windows = self.__arrangeable_windows()
+        if not windows:
+            return
+
+        available_rect = self.__available_arrangement_rect(reserve_main_window=True)
+        margin = 24
+        offset = 32
+        cascade_width = min(900, max(360, int(available_rect.width() * 0.68)))
+        cascade_height = min(700, max(300, int(available_rect.height() * 0.68)))
+        max_x = available_rect.right() - cascade_width - margin
+        max_y = available_rect.bottom() - cascade_height - margin
+        x = available_rect.x() + margin
+        y = available_rect.y() + margin
+
+        for win in windows:
+            if x > max_x or y > max_y:
+                x = available_rect.x() + margin
+                y = available_rect.y() + margin
+            win.showNormal()
+            win.setGeometry(x, y, cascade_width, cascade_height)
+            win.raise_()
+            x += offset
+            y += offset
+
+        self.setActiveSubWindow(windows[-1])
+
+    def __arrangeable_windows(self):
+        """
+        Returns visible floating subwindows that should participate in layout operations.
+
+        :return: list of SubWindow objects
+        """
+        windows = []
+        for win in self.subWindowList():
+            widget = win.widget()
+            if widget is not None and getattr(widget, 'is_screenshot_widget', False):
+                continue
+            if not win.isVisible():
+                continue
+            windows.append(win)
+
+        return windows
+
+    def __available_arrangement_rect(self, reserve_main_window=False):
+        """
+        Returns the available geometry of the screen that owns the active Player window.
+
+        :param reserve_main_window: optional flag that reserves space for the main Player window
+        :type reserve_main_window: bool
+        :return: QRect
+        """
+        reference_point = self.UI.frameGeometry().center()
+        if self.lastActiveRealWindow is not None:
+            reference_point = self.lastActiveRealWindow.frameGeometry().center()
+
+        screen = QApplication.screenAt(reference_point)
+        if screen is None:
+            screen = QApplication.primaryScreen()
+        if screen is not None:
+            available_rect = screen.availableGeometry()
+        else:
+            available_rect = QApplication.desktop().availableGeometry()
+
+        if reserve_main_window:
+            return self.__arrangement_rect_excluding_main_window(available_rect)
+
+        return available_rect
+
+    def __arrangement_rect_excluding_main_window(self, available_rect):
+        """
+        Moves the main Player window to the top-left and returns the remaining area for floating windows.
+
+        :param available_rect: available screen geometry
+        :type available_rect: QRect
+        :return: QRect
+        """
+        margin = 12
+        spacing = 8
+        main_window = self.UI
+        main_window.move(available_rect.topLeft() + QPoint(margin, margin))
+        main_window.raise_()
+
+        remaining_x = main_window.frameGeometry().right() + spacing
+        remaining_width = available_rect.right() - remaining_x - margin + 1
+        if remaining_width >= 320:
+            return QRect(
+                remaining_x,
+                available_rect.y(),
+                remaining_width,
+                available_rect.height()
+            )
+
+        remaining_y = main_window.frameGeometry().bottom() + spacing
+        remaining_height = available_rect.bottom() - remaining_y - margin + 1
+        if remaining_height >= 240:
+            return QRect(
+                available_rect.x(),
+                remaining_y,
+                available_rect.width(),
+                remaining_height
+            )
+
+        return available_rect
 
     def activeSubWindow(self):
         """
