@@ -342,6 +342,56 @@ class MainArea(QWidget):
 
         self.setActiveSubWindow(windows[-1])
 
+    def move_windows_to_screen(self, screen_index):
+        """
+        Moves the main Player window and floating subwindows to another screen without resizing them.
+
+        :param screen_index: target screen index in QApplication.screens()
+        :type screen_index: int
+        :return: None
+        """
+        screens = QApplication.screens()
+        if screen_index < 0 or screen_index >= len(screens):
+            return
+
+        windows = [self.UI] + self.__arrangeable_windows()
+        if not windows:
+            return
+
+        target_rect = screens[screen_index].availableGeometry()
+        margin = 12
+        source_rect = QRect(windows[0].frameGeometry())
+        for win in windows[1:]:
+            source_rect = source_rect.united(win.frameGeometry())
+
+        offset = target_rect.topLeft() + QPoint(margin, margin) - source_rect.topLeft()
+        for win in windows:
+            target_pos = win.pos() + offset
+            target_pos = self.__constrained_window_position(win, target_pos, target_rect, margin)
+            win.move(target_pos)
+            win.raise_()
+
+    def __constrained_window_position(self, win, position, available_rect, margin):
+        """
+        Keeps a moved window's top-left position within the target screen.
+
+        :param win: window being moved
+        :param position: requested top-left position
+        :param available_rect: target screen available geometry
+        :param margin: screen-edge margin
+        :return: QPoint
+        """
+        width = win.frameGeometry().width()
+        height = win.frameGeometry().height()
+        min_x = available_rect.left() + margin
+        min_y = available_rect.top() + margin
+        max_x = max(min_x, available_rect.right() - width - margin + 1)
+        max_y = max(min_y, available_rect.bottom() - height - margin + 1)
+        x = max(min_x, min(position.x(), max_x))
+        y = max(min_y, min(position.y(), max_y))
+
+        return QPoint(x, y)
+
     def __arrangeable_windows(self):
         """
         Returns visible floating subwindows that should participate in layout operations.
