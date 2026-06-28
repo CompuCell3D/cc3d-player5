@@ -28,6 +28,15 @@ class SimModel(QAbstractItemModel):
         self.__isDirty = False
         self.__dirtyModules = {}
         self.__headers = ["Property", "Value"]
+        self.__moduleStyleColors = {
+            "Plugin": QColor("#2457A6"),
+            "Steppable": QColor("#0F766E"),
+            "Potts": QColor("#7C3AED"),
+            "Metadata": QColor("#B45309")
+        }
+        self.__editableValueColor = QColor("#166534")
+        self.__editableValueBackgroundColor = QColor("#ECFDF3")
+        self.__attributeColor = QColor("#64748B")
 
     def setPrintFlag(self, _flag):
         self.__printFlag = _flag
@@ -55,10 +64,43 @@ class SimModel(QAbstractItemModel):
             return self.__rootItem
 
     def data(self, index, role=Qt.DisplayRole):  # interface: done
-        if role != Qt.DisplayRole or not index.isValid():
+        if not index.isValid():
             return QVariant()
 
         node = index.internalPointer()
+        module_color = self.__moduleStyleColors.get(node.name())
+        is_editable_value = index.column() == VALUE and node.type() is not None
+        is_attribute = node.elementType() == "attribute"
+
+        if role == Qt.FontRole:
+            font = QFont()
+            if module_color is not None:
+                font.setBold(True)
+                return QVariant(font)
+            if is_editable_value:
+                if is_attribute:
+                    font.setItalic(True)
+                else:
+                    font.setBold(True)
+                return QVariant(font)
+            if is_attribute:
+                font.setItalic(True)
+                return QVariant(font)
+
+        if role == Qt.ForegroundRole:
+            if module_color is not None:
+                return QVariant(QBrush(module_color))
+            if is_editable_value:
+                return QVariant(QBrush(self.__editableValueColor))
+            if is_attribute:
+                return QVariant(QBrush(self.__attributeColor))
+
+        if role == Qt.BackgroundRole and is_editable_value:
+            return QVariant(QBrush(self.__editableValueBackgroundColor))
+
+        if role != Qt.DisplayRole:
+            return QVariant()
+
         rowdata = [node.name(), node.value()]
 
         # Specify which data to display in each column!
@@ -195,5 +237,3 @@ if __name__ == '__main__':
     cc3d_xml_2_obj_converter = CompuCellSetup.parseXML(file_name)
 
     sim_model = SimModel(domDoc=cc3d_xml_2_obj_converter)
-
-
