@@ -350,9 +350,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
         window_menu.clear()
         window_menu.addAction(self.new_graphics_window_act)
 
+        window_menu.addAction(self.tile_act)
+        window_menu.addAction(self.cascade_act)
+        if not self.MDI_ON:
+            self.__add_move_windows_to_screen_menu(window_menu)
         if self.MDI_ON:
-            window_menu.addAction(self.tile_act)
-            window_menu.addAction(self.cascade_act)
             window_menu.addAction(self.minimize_all_graphics_windows_act)
             window_menu.addAction(self.restore_all_graphics_windows_act)
         window_menu.addSeparator()
@@ -396,6 +398,30 @@ class SimpleTabView(MainArea, SimpleViewManager):
             action.triggered.connect(self.windowMapper.map)
             self.windowMapper.setMapping(action, win)
             counter += 1
+
+    def __add_move_windows_to_screen_menu(self, window_menu):
+        """
+        Adds monitor-placement actions to the Window menu for floating-window layout.
+
+        :param window_menu: Window menu
+        :type window_menu: QMenu
+        :return: None
+        """
+        screens = QApplication.screens()
+        if len(screens) < 2:
+            return
+
+        move_menu = window_menu.addMenu("Move All Windows To Screen")
+        for idx, screen in enumerate(screens):
+            geometry = screen.availableGeometry()
+            action_text = "{0}. {1} ({2}x{3})".format(
+                idx + 1,
+                screen.name() or "Screen",
+                geometry.width(),
+                geometry.height()
+            )
+            action = move_menu.addAction(action_text)
+            action.triggered.connect(lambda checked=False, screen_idx=idx: self.move_windows_to_screen(screen_idx))
 
     def handle_vis_field_created(self, field_name: str, field_type: int, precision_type: str) -> None:
         """
