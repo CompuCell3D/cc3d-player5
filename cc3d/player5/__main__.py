@@ -6,6 +6,7 @@ import sys
 from cc3d import player5
 from cc3d.player5.CMLParser import CMLParser
 from cc3d.player5.UI.UserInterface import UserInterface
+from cc3d.player5.Utilities import show_exception_messagebox
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -17,6 +18,8 @@ import cc3d
 from cc3d.player5.styles.StyleManager import subscribe_to_style_sheet
 
 setDebugging(0)
+
+_handling_global_gui_exception = False
 
 if sys.platform.lower().startswith('linux'):
     # On linux have to import rr early on to avoid
@@ -125,7 +128,24 @@ def main(argv=None):
 
 
 def except_hook(cls, exception, traceback):
+    global _handling_global_gui_exception
+
     sys.__excepthook__(cls, exception, traceback)
+
+    app = QApplication.instance()
+    if app is not None and not _handling_global_gui_exception:
+        _handling_global_gui_exception = True
+        try:
+            show_exception_messagebox(
+                title="Player Error",
+                message="An unexpected error occurred while handling a GUI callback.",
+                exception=exception,
+                parent=app.activeWindow(),
+            )
+        finally:
+            _handling_global_gui_exception = False
+        return
+
     sys.exit(1)
 
 
