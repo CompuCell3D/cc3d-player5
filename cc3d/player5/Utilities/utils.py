@@ -78,6 +78,64 @@ def show_exception_messagebox(
     msg.exec_()
 
 
+def show_text_messagebox(
+    title: str,
+    message: str,
+    informative_text: str = "",
+    detailed_text: str = "",
+    parent=None,
+):
+    msg = QMessageBox(parent)
+
+    msg.setIcon(QMessageBox.Critical)
+    msg.setWindowTitle(title)
+    msg.setText(f"<b>{message}</b>")
+
+    if informative_text:
+        font_stack = get_monospace_font_stack()
+        msg.setInformativeText(
+            f"<pre style='font-family: {font_stack};'>"
+            f"{informative_text}</pre>"
+        )
+
+    if detailed_text:
+        msg.setDetailedText(detailed_text)
+
+    msg.setStandardButtons(QMessageBox.Ok)
+    msg.setTextInteractionFlags(Qt.TextSelectableByMouse)
+
+    desired_width = 800
+    msg.resize(desired_width, msg.sizeHint().height())
+
+    label = msg.findChild(QLabel, "qt_msgbox_label")
+    if label:
+        label.setMinimumWidth(desired_width)
+
+    info_label = msg.findChild(QLabel, "qt_msgbox_informativelabel")
+    if info_label:
+        info_label.setMinimumWidth(desired_width)
+
+    text_edit = msg.findChild(QTextEdit)
+    if text_edit:
+        text_edit.setMinimumWidth(desired_width)
+        text_edit.setMinimumHeight(300)
+
+    msg.exec_()
+
+
+def show_formatted_error_messagebox(error_text: str, parent=None):
+    error_text = error_text or ""
+    lines = [line.strip() for line in error_text.splitlines() if line.strip()]
+    informative_text = lines[0] if lines else "Unknown Player error"
+
+    show_text_messagebox(
+        title="Player Error",
+        message="A simulation error occurred.",
+        informative_text=informative_text,
+        detailed_text=error_text,
+        parent=parent,
+    )
+
 
 def safe_callback(func):
     @wraps(func)
