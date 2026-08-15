@@ -50,10 +50,12 @@ def _build_traceback_html(traceback_text: str) -> str:
             font_weight = "400"
 
         line_html.append(
-            f"<span style='color: {color}; font-weight: {font_weight};'>{escaped_line}</span>"
+            f"<span style='color: {color}; font-weight: {font_weight}; white-space: pre-wrap;'>{escaped_line}</span>"
         )
 
-    return "<br>".join(line_html) if line_html else "<span style='color: #d8dee9;'>No traceback available.</span>"
+    return "<br>".join(line_html) if line_html else (
+        "<span style='color: #d8dee9; white-space: pre-wrap;'>No traceback available.</span>"
+    )
 
 
 class ErrorDetailsDialog(QDialog):
@@ -133,6 +135,7 @@ class ErrorDetailsDialog(QDialog):
             f"font-family: {get_monospace_font_stack()};"
             "font-size: 11pt;"
             "line-height: 1.35;"
+            "white-space: pre-wrap;"
             "}"
         )
         self.details_edit.setHtml(
