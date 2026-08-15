@@ -9,7 +9,8 @@ from PyQt5.QtGui import QColor, QDesktopServices
 from PyQt5.QtCore import Qt, QUrl
 import traceback
 from functools import wraps
-from PyQt5.QtWidgets import QMessageBox, QLabel, QTextEdit
+from PyQt5.QtWidgets import QMessageBox, QLabel, QTextEdit, QDialog, QDialogButtonBox, QVBoxLayout, QHBoxLayout, QStyle
+import html
 import sys
 
 cell_type_color_props = namedtuple('cell_type_color_props', 'color type_name invisible')
@@ -24,6 +25,143 @@ def get_monospace_font_stack():
     else:
         return "DejaVu Sans Mono, Liberation Mono, monospace"
 
+
+def _build_traceback_html(traceback_text: str) -> str:
+    line_html = []
+
+    for raw_line in traceback_text.splitlines():
+        escaped_line = html.escape(raw_line)
+        stripped_line = raw_line.strip()
+
+        if raw_line.startswith("Traceback"):
+            color = "#c7922b"
+            font_weight = "700"
+        elif stripped_line.startswith('File "'):
+            color = "#4f8cc9"
+            font_weight = "600"
+        elif raw_line.startswith("    "):
+            color = "#d8dee9"
+            font_weight = "400"
+        elif stripped_line and not raw_line.startswith(" "):
+            color = "#ff8a80"
+            font_weight = "700"
+        else:
+            color = "#d8dee9"
+            font_weight = "400"
+
+        line_html.append(
+            f"<span style='color: {color}; font-weight: {font_weight};'>{escaped_line}</span>"
+        )
+
+    return "<br>".join(line_html) if line_html else "<span style='color: #d8dee9;'>No traceback available.</span>"
+
+
+class ErrorDetailsDialog(QDialog):
+    def __init__(
+        self,
+        title: str,
+        message: str,
+        informative_text: str = "",
+        detailed_text: str = "",
+        parent=None,
+    ):
+        super().__init__(parent)
+
+        self._compact_size = (900, 170)
+        self._expanded_size = (900, 560)
+
+        self.setWindowTitle(title)
+        self.setModal(True)
+        self.resize(*self._compact_size)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(14, 10, 14, 12)
+        layout.setSpacing(8)
+
+        header_layout = QHBoxLayout()
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        header_layout.setSpacing(8)
+
+        icon_label = QLabel(self)
+        icon_pixmap = self.style().standardIcon(QStyle.SP_MessageBoxCritical).pixmap(32, 32)
+        icon_label.setPixmap(icon_pixmap)
+        icon_label.setAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
+        header_layout.addWidget(icon_label, 0, Qt.AlignVCenter)
+
+        title_label = QLabel(f"<b>{message}</b>", self)
+        title_label.setWordWrap(True)
+        title_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        title_label.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
+        title_label.setContentsMargins(0, 0, 0, 0)
+        header_layout.addWidget(title_label, 1, Qt.AlignVCenter)
+        layout.addLayout(header_layout)
+
+        if informative_text:
+            info_label = QLabel(self)
+            info_label.setWordWrap(True)
+            info_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            info_label.setStyleSheet(
+                "QLabel {"
+                "background: #fff8e1;"
+                "border: 1px solid #e6cf8b;"
+                "border-radius: 6px;"
+                "padding: 6px 8px;"
+                "color: #3a3122;"
+                "}"
+            )
+            info_label.setText(
+                f"<pre style='margin: 0; font-family: {get_monospace_font_stack()};'>"
+                f"{html.escape(informative_text)}"
+                f"</pre>"
+            )
+            layout.addWidget(info_label)
+
+        self.details_edit = QTextEdit(self)
+        self.details_edit.setReadOnly(True)
+        self.details_edit.setAcceptRichText(True)
+        self.details_edit.setStyleSheet(
+            "QTextEdit {"
+            "background: #1f2430;"
+            "color: #d8dee9;"
+            "border: 1px solid #394150;"
+            "border-radius: 8px;"
+            "padding: 8px;"
+            "}"
+        )
+        self.details_edit.document().setDefaultStyleSheet(
+            "body {"
+            f"font-family: {get_monospace_font_stack()};"
+            "font-size: 11pt;"
+            "line-height: 1.35;"
+            "}"
+        )
+        self.details_edit.setHtml(
+            "<body>"
+            f"{_build_traceback_html(detailed_text)}"
+            "</body>"
+        )
+        self.details_edit.setVisible(False)
+        has_details = bool(detailed_text.strip())
+        layout.addWidget(self.details_edit, 1)
+
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok, parent=self)
+        self.details_button = None
+        if has_details:
+            self.details_button = button_box.addButton("Show More", QDialogButtonBox.ActionRole)
+            self.details_button.clicked.connect(self._toggle_details)
+        button_box.accepted.connect(self.accept)
+        layout.addWidget(button_box)
+
+    def _toggle_details(self):
+        showing_details = self.details_edit.isVisible()
+        self.details_edit.setVisible(not showing_details)
+
+        if self.details_button is not None:
+            self.details_button.setText("Show Less" if not showing_details else "Show More")
+
+        self.resize(*(self._expanded_size if not showing_details else self._compact_size))
+
+
 def show_exception_messagebox(
     title: str,
     message: str,
@@ -33,49 +171,14 @@ def show_exception_messagebox(
     tb_str = "".join(traceback.format_exception(
         type(exception), exception, exception.__traceback__)
     )
-
-    msg = QMessageBox(parent)
-
-    msg.setIcon(QMessageBox.Critical)
-    msg.setWindowTitle(title)
-
-    msg.setText(f"<b>{message}</b>")
-    font_stack = get_monospace_font_stack()
-
-    msg.setInformativeText(
-        f"<pre style='font-family: {font_stack};'>"
-        f"{str(exception)}</pre>"
+    dialog = ErrorDetailsDialog(
+        title=title,
+        message=message,
+        informative_text=str(exception),
+        detailed_text=tb_str,
+        parent=parent,
     )
-
-    msg.setDetailedText(tb_str)
-
-    msg.setStandardButtons(QMessageBox.Ok)
-
-    msg.setTextInteractionFlags(Qt.TextSelectableByMouse)
-
-    # ---- FORCE WIDER DIALOG ----
-    desired_width = 800
-
-    # Resize main dialog
-    msg.resize(desired_width, msg.sizeHint().height())
-
-    # Resize internal label
-    label = msg.findChild(QLabel, "qt_msgbox_label")
-    if label:
-        label.setMinimumWidth(desired_width)
-
-    # Resize informative label
-    info_label = msg.findChild(QLabel, "qt_msgbox_informativelabel")
-    if info_label:
-        info_label.setMinimumWidth(desired_width)
-
-    # Resize detailed traceback area
-    text_edit = msg.findChild(QTextEdit)
-    if text_edit:
-        text_edit.setMinimumWidth(desired_width)
-        text_edit.setMinimumHeight(300)
-
-    msg.exec_()
+    dialog.exec_()
 
 
 def show_text_messagebox(
@@ -85,42 +188,14 @@ def show_text_messagebox(
     detailed_text: str = "",
     parent=None,
 ):
-    msg = QMessageBox(parent)
-
-    msg.setIcon(QMessageBox.Critical)
-    msg.setWindowTitle(title)
-    msg.setText(f"<b>{message}</b>")
-
-    if informative_text:
-        font_stack = get_monospace_font_stack()
-        msg.setInformativeText(
-            f"<pre style='font-family: {font_stack};'>"
-            f"{informative_text}</pre>"
-        )
-
-    if detailed_text:
-        msg.setDetailedText(detailed_text)
-
-    msg.setStandardButtons(QMessageBox.Ok)
-    msg.setTextInteractionFlags(Qt.TextSelectableByMouse)
-
-    desired_width = 800
-    msg.resize(desired_width, msg.sizeHint().height())
-
-    label = msg.findChild(QLabel, "qt_msgbox_label")
-    if label:
-        label.setMinimumWidth(desired_width)
-
-    info_label = msg.findChild(QLabel, "qt_msgbox_informativelabel")
-    if info_label:
-        info_label.setMinimumWidth(desired_width)
-
-    text_edit = msg.findChild(QTextEdit)
-    if text_edit:
-        text_edit.setMinimumWidth(desired_width)
-        text_edit.setMinimumHeight(300)
-
-    msg.exec_()
+    dialog = ErrorDetailsDialog(
+        title=title,
+        message=message,
+        informative_text=informative_text,
+        detailed_text=detailed_text,
+        parent=parent,
+    )
+    dialog.exec_()
 
 
 def show_formatted_error_messagebox(error_text: str, parent=None):
