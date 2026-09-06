@@ -24,6 +24,12 @@ from cc3d.player5.Configuration.ConfigurationDialog import ConfigurationDialog
 import cc3d.player5.Configuration as Configuration
 import cc3d.core.DefaultSettingsData as settings_data
 from cc3d.core.BasicSimulationData import BasicSimulationData
+from cc3d.core.CompiledSteppableAutoCompiler import (
+    compiled_steppable_build_plan,
+    compile_project_steppables,
+    format_compiled_steppable_summary,
+)
+from cc3d.core.CompiledSteppableCompilerSettings import auto_compile_enabled
 from cc3d.player5.Graphics.GraphicsWindowData import GraphicsWindowData
 from cc3d.player5.Simulation.CMLResultReader import CMLResultReader
 from cc3d.player5.Simulation.SimulationThread import SimulationThread
@@ -51,7 +57,7 @@ from cc3d.CompuCellSetup.simulation_utils import str_to_int_container
 from cc3d.CompuCellSetup.utils import SCREENSHOT_SUBDIR
 from typing import Union, Optional
 from cc3d.player5.Utilities.unzipper import Unzipper
-from cc3d.player5.Utilities import show_formatted_error_messagebox
+from cc3d.player5.Utilities import show_formatted_error_messagebox, show_text_messagebox
 from weakref import ref
 from subprocess import Popen
 from cc3d.player5.Utilities.terminal import Terminal
@@ -832,6 +838,49 @@ class SimpleTabView(MainArea, SimpleViewManager):
                                   QMessageBox.Ok
                                   )
 
+    def __compile_project_steppables_if_needed(self, fileName: str) -> None:
+        """
+        Compiles C++ steppables declared by the loaded .cc3d project when auto-compile is enabled.
+
+        :param fileName: str - .cc3d file name
+        :return: None
+        """
+        if not auto_compile_enabled():
+            return
+
+        plans = compiled_steppable_build_plan(fileName)
+        if not plans:
+            return
+
+        if not any(plan.needs_compile for plan in plans):
+            print("Compiled steppable auto-compile summary:")
+            for plan in plans:
+                print(f"  [skip] {plan.source_path}")
+                print(f"         -> {plan.output_path} ({plan.reason})")
+            return
+
+        self.displayStatusInfo("Compiling C++ steppables...")
+        QApplication.processEvents()
+
+        summary = compile_project_steppables(fileName)
+        formatted_summary = format_compiled_steppable_summary(summary)
+        print(formatted_summary)
+
+        if summary.success:
+            self.displayStatusInfo("C++ steppables compiled")
+            QApplication.processEvents()
+            return
+
+        self.displayStatusInfo("C++ steppable compilation failed")
+        show_text_messagebox(
+            title="Player Error",
+            message="C++ steppable compilation failed.",
+            informative_text="Simulation startup was stopped. See details for compiler output.",
+            detailed_text=formatted_summary,
+            parent=self,
+        )
+        raise RuntimeError("Automatic compilation of C++ steppables failed.")
+
     def handleErrorMessage(self, _errorType, _traceback_message) -> None:
         """
         Callback function used to display any type of errors from the simulation script.
@@ -1071,6 +1120,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
                                       QMessageBox.Ok)
 
             raise IOError("%s does not exist" % fileName)
+
+        self.__compile_project_steppables_if_needed(fileName=fileName)
 
         self.cc3dSimulationDataHandler = readCC3DFile(fileName=fileName)
         # self.cc3dSimulationDataHandler.readCC3DFileFormat(fileName)
