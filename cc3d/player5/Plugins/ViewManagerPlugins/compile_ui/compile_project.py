@@ -25,6 +25,12 @@ def build_argument_parser() -> argparse.ArgumentParser:
         required=True,
         help="Path where the structured compile result should be written.",
     )
+    parser.add_argument(
+        "--build-type",
+        choices=("Debug", "Release", "RelWithDebInfo"),
+        default="RelWithDebInfo",
+        help="Compiler configuration. Default: RelWithDebInfo.",
+    )
     return parser
 
 
@@ -38,7 +44,7 @@ def main(argv: list[str] | None = None) -> int:
     result_path = Path(args.result_json)
 
     try:
-        summary = compile_project_steppables(args.project)
+        summary = compile_project_steppables(args.project, build_type=args.build_type)
         result = {
             "success": summary.success,
             "summary": summary.to_dict(),
