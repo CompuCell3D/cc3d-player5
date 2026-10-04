@@ -117,6 +117,7 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
             self.show_ffmpeg_warning()
             return None
 
+        self.ffmpeg_path = ffmpeg_location
         self.ffmpeg_path_LE.setText(ffmpeg_location)
         label_styling("Successfully Detected FFMPEG", self.status_LB, STATUS_SUCCESS, 600)
         return ffmpeg_location
@@ -133,7 +134,8 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
 
     @safe_callback
     def create_movie_button_clicked(self):
-        if not Path(self.ffmpeg_path).exists():
+        self.ffmpeg_path = self.ffmpeg_path_LE.text().strip()
+        if not Path(self.ffmpeg_path).is_file():
             self.show_ffmpeg_warning()
             return
 
@@ -159,6 +161,7 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
             quality=self.quality_SB.value(),
             enable_drawing_mcs=self.mcs_on_frame_CB.isChecked(),
             display_movie_callback=display_movie_callback,
+            ffmpeg_path=self.ffmpeg_path,
         )
 
     def closeEvent(self, a0, QCloseEvent=None):

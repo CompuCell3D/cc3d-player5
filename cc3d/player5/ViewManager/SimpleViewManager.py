@@ -265,6 +265,7 @@ class SimpleViewManager(QObject):
         tb.addAction(self.twedit_act)
         tb.addAction(self.movie_generator_act)
         tb.addAction(self.manage_custom_settings_act)
+        tb.addAction(self.compiled_steppables_act)
 
         return tb
 
@@ -434,6 +435,11 @@ class SimpleViewManager(QObject):
             "Manage Simulation Settings...",
             self
         )
+
+        self.compiled_steppables_act = QAction(
+            QIcon(gip("c-plus-plus-128.png")), "Compiled Steppables...", self
+        )
+        self.compiled_steppables_act.setEnabled(False)
 
         self.pif_from_vtk_act = QAction("& Generate PIF File from VTK output ...", self)
 

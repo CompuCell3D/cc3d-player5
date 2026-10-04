@@ -40,6 +40,10 @@ class CMLParser(object):
         cml_parser = argparse.ArgumentParser(description='CompuCell3D Player 5')
         cml_parser.add_argument('-i', '--input', required=False, action='store',
                                 help='path to the CC3D project file (*.cc3d)')
+        cml_parser.add_argument(
+            'project', nargs='?',
+            help='path to the CC3D project file (*.cc3d); positional shorthand for --input',
+        )
 
         cml_parser.add_argument(
             '--run-action',
@@ -47,6 +51,26 @@ class CMLParser(object):
             choices=['run', 'step'],
             default='run',
             help='Initial action after loading the simulation: "run" (default) or "step".'
+        )
+
+        compiled_steppable_group = cml_parser.add_mutually_exclusive_group()
+        compiled_steppable_group.add_argument(
+            '--force-compile-steppables',
+            action='store_true',
+            default=False,
+            help='Force compilation of every C++ steppable declared by the project before starting.',
+        )
+        compiled_steppable_group.add_argument(
+            '--clean-compiled-steppables',
+            action='store_true',
+            default=False,
+            help='Clean generated artifacts for every project C++ steppable and continue without compiling.',
+        )
+        compiled_steppable_group.add_argument(
+            '--clean-and-compile-steppables',
+            action='store_true',
+            default=False,
+            help='Clean generated artifacts, force-compile every project C++ steppable, then start.',
         )
 
         cml_parser.add_argument('-c', '--output-file-core-name', required=False, action='store',
@@ -135,6 +159,8 @@ class CMLParser(object):
             arg_list = []
 
         self.__cml_args = cml_parser.parse_args(arg_list)
+        if self.__cml_args.input is None and self.__cml_args.project:
+            self.__cml_args.input = self.__cml_args.project
         self.globalSettingsDirName = self.__cml_args.global_settings_dir_name
         self.__update_settings_config_dir_name(self.globalSettingsDirName)
 

@@ -72,7 +72,8 @@ def label_styling(text, q_label_obj, color="#000000", font_weight=400):
 
 
 def create_movies_runner(
-    status_label_obj, simulation_path,  frame_rate, quality, enable_drawing_mcs, display_movie_callback
+    status_label_obj, simulation_path, frame_rate, quality, enable_drawing_mcs,
+    display_movie_callback, ffmpeg_path=None,
 ):
 
     label_styling("", status_label_obj, "black", 600)
@@ -81,6 +82,13 @@ def create_movies_runner(
     quality = max(quality, 1)
     # Convert from 1-10 domain to 0-51 domain
     quality = int((1.0 - (quality / 10.0)) * 52.0) - 1
+    if ffmpeg_path:
+        ffmpeg_dir = str(Path(ffmpeg_path).resolve().parent)
+        current_path = os.environ.get("PATH", "")
+        path_entries = current_path.split(os.pathsep) if current_path else []
+        if ffmpeg_dir not in path_entries:
+            os.environ["PATH"] = os.pathsep.join([ffmpeg_dir, *path_entries])
+
     makeMovieAsync(simulation_path, frame_rate, quality, enable_drawing_mcs, display_movie_callback)
     Configuration.setSetting("RecentMoviePath", str(simulation_path))
 
@@ -101,8 +109,14 @@ def find_ffmpeg():
     # 2) Conda / virtualenv
     env_prefix = os.environ.get("CONDA_PREFIX") or sys.prefix
     if env_prefix:
-        bin_dir = Path(env_prefix) / ("Scripts" if sys.platform.startswith("win") else "bin")
-        candidates.append(str(bin_dir / ("ffmpeg.exe" if sys.platform.startswith("win") else "ffmpeg")))
+        executable_name = "ffmpeg.exe" if sys.platform.startswith("win") else "ffmpeg"
+        if sys.platform.startswith("win"):
+            candidates.extend([
+                str(Path(env_prefix) / "Library" / "bin" / executable_name),
+                str(Path(env_prefix) / "Scripts" / executable_name),
+            ])
+        else:
+            candidates.append(str(Path(env_prefix) / "bin" / executable_name))
 
     # 3) Homebrew (macOS)
     if sys.platform.startswith("darwin"):

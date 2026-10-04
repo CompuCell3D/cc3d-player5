@@ -14,9 +14,10 @@ class CompiledSteppableCompileRunner(QObject):
     failed = pyqtSignal(str, str)
     canceled = pyqtSignal()
 
-    def __init__(self, project_path: str, parent=None):
+    def __init__(self, project_path: str, force: bool = False, parent=None):
         super().__init__(parent)
         self.project_path = project_path
+        self.force = force
         self._process = None
         self._cancel_requested = False
 
@@ -44,6 +45,8 @@ class CompiledSteppableCompileRunner(QObject):
                 "--result-json",
                 str(result_path),
             ]
+            if self.force:
+                command.append("--force")
 
             self._process = subprocess.Popen(
                 command,

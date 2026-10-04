@@ -31,6 +31,11 @@ def build_argument_parser() -> argparse.ArgumentParser:
         default="RelWithDebInfo",
         help="Compiler configuration. Default: RelWithDebInfo.",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Compile all C++ steppables, including entries that are up to date.",
+    )
     return parser
 
 
@@ -44,7 +49,11 @@ def main(argv: list[str] | None = None) -> int:
     result_path = Path(args.result_json)
 
     try:
-        summary = compile_project_steppables(args.project, build_type=args.build_type)
+        summary = compile_project_steppables(
+            args.project,
+            build_type=args.build_type,
+            force=args.force,
+        )
         result = {
             "success": summary.success,
             "summary": summary.to_dict(),

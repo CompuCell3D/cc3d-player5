@@ -1,1 +1,2 @@
 from .compile_dialog import CompiledSteppableCompileDialog
+from .manager_dialog import CompiledSteppablesDialog

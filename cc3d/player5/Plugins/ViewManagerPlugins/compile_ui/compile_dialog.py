@@ -11,7 +11,7 @@ class CompiledSteppableCompileDialog(QDialog):
     failed = pyqtSignal(str, str)
     canceled = pyqtSignal()
 
-    def __init__(self, project_path: str, parent=None):
+    def __init__(self, project_path: str, force: bool = False, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Compiling C++ Steppables")
         self.setModal(True)
@@ -19,7 +19,7 @@ class CompiledSteppableCompileDialog(QDialog):
         self.setMinimumWidth(520)
 
         self._thread = QThread(self)
-        self._worker = CompiledSteppableCompileRunner(project_path)
+        self._worker = CompiledSteppableCompileRunner(project_path, force=force)
         self._worker.moveToThread(self._thread)
 
         layout = QVBoxLayout(self)
