@@ -47,6 +47,9 @@ class TreeItem:
     def setElementType(self, _elementType):
         self.__elementType = _elementType
 
+    def elementType(self):
+        return self.__elementType
+
     def setSuperParent(self, _superParent):
         self.__superParent = _superParent
 

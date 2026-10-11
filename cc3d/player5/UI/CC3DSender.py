@@ -273,25 +273,6 @@ class CC3DSender(QObject):
             self.errorConsole.emitCloseCC3D()
             return
 
-            # import sys
-
-            # sys.exit()
-            # self.errorConsole.closeCC3D()
-            # self.socket.flush()
-            # self.socket.disconnectFromHost()
-            # self.socket.close()
-            # self.socket=None
-            # return
-
-            QMessageBox.information(None, "EDITOR WAS CLOSED", "EDITOR CLOSED: ")
-            reply = QByteArray()
-            stream1 = QDataStream(reply, QIODevice.WriteOnly)
-            stream1.setVersion(QDataStream.Qt_5_2)
-            stream1.writeUInt16(0)
-            # self.socket.close()
-            self.socket.write(reply)
-
-
         elif messageType == "EDITOROPEN":
             print("GOT EDITOROPEN MESSAGE")
             if self.editorMessageBox:

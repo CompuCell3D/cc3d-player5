@@ -60,6 +60,7 @@ class DockWidget(QDockWidget):
 class UserInterface(QMainWindow):
     appendStdoutSignal = pyqtSignal(str)
     appendStderrSignal = pyqtSignal(str)
+    SUPPORTED_DROP_EXTENSIONS = {".cc3d", ".dml", ".zip"}
 
     def __init__(self):
         QMainWindow.__init__(self)
@@ -83,6 +84,7 @@ class UserInterface(QMainWindow):
         # Setting self.viewmanager and dock windows
         self.__createViewManager()
         self.__createLayout()
+        self._configure_drag_and_drop()
 
         # # Generate the redirection helpers
         self.stdout = sys.stdout
@@ -152,6 +154,65 @@ class UserInterface(QMainWindow):
             | QMainWindow.AllowTabbedDocks
             | QMainWindow.AnimatedDocks
         )
+
+    def _configure_drag_and_drop(self):
+        self.setAcceptDrops(True)
+        QApplication.instance().installEventFilter(self)
+
+        for widget in self.findChildren(QWidget):
+            if not self._is_graphics_drop_widget(widget):
+                widget.setAcceptDrops(True)
+
+    def _is_player_widget(self, widget):
+        current = widget
+        while current is not None:
+            if current is self:
+                return True
+            current = current.parentWidget()
+        return False
+
+    def _is_graphics_drop_widget(self, widget):
+        current = widget
+        while current is not None:
+            class_name = type(current).__name__
+            if class_name in {"GraphicsFrameWidget", "QVTKRenderWindowInteractor"}:
+                return True
+            current = current.parentWidget()
+        return False
+
+    def _extract_dropped_simulation_path(self, mime_data):
+        if mime_data is None or not mime_data.hasUrls():
+            return None
+
+        for url in mime_data.urls():
+            if not url.isLocalFile():
+                continue
+
+            local_path = os.path.abspath(url.toLocalFile())
+            if os.path.splitext(local_path)[1].lower() in self.SUPPORTED_DROP_EXTENSIONS:
+                return local_path
+
+        return None
+
+    def eventFilter(self, watched, event):
+        if event.type() not in (QEvent.DragEnter, QEvent.DragMove, QEvent.Drop):
+            return super().eventFilter(watched, event)
+
+        if not isinstance(watched, QWidget):
+            return super().eventFilter(watched, event)
+
+        if not self._is_player_widget(watched) or self._is_graphics_drop_widget(watched):
+            return super().eventFilter(watched, event)
+
+        dropped_path = self._extract_dropped_simulation_path(event.mimeData())
+        if dropped_path is None:
+            return super().eventFilter(watched, event)
+
+        if event.type() == QEvent.Drop:
+            self.viewmanager.openSim(dropped_path)
+
+        event.acceptProposedAction()
+        return True
 
 
     def initialize_gui_geometry(self, allow_main_window_move:bool=True):

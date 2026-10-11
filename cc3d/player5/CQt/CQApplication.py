@@ -1,6 +1,7 @@
 
 import os
 import sys
+import traceback
 # from PyQt5.QtCore import QEvent, Qt
 from PyQt5.QtWidgets import QApplication
 
@@ -13,6 +14,32 @@ class CQApplication(QApplication):
         QApplication.__init__(self, argv)
         self.__objectRegistry = {}
         self.__pluginObjectRegistry = {}
+        self._handling_gui_exception = False
+
+    def notify(self, receiver, event):
+        try:
+            return QApplication.notify(self, receiver, event)
+        except Exception as exc:
+            traceback.print_exc()
+
+            if self._handling_gui_exception:
+                return False
+
+            self._handling_gui_exception = True
+            try:
+                from cc3d.player5.Utilities import show_exception_messagebox
+
+                parent = self.activeWindow()
+                show_exception_messagebox(
+                    title="Player Error",
+                    message="An unexpected error occurred while handling a GUI callback.",
+                    exception=exc,
+                    parent=parent,
+                )
+            finally:
+                self._handling_gui_exception = False
+
+            return False
         
     def registerObject(self, name, object):
         """

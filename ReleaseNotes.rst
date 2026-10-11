@@ -1,6 +1,21 @@
 Release Notes
 =============
 
+Version 4.10.0
+--------------
+**2026-10-10**
+
+New features:
+
+Improvements:
+ - Improved Player window management when moving windows between screens
+ - Improved tile and cascade behavior for floating windows
+ - Added expand-all and collapse-all actions to the Model Editor steering pane for easier inspection of simulation parameters
+ - Improved backend steering to handle simultaneous plugin and steppable changes more reliably
+
+Bug fixes:
+ - Fixed ffmpeg detection
+
 Version 4.9.0
 -------------
 **2026-05-16**
@@ -145,4 +160,3 @@ Version 4.3.0
 
 New features:
  - Split code into 3 separate packages - cc3d-core, Player, Twedit
-

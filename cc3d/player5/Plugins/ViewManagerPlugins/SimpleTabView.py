@@ -51,6 +51,7 @@ from cc3d.CompuCellSetup.simulation_utils import str_to_int_container
 from cc3d.CompuCellSetup.utils import SCREENSHOT_SUBDIR
 from typing import Union, Optional
 from cc3d.player5.Utilities.unzipper import Unzipper
+from cc3d.player5.Utilities import show_formatted_error_messagebox
 from weakref import ref
 from subprocess import Popen
 from cc3d.player5.Utilities.terminal import Terminal
@@ -350,9 +351,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
         window_menu.clear()
         window_menu.addAction(self.new_graphics_window_act)
 
+        window_menu.addAction(self.tile_act)
+        window_menu.addAction(self.cascade_act)
+        if not self.MDI_ON:
+            self.__add_move_windows_to_screen_menu(window_menu)
         if self.MDI_ON:
-            window_menu.addAction(self.tile_act)
-            window_menu.addAction(self.cascade_act)
             window_menu.addAction(self.minimize_all_graphics_windows_act)
             window_menu.addAction(self.restore_all_graphics_windows_act)
         window_menu.addSeparator()
@@ -396,6 +399,30 @@ class SimpleTabView(MainArea, SimpleViewManager):
             action.triggered.connect(self.windowMapper.map)
             self.windowMapper.setMapping(action, win)
             counter += 1
+
+    def __add_move_windows_to_screen_menu(self, window_menu):
+        """
+        Adds monitor-placement actions to the Window menu for floating-window layout.
+
+        :param window_menu: Window menu
+        :type window_menu: QMenu
+        :return: None
+        """
+        screens = QApplication.screens()
+        if len(screens) < 2:
+            return
+
+        move_menu = window_menu.addMenu("Move All Windows To Screen")
+        for idx, screen in enumerate(screens):
+            geometry = screen.availableGeometry()
+            action_text = "{0}. {1} ({2}x{3})".format(
+                idx + 1,
+                screen.name() or "Screen",
+                geometry.width(),
+                geometry.height()
+            )
+            action = move_menu.addAction(action_text)
+            action.triggered.connect(lambda checked=False, screen_idx=idx: self.move_windows_to_screen(screen_idx))
 
     def handle_vis_field_created(self, field_name: str, field_type: int, precision_type: str) -> None:
         """
@@ -807,30 +834,23 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
     def handleErrorMessage(self, _errorType, _traceback_message) -> None:
         """
-        Callback function used to display any type of errors from the simulation script
+        Callback function used to display any type of errors from the simulation script.
+        Errors are shown in a popup without forcing the syntax error console to open.
 
         :param _errorType: str - error type
         :param _traceback_message: str - contains full Python traceback
         :return: None
         """
-        msg = QMessageBox.warning(self, _errorType,
-                                  _traceback_message,
-                                  QMessageBox.Ok,
-                                  QMessageBox.Ok)
+        show_formatted_error_messagebox(
+            error_text=_traceback_message,
+            parent=self,
+        )
 
         self.__cleanAfterSimulation()
-        print('errorType=', _errorType)
-        syntax_error_console = self.UI.console.get_syntax_error_console()
-        # console = self.UI.console
-        text = "Search \"file.xml\"\n"
-        text += "    file.xml\n"
-        text += _traceback_message
-        syntax_error_console.setText(text)
-        # console.set_stderr_content(text)
 
     def handleErrorFormatted(self, _errorMessage):
         """
-        Pastes errorMessage directly into error console
+        Handles preformatted simulation errors without activating the error console.
 
         :param _errorMessage: str with error message
         :return: None
@@ -838,10 +858,11 @@ class SimpleTabView(MainArea, SimpleViewManager):
         CompuCellSetup.error_code = 1
 
         self.__cleanAfterSimulation()
-        syntax_error_console = self.UI.console.get_syntax_error_console()
 
-        syntax_error_console.setText(_errorMessage)
-        self.UI.console.bring_up_syntax_error_console()
+        show_formatted_error_messagebox(
+            error_text=_errorMessage,
+            parent=self,
+        )
 
         if self.cml_args.testOutputDir:
             with open(os.path.join(self.cml_args.testOutputDir, 'error_output.txt'), 'w') as fout:
