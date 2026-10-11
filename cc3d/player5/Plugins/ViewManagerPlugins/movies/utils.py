@@ -72,7 +72,8 @@ def label_styling(text, q_label_obj, color="#000000", font_weight=400):
 
 
 def create_movies_runner(
-    status_label_obj, simulation_path,  frame_rate, quality, enable_drawing_mcs, display_movie_callback
+    status_label_obj, simulation_path, frame_rate, quality, enable_drawing_mcs,
+    display_movie_callback, ffmpeg_path=None,
 ):
 
     label_styling("", status_label_obj, "black", 600)
@@ -81,6 +82,13 @@ def create_movies_runner(
     quality = max(quality, 1)
     # Convert from 1-10 domain to 0-51 domain
     quality = int((1.0 - (quality / 10.0)) * 52.0) - 1
+    if ffmpeg_path:
+        ffmpeg_dir = str(Path(ffmpeg_path).resolve().parent)
+        current_path = os.environ.get("PATH", "")
+        path_entries = current_path.split(os.pathsep) if current_path else []
+        if ffmpeg_dir not in path_entries:
+            os.environ["PATH"] = os.pathsep.join([ffmpeg_dir, *path_entries])
+
     makeMovieAsync(simulation_path, frame_rate, quality, enable_drawing_mcs, display_movie_callback)
     Configuration.setSetting("RecentMoviePath", str(simulation_path))
 
@@ -93,25 +101,44 @@ def find_ffmpeg():
 
     candidates = []
 
-    # 1) PATH lookup (safe: always pass str)
-    ffmpeg = shutil.which("ffmpeg")
+    executable_name = "ffmpeg.exe" if sys.platform.startswith("win") else "ffmpeg"
+
+    def add_environment_candidates(prefix):
+        if not prefix:
+            return
+
+        prefix = Path(prefix)
+        if sys.platform.startswith("win"):
+            candidates.extend([
+                str(prefix / "Library" / "bin" / executable_name),
+                str(prefix / "Scripts" / executable_name),
+            ])
+        else:
+            candidates.append(str(prefix / "bin" / executable_name))
+
+    # 1) Search the environment that is running the player.
+    # sys.prefix is tied to the active Python interpreter and is more reliable
+    # than CONDA_PREFIX when the process was launched by an IDE or a script.
+    add_environment_candidates(sys.prefix)
+    add_environment_candidates(Path(sys.executable).parent.parent)
+
+    # 2) PATH lookup (safe: always pass str)
+    ffmpeg = shutil.which(executable_name)
     if ffmpeg:
         candidates.append(ffmpeg)
 
-    # 2) Conda / virtualenv
-    env_prefix = os.environ.get("CONDA_PREFIX") or sys.prefix
-    if env_prefix:
-        bin_dir = Path(env_prefix) / ("Scripts" if sys.platform.startswith("win") else "bin")
-        candidates.append(str(bin_dir / ("ffmpeg.exe" if sys.platform.startswith("win") else "ffmpeg")))
+    # 3) Check CONDA_PREFIX as a fallback. It can refer to the parent or
+    # shell environment rather than the interpreter running the player.
+    add_environment_candidates(os.environ.get("CONDA_PREFIX"))
 
-    # 3) Homebrew (macOS)
+    # 4) Homebrew (macOS)
     if sys.platform.startswith("darwin"):
         candidates += [
             "/opt/homebrew/bin/ffmpeg",  # Apple Silicon
             "/usr/local/bin/ffmpeg",  # Intel Homebrew
         ]
 
-    # 4) Windows common locations
+    # 5) Windows common locations
     if sys.platform.startswith("win"):
         candidates += [
             r"C:\ffmpeg\bin\ffmpeg.exe",
@@ -119,7 +146,7 @@ def find_ffmpeg():
             r"C:\Program Files (x86)\ffmpeg\bin\ffmpeg.exe",
         ]
 
-    # 5) Remove duplicates and non-existing
+    # 6) Remove duplicates and non-existing
     candidates = list(dict.fromkeys(candidates))
 
     for path in candidates:
@@ -133,13 +160,14 @@ def find_ffmpeg():
 
         # Verify it actually runs
         try:
-            subprocess.run(
+            result = subprocess.run(
                 [path, "-version"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 timeout=2,
             )
-            return path
+            if result.returncode == 0:
+                return path
         except Exception:
             continue
 
