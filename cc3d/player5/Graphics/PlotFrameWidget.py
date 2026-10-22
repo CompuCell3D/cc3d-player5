@@ -19,6 +19,7 @@ class PlotFrameWidget(QtWidgets.QFrame):
 
         self.plot_params = kwds
         self.plotWidget = pg.PlotWidget()
+        self._independent_y_axes = []
 
         self.tweak_context_menu(plot_item=self.plotWidget.plotItem)
 
@@ -53,12 +54,31 @@ class PlotFrameWidget(QtWidgets.QFrame):
             y_log_flag = True
 
         self.plotWidget.setLogMode(x=x_log_flag, y=y_log_flag)
+        # PlotItem's controls update its own curves and overwrite the built-in
+        # right axis. Restore independent axes after that update, and propagate
+        # the shared x transform to curves living in additional ViewBoxes.
+        controls = self.plotWidget.plotItem.ctrl
+        controls.logXCheck.toggled.connect(self._sync_independent_axes)
+        controls.logYCheck.toggled.connect(self._sync_independent_axes)
         if kwds["grid"]:
             self.plotWidget.showGrid(x=True, y=True, alpha=1.0)
 
         self.setLayout(layout)
         # needs to be defined to resize smaller than 400x400
         self.setMinimumSize(100, 100)
+
+    def register_y_axis(self, axis, view, curve, logarithmic):
+        self._independent_y_axes.append((axis, view, curve, logarithmic))
+        self._sync_independent_axes()
+
+    def _sync_independent_axes(self, *args):
+        x_log = self.plotWidget.plotItem.ctrl.logXCheck.isChecked()
+        for axis, view, curve, y_log in self._independent_y_axes:
+            axis.setLogMode(y_log)
+            view.setLogMode('x', x_log)
+            view.setLogMode('y', y_log)
+            if hasattr(curve, 'setLogMode'):
+                curve.setLogMode(x_log, y_log)
 
     def sizeHint(self):
         # this sizeHint is used in PLotManager to resize mdi window
