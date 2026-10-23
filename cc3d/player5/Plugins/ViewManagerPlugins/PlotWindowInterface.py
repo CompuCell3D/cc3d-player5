@@ -165,10 +165,10 @@ class PlotWindowInterface(QtCore.QObject):
         :param color:
         :param size:
         :param alpha:
-        :param separate_y_axis:
-        :param y_min:
-        :param y_max:
-        :param y_scale_type:
+        :param separate_y_axis: Give this series its own y axis (the first uses the left axis).
+        :param y_min: Lower y limit in original data units, including for log axes.
+        :param y_max: Upper y limit in original data units, including for log axes.
+        :param y_scale_type: "linear" or "log"; None inherits the window yScaleType.
         :return:
         """
 
@@ -181,8 +181,16 @@ class PlotWindowInterface(QtCore.QObject):
                                    'for this data series')
         else:
             allowed_y_scaled_types = ['linear', 'log']
-            if y_scale_type is not None and y_scale_type.lower() not in allowed_y_scaled_types:
+            if y_scale_type is not None and y_scale_type.strip().lower() not in allowed_y_scaled_types:
                 raise RuntimeError(f'y_scale_type can be only one of {allowed_y_scaled_types}')
+
+        effective_scale = (y_scale_type or self.plot_params['yScaleType']).strip().lower()
+        if separate_y_axis:
+            for limit in (y_min, y_max):
+                if limit is not None and (not np.isfinite(limit) or (effective_scale == 'log' and limit <= 0)):
+                    raise ValueError('Y limits must be finite and positive for logarithmic axes')
+            if y_min is not None and y_max is not None and y_min >= y_max:
+                raise ValueError('y_min must be smaller than y_max')
 
         plot_param_dict = {
             '_plotName': plot_name,
@@ -282,12 +290,13 @@ class PlotWindowInterface(QtCore.QObject):
 
         elif style.lower() == 'lines':
             pen = pg.mkPen(color=color, width=size)
-            plot_obj = pg.PlotCurveItem(y=yd, x=xd, pen=pen, name=plot_name)
+            plot_obj = pg.PlotDataItem(y=yd, x=xd, pen=pen, name=plot_name)
+
 
         elif style.lower() == 'steps':
             xd, yd = np.array([0, .00001], dtype=float), np.array([1], dtype=float)
 
-            plot_obj = pg.PlotCurveItem(xd, yd, stepMode=True, fillLevel=0, brush=color, name=plot_name)
+            plot_obj = pg.PlotDataItem(xd, yd, stepMode=True, fillLevel=0, brush=color, name=plot_name)
 
         elif style.lower() == 'bars':
 
@@ -326,87 +335,46 @@ class PlotWindowInterface(QtCore.QObject):
         y_scale_type = psd['y_scale_type']
         set_y_range_allowed = psd['set_y_range_allowed']
 
-        y_log_flag = False
-        if y_scale_type is not None and y_scale_type.strip().lower() == 'log':
-            y_log_flag = True
+        y_scale_type = (y_scale_type or self.plot_params['yScaleType']).strip().lower()
+        psd['y_scale_type'] = y_scale_type
+        y_log_flag = y_scale_type == 'log'
+        primary = self.pW.plotItem
+        if self.first_plot_item is None:
+            self.first_plot_item = primary
+            primary.vb.sigResized.connect(self.update_views)
 
-        if len(self.plotDrawingObjects) == 1:
-            self.first_plot_item = self.pW.plotItem
-            plot_specs_dict['plot_item_ref'] = weakref.ref(self.first_plot_item)
-
-            # self.pW.getViewBox().addItem(plot_obj)
-            self.first_plot_item.vb.sigResized.connect(self.update_views)
+        if len(self.plotDrawingObjects) == 1 or not separate_y_axis:
+            if separate_y_axis:
+                primary.setLogMode(y=y_log_flag)
+                primary.getAxis('left').setLabel(plot_name, color=wc.rgb_to_hex(axis_color[:3]))
             self.pW.addItem(plot_obj)
-            # if firstly added item requests to use separate y axis we will rename left y axis to correspond to this
-            # data series
-            if separate_y_axis:
-                y_axis_item = self.first_plot_item.getAxis('left')
-                color = wc.rgb_to_hex(axis_color[:3])
-                y_axis_item.setLabel(plot_name, color=color)
-
-                y_axis_item.setLogMode(y_log_flag)
-
-            if set_y_range_allowed:
-                # print('this should never happen set_y_range_allowed=', set_y_range_allowed)
-                # if user specifies both limits we can set it here
-                self.first_plot_item.setYRange(y_min, y_max)
+            view = primary.vb
         else:
-            if separate_y_axis:
-                p1 = self.first_plot_item
-
-                if len(self.plotDrawingObjects) == 2:
-                    # adding another data series to the same plot window=
-                    self.right_axis_count += 1
-                    p2 = pg.ViewBox()
-                    p1.showAxis('right')
-                    p1.scene().addItem(p2)
-                    p1.getAxis('right').linkToView(p2)
-
-                    p1.getAxis('right').setLogMode(y_log_flag)
-                    p2.setXLink(p1)
-
-                    line_color = wc.rgb_to_hex(axis_color[:3])
-                    p1.getAxis('right').setLabel(plot_name, color=line_color)
-                    p2.addItem(plot_obj)
-                    # plot_obj.setLogMode(x=False, y=y_log_flag)
-                    if set_y_range_allowed:
-                        # if user specifies both limits we can set it here
-                        p2.setYRange(y_min, y_max)
-
-                    plot_specs_dict['plot_item_ref'] = weakref.ref(p2)
-
-                else:
-                    # we need to create a new axis as well
-                    self.right_axis_count += 1
-                    p2 = pg.ViewBox()
-                    ax2 = pg.AxisItem('right')
-                    ax2.setLogMode(y_log_flag)
-                    # note addItem function in general takes parameters that tell where to add an item in terms of
-                    # layout position e.g. l.addItem(a2, row = 2, col = 5,  rowspan=1, colspan=1)
-                    # see for example
-                    # https://stackoverflow.com/questions/29473757/pyqtgraph-multiple-y-axis-on-left-side
-                    p1.layout.addItem(ax2, 2, 1 + self.right_axis_count)
-                    p1.scene().addItem(p2)
-                    ax2.linkToView(p2)
-                    p2.setXLink(p1)
-                    line_color = wc.rgb_to_hex(axis_color[:3])
-                    ax2.setLabel(plot_name, color=line_color)
-                    p2.addItem(plot_obj)
-                    if set_y_range_allowed:
-                        # if user specifies both limits we can set it here
-                        p2.setYRange(y_min, y_max)
-
-                    plot_specs_dict['plot_item_ref'] = weakref.ref(p2)
-
-                # adding item to the legend
-                legend = self.first_plot_item.legend
-                if legend is not None and self.legend_added:
-                    legend.addItem(plot_obj, plot_name)
-
+            view = pg.ViewBox()
+            primary.scene().addItem(view)
+            self.right_axis_count += 1
+            if self.right_axis_count == 1:
+                primary.showAxis('right')
+                axis = primary.getAxis('right')
             else:
-                self.pW.addItem(plot_obj)
+                axis = pg.AxisItem('right')
+                primary.layout.addItem(axis, 2, 2 + self.right_axis_count)
+            axis.linkToView(view)
+            view.setXLink(primary.vb)
+            axis.setLabel(plot_name, color=wc.rgb_to_hex(axis_color[:3]))
+            view.addItem(plot_obj)
+            self.plotWindow.register_y_axis(axis, view, plot_obj, y_log_flag)
+            if primary.legend is not None and self.legend_added:
+                primary.legend.addItem(plot_obj, plot_name)
 
-            self.update_views()
+        # Keep a strong reference: the scene owns the Qt object, but callers
+        # also need the Python wrapper when adjusting ranges and geometry.
+        psd['view_box'] = view
+        psd['plot_item_ref'] = weakref.ref(view)
+        if set_y_range_allowed:
+            limits = np.log10([y_min, y_max]) if y_log_flag else (y_min, y_max)
+            view.setYRange(*limits, padding=0)
+        self.update_views()
 
     def update_views(self):
         """
@@ -415,19 +383,12 @@ class PlotWindowInterface(QtCore.QObject):
         The code is based on MultiplePlotAxes.py demo from pyqtgraph
         :return:
         """
-        p1 = self.first_plot_item
-        for i, (plot_name, plot_drawing_objects_data_dict) in enumerate(self.plotDrawingObjects.items()):
-
-            if i == 0 or not plot_drawing_objects_data_dict['separate_y_axis']:
-                # we link link view box of plots second third etc to the view box of plot one
-                continue
-            plot_item = plot_drawing_objects_data_dict['curve']
-            view_box = plot_item.getViewBox()
-            try:
-                view_box.setGeometry(p1.vb.sceneBoundingRect())
-            except AttributeError:
-                print
-            view_box.linkedViewChanged(p1.vb, view_box.XAxis)
+        primary_view = self.first_plot_item.vb
+        for specs in self.plotDrawingObjects.values():
+            view = specs.get('view_box')
+            if view is not None and view is not primary_view:
+                view.setGeometry(primary_view.sceneBoundingRect())
+                view.linkedViewChanged(primary_view, view.XAxis)
 
     @deprecated(version='4.0.0', reason="You should use : erase_all_data")
     def eraseAllData(self):
@@ -746,10 +707,21 @@ class PlotWindowInterface(QtCore.QObject):
 
         pdo = plot_drawing_objects
         plot_item = pdo['plot_item_ref']()
+        vec = np.asarray(vec)
+        vec = vec[np.isfinite(vec)]
+        logarithmic = pdo['view_box'].state['logMode'][1]
+        if logarithmic:
+            vec = vec[vec > 0]
+        if not vec.size:
+            return
         limit = compute_limit_fcn(vec)
         y_range = [pdo['y_min'], pdo['y_max']]
         y_range[compute_limit_tuple_idx] = limit
-        plot_item.setYRange(*y_range)
+        if y_range[0] >= y_range[1]:
+            return
+        if logarithmic:
+            y_range = np.log10(y_range)
+        plot_item.setYRange(*y_range, padding=0)
 
     def __show_all_plots_handler(self, _mutex=None):
 
