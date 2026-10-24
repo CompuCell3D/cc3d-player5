@@ -944,7 +944,22 @@ class SimpleTabView(MainArea, SimpleViewManager):
         if not force_compile and not auto_compile_enabled():
             return False
 
-        plans = compiled_steppable_build_plan(self.__sim_file_name)
+        try:
+            plans = compiled_steppable_build_plan(self.__sim_file_name)
+        except Exception as error:
+            # Build-plan discovery happens before the asynchronous compiler is
+            # started. Route discovery failures through the same user-facing
+            # notification as compiler failures instead of letting them reach
+            # the generic GUI callback handler.
+            self.displayStatusInfo("C++ steppable compilation failed")
+            show_text_messagebox(
+                title="Player Error",
+                message="C++ steppable compilation failed.",
+                informative_text="Simulation startup was stopped. See details for compiler output.",
+                detailed_text=str(error),
+                parent=self,
+            )
+            return True
         if not plans:
             return False
 

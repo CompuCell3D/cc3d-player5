@@ -6,7 +6,7 @@ from PyQt5.QtCore import QObject, QThread, Qt, pyqtSignal
 from PyQt5.QtGui import QColor, QBrush, QFont
 from PyQt5.QtWidgets import (
     QAbstractItemView, QApplication, QDialog, QFormLayout, QHBoxLayout, QLabel, QMenu,
-    QMessageBox, QLineEdit, QProgressBar, QPushButton, QTabWidget, QTreeWidget, QTreeWidgetItem,
+    QLineEdit, QProgressBar, QPushButton, QTabWidget, QTreeWidget, QTreeWidgetItem,
     QTextEdit,
     QVBoxLayout, QWidget,
 )
@@ -15,6 +15,7 @@ from cc3d.core.CompiledSteppableAutoCompiler import compiled_steppable_project_s
 from cc3d.core.CompiledSteppableCompilerSettings import (
     current_platform_key, load_settings, refresh_detected_compiler, save_settings, settings_path,
 )
+from cc3d.player5.Utilities import show_text_messagebox
 from .compile_dialog import CompiledSteppableCompileDialog
 
 
@@ -198,6 +199,7 @@ class CompiledSteppablesDialog(QDialog):
             branch.setFont(0, self._heading_font())
             branch.setForeground(2, self._status_brush(plan.needs_compile))
             self._add_tree_property(branch, "Source", plan.source_path)
+            self._add_build_inputs(branch, plan)
             self._add_tree_property(branch, "Output", plan.output_path,
                                     "present" if plan.output_path.exists() else "missing",
                                     valid=plan.output_path.exists())
@@ -227,6 +229,44 @@ class CompiledSteppablesDialog(QDialog):
         self.details.setPlainText("\n".join(
             f"{plan.source_path}: {plan.reason}" for plan in plans
         ))
+
+    def _add_build_inputs(self, parent, plan):
+        source_root = Path(plan.source_root).resolve()
+        source_path = Path(plan.source_path).resolve()
+        input_paths = [Path(path) for path in plan.source_paths]
+        input_paths.extend(Path(path) for path in plan.header_paths)
+        input_paths = sorted({path.resolve() for path in input_paths}, key=lambda path: str(path).lower())
+
+        inputs_branch = QTreeWidgetItem(parent, [f"Build inputs ({len(input_paths)} files)", "", ""])
+        inputs_branch.setToolTip(0, "Source and header files discovered for this build target")
+        inputs_branch.setExpanded(False)
+
+        directories = {(): inputs_branch}
+        for input_path in input_paths:
+            try:
+                relative_path = input_path.relative_to(source_root)
+            except ValueError:
+                relative_path = Path(input_path.name)
+
+            parts = relative_path.parts
+            directory_parts = parts[:-1]
+            parent_item = inputs_branch
+            for index in range(1, len(directory_parts) + 1):
+                directory = directory_parts[:index]
+                directory_item = directories.get(directory)
+                if directory_item is None:
+                    directory_item = QTreeWidgetItem(parent_item, [directory[-1], "", ""])
+                    directories[directory] = directory_item
+                parent_item = directory_item
+
+            is_entry = input_path == source_path
+            label = parts[-1] + (" [entry]" if is_entry else "")
+            item = QTreeWidgetItem(parent_item, [label, "", "entry" if is_entry else ""])
+            item.setData(0, Qt.UserRole, str(input_path))
+            item.setToolTip(0, str(input_path))
+            item.setToolTip(2, str(input_path))
+            if is_entry:
+                item.setForeground(0, self._status_brush(False))
 
     @staticmethod
     def _status_brush(needs_compile):
@@ -266,12 +306,13 @@ class CompiledSteppablesDialog(QDialog):
         value = item.text(column)
         if not value:
             return
+        copy_value_text = item.data(column, Qt.UserRole) or value
         menu = QMenu(self.tree)
         copy_value = menu.addAction("Copy value")
         copy_row = menu.addAction("Copy row")
         action = menu.exec_(self.tree.viewport().mapToGlobal(position))
         if action == copy_value:
-            QApplication.clipboard().setText(value)
+            QApplication.clipboard().setText(str(copy_value_text))
         elif action == copy_row:
             QApplication.clipboard().setText(" | ".join(item.text(i) for i in range(3)))
 
@@ -289,7 +330,13 @@ class CompiledSteppablesDialog(QDialog):
 
     def _compile_failed(self, error, text):
         self.details.setPlainText(text)
-        QMessageBox.warning(self, "Compilation failed", error)
+        show_text_messagebox(
+            title="Player Error",
+            message="C++ steppable compilation failed.",
+            informative_text="Compilation failed. See details for compiler output.",
+            detailed_text=text or error,
+            parent=self,
+        )
         self.refresh_status()
 
     def clean_artifacts(self):
