@@ -15,6 +15,7 @@ from cc3d.core.CompiledSteppableAutoCompiler import compiled_steppable_project_s
 from cc3d.core.CompiledSteppableCompilerSettings import (
     current_platform_key, load_settings, refresh_detected_compiler, save_settings, settings_path,
 )
+from cc3d.scripts.compile_steppable import clean_compiled_steppable_artifacts
 from cc3d.player5.Utilities import show_text_messagebox
 from .compile_dialog import CompiledSteppableCompileDialog
 
@@ -343,14 +344,10 @@ class CompiledSteppablesDialog(QDialog):
         if self.simulation_running:
             return
         for plan in self.status.plans:
-            output = Path(plan.output_path)
-            for path in (output, Path(plan.metadata_path), output.with_suffix(".obj"),
-                         output.with_suffix(".exp"), output.with_suffix(".lib"),
-                         output.with_suffix(".pdb")):
-                try:
-                    path.unlink(missing_ok=True)
-                except OSError as error:
-                    self.details.append(f"Could not remove {path}: {error}")
+            try:
+                clean_compiled_steppable_artifacts(plan.output_path)
+            except OSError as error:
+                self.details.append(f"Could not clean artifacts for {plan.output_path}: {error}")
         self.refresh_status()
 
     def refresh_settings(self):
