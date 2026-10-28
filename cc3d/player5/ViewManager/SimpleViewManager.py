@@ -644,10 +644,12 @@ class SimpleViewManager(QObject):
 
         if version_str is None or not str(version_str).strip():
             print(f'{MODULENAME} Could not fetch release metadata from {url_str}')
+            self._show_update_check_failure()
             return
 
         release_metadata = self.parse_release_metadata(version_str)
         if not release_metadata:
+            self._show_update_check_failure()
             return
 
         current_version = release_metadata['version']
@@ -707,6 +709,16 @@ class SimpleViewManager(QObject):
         elif self.display_no_update_info:
             ret = QMessageBox.information(self, 'Software update check', 'You are running latest version of CC3D.',
                                           QMessageBox.Ok)
+
+    def _show_update_check_failure(self):
+        """Notify the user only when an update check was requested manually."""
+        if self.display_no_update_info:
+            QMessageBox.warning(
+                self,
+                'Software update check',
+                'The latest CC3D release could not be checked at this time. Please try again later.',
+                QMessageBox.Ok
+            )
 
     def __check_update(self):
         """
