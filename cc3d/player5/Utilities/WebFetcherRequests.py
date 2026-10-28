@@ -47,17 +47,22 @@ class WebFetcherRequestsThread(QThread):
         ok = False
         content = ''
         try:
-            r = requests.get(self.url_str)
-
-        except requests.exceptions.ConnectionError:
-            return ok, content
-        except:
+            r = requests.get(self.url_str, timeout=10)
+        except requests.exceptions.RequestException as error:
+            print(f'Could not fetch {self.url_str}: {error}')
             return ok, content
 
         ok = r.ok
 
         if r.ok:
-            content = r.content.decode(r.encoding)
+            # GitHub may omit a charset on an application/json response.
+            # JSON downloaded over HTTP is UTF-8 by default.
+            encoding = r.encoding or 'utf-8'
+            try:
+                content = r.content.decode(encoding)
+            except (LookupError, UnicodeDecodeError) as error:
+                print(f'Could not decode response from {self.url_str}: {error}')
+                return False, ''
 
         return ok, content
 
