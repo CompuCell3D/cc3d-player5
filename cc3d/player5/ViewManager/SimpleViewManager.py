@@ -1,7 +1,7 @@
 # todo: abstract launch buttons to installed editors
 
 import sys
-import re
+import json
 from weakref import ref
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
@@ -46,7 +46,8 @@ class SimpleViewManager(QObject):
             "ZoomFactor": Configuration.getSetting("ZoomFactor"),
         }
 
-        self.cc3d_updates_url = "http://www.compucell3d.org/current_version_conda_based"
+        self.cc3d_updates_url = \
+            "https://github.com/CompuCell3D/CompuCell3D/releases/latest/download/cc3d-release.json"
 
         # file actions
         self.open_act = None
@@ -543,61 +544,62 @@ class SimpleViewManager(QObject):
         self.version_fetcher.gotWebContentSignal.connect(self.process_version_check)
         self.version_fetcher.fetch(self.cc3d_updates_url)
 
-    def extract_current_version(self, version_html_str):
+    @staticmethod
+    def parse_release_metadata(content):
         """
-        parses html string from http://www.compucell3d.org/current_version
-        and returns version and revision numbers
-        :param version_html_str:
-        :return:
+        Parse the JSON release metadata consumed by the update checker.
+
+        An empty dictionary indicates malformed or incomplete remote data.
+        Returning an empty dictionary lets the periodic update check fail
+        silently without presenting a misleading update message.
         """
-        if str(version_html_str) == '':
-            print(f'Could not fetch {self.cc3d_updates_url} webpage')
-            return None, None
+        if content is None or not str(content).strip():
+            print(f'{MODULENAME} Could not parse empty release metadata response')
+            return {}
 
-        current_version = None
-        current_revision = None
+        try:
+            metadata = json.loads(content)
+        except (TypeError, ValueError) as error:
+            print(f'{MODULENAME} Could not parse release metadata JSON: {error}')
+            return {}
 
-        current_version_regex = re.compile(r"(current version)([0-9\. ]*)")
+        if not isinstance(metadata, dict):
+            print(f'{MODULENAME} Release metadata must be a JSON object')
+            return {}
 
-        for line in str(version_html_str).split("\n"):
-            search_obj = re.search(current_version_regex, line)
+        required_fields = ('version', 'revision', 'whats_new', 'release_url')
+        missing_fields = [field for field in required_fields if field not in metadata]
+        if missing_fields:
+            print(f'{MODULENAME} Release metadata missing fields: {", ".join(missing_fields)}')
+            return {}
 
-            if search_obj:
-                try:
-                    version_info = search_obj.groups()[1]
-                    version_info = version_info.strip()
-                    current_version, current_revision = version_info.split(' ')
-                except:
-                    pass
+        version = metadata['version']
+        revision = metadata['revision']
+        whats_new = metadata['whats_new']
+        release_url = metadata['release_url']
 
-        return current_version, current_revision
+        if not isinstance(version, str) or not version.strip():
+            print(f'{MODULENAME} Release metadata has an invalid version')
+            return {}
 
-    def extract_whats_new_list(self, version_html_str):
-        """
-        parses html string from http://www.compucell3d.org/current_version
-        and returns what's new list
-        :param version_html_str:
-        :return:
-        """
-        whats_new_list = []
+        if isinstance(revision, bool) or not isinstance(revision, (int, str)):
+            print(f'{MODULENAME} Release metadata has an invalid revision')
+            return {}
+        try:
+            int(revision)
+        except (TypeError, ValueError):
+            print(f'{MODULENAME} Release metadata has an invalid revision')
+            return {}
 
-        # (.*?)(<) ensures non-greedy match i.e. all the characters will be matched until first occurrence of '<'
-        whats_new_regex = re.compile(r"(>[\S]*what is new:)(.*?)(<)")
+        if not isinstance(whats_new, list) or not all(isinstance(item, str) for item in whats_new):
+            print(f'{MODULENAME} Release metadata has an invalid whats_new list')
+            return {}
 
-        for line in str(version_html_str).split("\n"):
+        if not isinstance(release_url, str) or not release_url.strip():
+            print(f'{MODULENAME} Release metadata has an invalid release_url')
+            return {}
 
-            search_obj_whats_new = re.search(whats_new_regex, line)
-
-            if search_obj_whats_new:
-
-                try:
-                    whats_new = search_obj_whats_new.groups()[1]
-                    whats_new = whats_new.strip()
-                    whats_new_list = whats_new.split(', ')
-                except (IndexError, AttributeError):
-                    pass
-
-        return whats_new_list
+        return metadata
 
     @staticmethod
     def check_if_running_latest_version(latest_version, latest_revision):
@@ -612,7 +614,7 @@ class SimpleViewManager(QObject):
 
         try:
             latest_version_number = int(latest_version.replace('.', ''))
-        except:
+        except (AttributeError, TypeError, ValueError):
             # this can happen when the page gets "decorated" by e.g. your hotel network
             # will have to come up with a better way of dealing with it
             return True
@@ -629,22 +631,28 @@ class SimpleViewManager(QObject):
 
         return True
 
-    def process_version_check(self, version_str, url_str="http://www.compucell3d.org/current_version"):
+    def process_version_check(self, version_str, url_str=None):
         """
-        This function extracts current version and revision numbers from the http://www.compucell3d.org/current_version
-        It informs users that new version is available and allows easy redirection to the download site
-        :param version_str: content of the web page with the current version information
-        :param url_str: url of the webpage with the current version information
+        Process JSON release metadata and inform users about available updates.
+        The release URL from the metadata is used for the upgrade link.
+        :param version_str: JSON release metadata content
+        :param url_str: URL from which the metadata was fetched
         :return: None
         """
-        # print('got the following string:', version_str)
-        if str(version_str) == '':
-            print(f'Could not fetch {url_str} webpage')
+        if url_str is None:
+            url_str = self.cc3d_updates_url
+
+        if version_str is None or not str(version_str).strip():
+            print(f'{MODULENAME} Could not fetch release metadata from {url_str}')
             return
 
-        current_version, current_revision = self.extract_current_version(version_html_str=version_str)
+        release_metadata = self.parse_release_metadata(version_str)
+        if not release_metadata:
+            return
 
-        whats_new_list = self.extract_whats_new_list(version_html_str=version_str)
+        current_version = release_metadata['version']
+        current_revision = release_metadata['revision']
+        whats_new_list = release_metadata['whats_new']
 
         encourage_update = False
         display_new_version_info = False
@@ -694,7 +702,7 @@ class SimpleViewManager(QObject):
 
             if ret == QMessageBox.Yes:
                 # self.do_update(package_name='compucell3d', version=current_version)
-                QDesktopServices.openUrl(QUrl('http://sourceforge.net/projects/cc3d/files/' + current_version))
+                QDesktopServices.openUrl(QUrl(release_metadata['release_url']))
 
         elif self.display_no_update_info:
             ret = QMessageBox.information(self, 'Software update check', 'You are running latest version of CC3D.',
@@ -763,7 +771,7 @@ class SimpleViewManager(QObject):
                           Indiana University, Bloomington, IN\
                           <p><b>CompuCell Player</b> is a visualization engine for CompuCell.</p>"
         more_info_text = "More information " \
-                         "at:<br><a href=\"http://www.compucell3d.org/\">http://www.compucell3d.org/</a>"
+                         "at:<br><a href=\"https://www.compucell3d.org/\">https://www.compucell3d.org/</a>"
 
         l_version_string = "<br><br><small><small>Support library information:<br>Python runtime version: " \
                            "%s<br>Qt runtime version: %s<br>Qt compile-time version: " \

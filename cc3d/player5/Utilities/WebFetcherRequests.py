@@ -135,6 +135,6 @@ if __name__ == "__main__":
     app = QCoreApplication([])
     ex = WebFetcherRequests(app)
     ex.gotWebContentSignal.connect(print_response)
-    ex.fetch(url_str="http://www.compucell3d.org/current_version")
+    ex.fetch(url_str="https://github.com/CompuCell3D/CompuCell3D/releases/latest/download/cc3d-release.json")
 
     sys.exit(app.exec_())
