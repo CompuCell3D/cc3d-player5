@@ -101,31 +101,44 @@ def find_ffmpeg():
 
     candidates = []
 
-    # 1) PATH lookup (safe: always pass str)
-    ffmpeg = shutil.which("ffmpeg")
+    executable_name = "ffmpeg.exe" if sys.platform.startswith("win") else "ffmpeg"
+
+    def add_environment_candidates(prefix):
+        if not prefix:
+            return
+
+        prefix = Path(prefix)
+        if sys.platform.startswith("win"):
+            candidates.extend([
+                str(prefix / "Library" / "bin" / executable_name),
+                str(prefix / "Scripts" / executable_name),
+            ])
+        else:
+            candidates.append(str(prefix / "bin" / executable_name))
+
+    # 1) Search the environment that is running the player.
+    # sys.prefix is tied to the active Python interpreter and is more reliable
+    # than CONDA_PREFIX when the process was launched by an IDE or a script.
+    add_environment_candidates(sys.prefix)
+    add_environment_candidates(Path(sys.executable).parent.parent)
+
+    # 2) PATH lookup (safe: always pass str)
+    ffmpeg = shutil.which(executable_name)
     if ffmpeg:
         candidates.append(ffmpeg)
 
-    # 2) Conda / virtualenv
-    env_prefix = os.environ.get("CONDA_PREFIX") or sys.prefix
-    if env_prefix:
-        executable_name = "ffmpeg.exe" if sys.platform.startswith("win") else "ffmpeg"
-        if sys.platform.startswith("win"):
-            candidates.extend([
-                str(Path(env_prefix) / "Library" / "bin" / executable_name),
-                str(Path(env_prefix) / "Scripts" / executable_name),
-            ])
-        else:
-            candidates.append(str(Path(env_prefix) / "bin" / executable_name))
+    # 3) Check CONDA_PREFIX as a fallback. It can refer to the parent or
+    # shell environment rather than the interpreter running the player.
+    add_environment_candidates(os.environ.get("CONDA_PREFIX"))
 
-    # 3) Homebrew (macOS)
+    # 4) Homebrew (macOS)
     if sys.platform.startswith("darwin"):
         candidates += [
             "/opt/homebrew/bin/ffmpeg",  # Apple Silicon
             "/usr/local/bin/ffmpeg",  # Intel Homebrew
         ]
 
-    # 4) Windows common locations
+    # 5) Windows common locations
     if sys.platform.startswith("win"):
         candidates += [
             r"C:\ffmpeg\bin\ffmpeg.exe",
@@ -133,7 +146,7 @@ def find_ffmpeg():
             r"C:\Program Files (x86)\ffmpeg\bin\ffmpeg.exe",
         ]
 
-    # 5) Remove duplicates and non-existing
+    # 6) Remove duplicates and non-existing
     candidates = list(dict.fromkeys(candidates))
 
     for path in candidates:
@@ -147,13 +160,14 @@ def find_ffmpeg():
 
         # Verify it actually runs
         try:
-            subprocess.run(
+            result = subprocess.run(
                 [path, "-version"],
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
                 timeout=2,
             )
-            return path
+            if result.returncode == 0:
+                return path
         except Exception:
             continue
 

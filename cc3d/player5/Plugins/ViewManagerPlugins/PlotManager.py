@@ -1,6 +1,7 @@
 from .PlotWindowInterface import PlotWindowInterface
 from cc3d.player5.Graphics.GraphicsWindowData import GraphicsWindowData
 from PyQt5 import QtCore
+import sys
 from cc3d.player5.Graphics.PlotFrameWidget import PlotFrameWidget
 import cc3d.player5.Configuration as Configuration
 from cc3d.core.enums import *
@@ -123,7 +124,12 @@ class PlotManager(QtCore.QObject, PlotManagerBase):
 
         plot_frame_widget = PlotFrameWidget(self.vm, **obj)
 
-        plot_frame_widget.show()
+        # Showing the widget before it is inserted into its managed subwindow
+        # creates a transient child window on macOS. That transient window can
+        # disturb the main-window dock layout, making the Console dock rigid.
+        # Linux still needs the early show for the plot to initialize correctly.
+        if not sys.platform.startswith("darwin"):
+            plot_frame_widget.show()
 
         mdi_plot_window = self.vm.addSubWindow(plot_frame_widget)
 
