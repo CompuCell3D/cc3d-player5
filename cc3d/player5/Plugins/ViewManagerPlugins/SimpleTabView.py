@@ -24,12 +24,24 @@ from cc3d.player5.Configuration.ConfigurationDialog import ConfigurationDialog
 import cc3d.player5.Configuration as Configuration
 import cc3d.core.DefaultSettingsData as settings_data
 from cc3d.core.BasicSimulationData import BasicSimulationData
+from cc3d.core.CompiledSteppableAutoCompiler import (
+    build_output_path,
+    compiled_steppable_build_plan,
+    compiled_steppable_sources_from_cc3d,
+    compiled_steppable_project_status,
+)
+from cc3d.scripts.compile_steppable import clean_compiled_steppable_artifacts
+from cc3d.core.CompiledSteppableCompilerSettings import auto_compile_enabled
 from cc3d.player5.Graphics.GraphicsWindowData import GraphicsWindowData
 from cc3d.player5.Simulation.CMLResultReader import CMLResultReader
 from cc3d.player5.Simulation.SimulationThread import SimulationThread
 from cc3d.player5.Launchers.param_scan_dialog import ParamScanDialog
 from cc3d.player5.Plugins.ViewManagerPlugins.ScreenshotDescriptionBrowser import ScreenshotDescriptionBrowser
 from cc3d.player5.Plugins.ViewManagerPlugins.simulation_settings_manager import SimulationSettingsManager
+from cc3d.player5.Plugins.ViewManagerPlugins.compile_ui import (
+    CompiledSteppableCompileDialog,
+    CompiledSteppablesDialog,
+)
 from cc3d.core.GraphicsUtils.utils import extract_address_int_from_vtk_object
 from cc3d.player5 import Graphics
 from cc3d.core import XMLUtils
@@ -51,11 +63,12 @@ from cc3d.CompuCellSetup.simulation_utils import str_to_int_container
 from cc3d.CompuCellSetup.utils import SCREENSHOT_SUBDIR
 from typing import Union, Optional
 from cc3d.player5.Utilities.unzipper import Unzipper
-from cc3d.player5.Utilities import show_formatted_error_messagebox
+from cc3d.player5.Utilities import show_formatted_error_messagebox, show_text_messagebox
 from weakref import ref
 from subprocess import Popen
 from cc3d.player5.Utilities.terminal import Terminal
 from cc3d.player5.Plugins.ViewManagerPlugins.MovieMediator import makeMovieWithSettings, setupMovieStatusHandler
+from cc3d.player5.Plugins.ViewManagerPlugins.MovieGeneratorDialog import MovieGeneratorDialog
 
 
 MODULENAME = '---- SimpleTabView.py: '
@@ -190,6 +203,12 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.__outputDirectory = ""
 
         self.__viewManagerType = ViewManagerType.REGULAR
+        self.__compiled_steppable_compile_dialog = None
+        self.__compiled_steppable_compile_in_progress = False
+        self.__compiled_steppable_resume_action = None
+        self.__compiled_steppable_status = None
+        self.__cli_skip_compiled_steppable_compile = False
+        self.__cli_force_compiled_steppable_compile = False
 
         self.graphicsWindowVisDict = OrderedDict()  # stores visualization settings for each open window
 
@@ -578,6 +597,37 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         return {'start_simulation': start_simulation}
 
+    def _prepare_cli_compiled_steppables(self) -> bool:
+        """Apply project-scoped compiled-steppable CLI actions before startup."""
+        if not self.cml_args or not self.__sim_file_name:
+            return True
+
+        force = bool(getattr(self.cml_args, "force_compile_steppables", False))
+        clean_only = bool(getattr(self.cml_args, "clean_compiled_steppables", False))
+        clean_and_compile = bool(getattr(self.cml_args, "clean_and_compile_steppables", False))
+        if not (force or clean_only or clean_and_compile):
+            return True
+
+        try:
+            if clean_only or clean_and_compile:
+                source_paths = compiled_steppable_sources_from_cc3d(self.__sim_file_name)
+                removed_count = 0
+                for source_path in source_paths:
+                    removed_count += len(clean_compiled_steppable_artifacts(build_output_path(source_path)))
+                print(f"Cleaned {removed_count} compiled-steppable artifacts for {len(source_paths)} project resources.")
+
+            self.__cli_skip_compiled_steppable_compile = clean_only
+            self.__cli_force_compiled_steppable_compile = force or clean_and_compile
+            return True
+        except Exception as error:
+            show_text_messagebox(
+                title="Compiled steppable preparation failed",
+                message="The simulation was not started.",
+                informative_text=str(error),
+                parent=self,
+            )
+            return False
+
     def process_command_line_options(self, cml_args: argparse.Namespace) -> None:
         """
         initializes player internal variables based on command line input.
@@ -645,6 +695,9 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.__sim_file_name = sim_file_full_name
         CompuCellSetup.persistent_globals.simulation_file_name = self.__sim_file_name
 
+        if start_simulation and not self._prepare_cli_compiled_steppables():
+            return
+
         if start_simulation:
             if not os.access(self.__sim_file_name, os.F_OK):
                 raise FileNotFoundError("Could not find simulation file: " + self.__sim_file_name)
@@ -680,6 +733,33 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.set_title_window_from_sim_fname(widget=self.UI, abs_sim_fname=self.__sim_file_name)
 
         CompuCellSetup.persistent_globals.simulation_file_name = self.__sim_file_name
+        QTimer.singleShot(0, self.detect_compiled_steppables)
+
+    def detect_compiled_steppables(self):
+        """Inspect the selected project and update the management action."""
+        self.__compiled_steppable_status = None
+        self.compiled_steppables_act.setEnabled(False)
+        if not self.__sim_file_name or Path(self.__sim_file_name).suffix.lower() != ".cc3d":
+            return None
+        try:
+            status = compiled_steppable_project_status(self.__sim_file_name)
+        except Exception as error:
+            print(f"Could not inspect compiled steppables: {error}")
+            return None
+        self.__compiled_steppable_status = status
+        self.compiled_steppables_act.setEnabled(status.has_compiled_steppables and not self.simulationIsRunning)
+        return status
+
+    def open_compiled_steppables_dialog(self):
+        if not self.__sim_file_name or self.simulationIsRunning:
+            return
+        dialog = CompiledSteppablesDialog(
+            project_path=self.__sim_file_name,
+            simulation_running=self.simulationIsRunning,
+            parent=self,
+        )
+        dialog.exec_()
+        self.detect_compiled_steppables()
 
     def reset_control_buttons_and_actions(self) -> None:
         """
@@ -700,6 +780,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.pif_from_simulation_act.setEnabled(False)
         self.pif_from_vtk_act.setEnabled(False)
         self.restart_snapshot_from_simulation_act.setEnabled(False)
+        self.compiled_steppables_act.setEnabled(False)
 
     def reset_control_variables(self) -> None:
         """
@@ -831,6 +912,121 @@ class SimpleTabView(MainArea, SimpleViewManager):
                                   QMessageBox.Ok,
                                   QMessageBox.Ok
                                   )
+
+    def __compiled_steppable_actions(self):
+        return (
+            self.run_act,
+            self.step_act,
+            self.open_act,
+            self.open_lds_act,
+            self.demo_menu_act,
+        )
+
+    def __set_compiled_steppable_actions_enabled(self, enabled: bool) -> None:
+        for action in self.__compiled_steppable_actions():
+            action.setEnabled(enabled)
+
+    def __start_compiled_steppable_compile_if_needed(self, run_action: str) -> bool:
+        """
+        Starts async compilation for C++ steppables declared by the selected .cc3d project.
+
+        :param run_action: str - action to resume after successful compilation
+        :return: bool - True when compilation was started and caller should wait
+        """
+        if self.__compiled_steppable_compile_in_progress:
+            return True
+
+        if self.__cli_skip_compiled_steppable_compile:
+            self.__cli_skip_compiled_steppable_compile = False
+            return False
+
+        force_compile = self.__cli_force_compiled_steppable_compile
+        if not force_compile and not auto_compile_enabled():
+            return False
+
+        try:
+            plans = compiled_steppable_build_plan(self.__sim_file_name)
+        except Exception as error:
+            # Build-plan discovery happens before the asynchronous compiler is
+            # started. Route discovery failures through the same user-facing
+            # notification as compiler failures instead of letting them reach
+            # the generic GUI callback handler.
+            self.displayStatusInfo("C++ steppable compilation failed")
+            show_text_messagebox(
+                title="Player Error",
+                message="C++ steppable compilation failed.",
+                informative_text="Simulation startup was stopped. See details for compiler output.",
+                detailed_text=str(error),
+                parent=self,
+            )
+            return True
+        if not plans:
+            return False
+
+        if not force_compile and not any(plan.needs_compile for plan in plans):
+            print("Compiled steppable auto-compile summary:")
+            for plan in plans:
+                print(f"  [skip] {plan.source_path}")
+                print(f"         -> {plan.output_path} ({plan.reason})")
+            return False
+
+        self.__compiled_steppable_compile_in_progress = True
+        self.__compiled_steppable_resume_action = run_action
+        self.__set_compiled_steppable_actions_enabled(False)
+        self.displayStatusInfo("Compiling C++ steppables...")
+
+        dialog = CompiledSteppableCompileDialog(
+            project_path=self.__sim_file_name,
+            force=force_compile,
+            parent=self,
+        )
+        dialog.succeeded.connect(self.__handle_compiled_steppable_compile_success)
+        dialog.failed.connect(self.__handle_compiled_steppable_compile_failure)
+        dialog.canceled.connect(self.__handle_compiled_steppable_compile_canceled)
+        self.__compiled_steppable_compile_dialog = dialog
+        dialog.start()
+        return True
+
+    def __finish_compiled_steppable_compile(self) -> str:
+        run_action = self.__compiled_steppable_resume_action
+        self.__compiled_steppable_compile_in_progress = False
+        self.__compiled_steppable_resume_action = None
+        self.__compiled_steppable_compile_dialog = None
+        self.__cli_force_compiled_steppable_compile = False
+        self.__set_compiled_steppable_actions_enabled(True)
+        return run_action
+
+    def __handle_compiled_steppable_compile_success(self, summary: dict, formatted_summary: str) -> None:
+        print(formatted_summary)
+        run_action = self.__finish_compiled_steppable_compile()
+        self.displayStatusInfo("C++ steppables compiled")
+        if run_action == "step":
+            QTimer.singleShot(0, self.__stepSim)
+        else:
+            QTimer.singleShot(0, self.__runSim)
+
+    def __handle_compiled_steppable_compile_failure(self, error: str, formatted_summary: str) -> None:
+        print(formatted_summary)
+        self.__finish_compiled_steppable_compile()
+        self.displayStatusInfo("C++ steppable compilation failed")
+        show_text_messagebox(
+            title="Player Error",
+            message="C++ steppable compilation failed.",
+            informative_text="Simulation startup was stopped. See details for compiler output.",
+            detailed_text=formatted_summary,
+            parent=self,
+        )
+
+    def __handle_compiled_steppable_compile_canceled(self) -> None:
+        self.__finish_compiled_steppable_compile()
+        self.displayStatusInfo("C++ steppable compilation canceled")
+        show_text_messagebox(
+            title="Player Error",
+            message="C++ steppable compilation was interrupted.",
+            informative_text="Simulation startup was stopped.",
+            detailed_text="The user interrupted automatic compilation of C++ steppables.",
+            parent=self,
+        )
 
     def handleErrorMessage(self, _errorType, _traceback_message) -> None:
         """
@@ -1135,6 +1331,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.restore_default_global_settings_act.triggered.connect(self.restore_default_global_settings)
 
         self.open_act.triggered.connect(self.__openSimDialog)
+        self.compiled_steppables_act.triggered.connect(self.open_compiled_steppables_dialog)
         self.open_lds_act.triggered.connect(self.__openLDSFile)
 
         # qApp is a member of QtGui. closeAllWindows will cause closeEvent and closeEventSimpleTabView will be called
@@ -1866,9 +2063,13 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
 
         self.simulation.screenUpdateFrequency = self.__updateScreen
+        self.compiled_steppables_act.setEnabled(False)
 
         if not self.drawingAreaPrepared:
             if self.maybe_launch_param_scan():
+                return
+
+            if self.__start_compiled_steppable_compile_if_needed(run_action="run"):
                 return
 
             prepare_flag = self.prepareSimulation(run_action="run")
@@ -1943,10 +2144,14 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # when we step we need to ensure screenUpdateFrequency is 1
         self.simulation.screenUpdateFrequency = 1
+        self.compiled_steppables_act.setEnabled(False)
 
         if not self.drawingAreaPrepared:
 
             if self.maybe_launch_param_scan():
+                return
+
+            if self.__start_compiled_steppable_compile_if_needed(run_action="step"):
                 return
 
             prepare_flag = self.prepareSimulation(run_action="step")
@@ -2573,6 +2778,8 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         CompuCellSetup.resetGlobals()
 
+        QTimer.singleShot(0, self.detect_compiled_steppables)
+
         # self.close_all_windows()
 
     def close_all_windows(self):
@@ -3139,6 +3346,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         Configuration.setSetting("RecentFile", self.__sim_file_name)
         #  each loaded simulation has to be passed to a function which updates list of recent files
         Configuration.setSetting("RecentSimulations", self.__sim_file_name)
+        QTimer.singleShot(0, self.detect_compiled_steppables)
 
     def check_for_param_scan(self, sim_file_name: Union[str, Path]) -> bool:
         """
@@ -3233,6 +3441,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # each loaded simulation has to be passed to a function which updates list of recent files
         Configuration.setSetting("RecentSimulations", self.__sim_file_name)
+        QTimer.singleShot(0, self.detect_compiled_steppables)
 
     def __checkCells(self, checked):
         """
@@ -3664,7 +3873,6 @@ class SimpleTabView(MainArea, SimpleViewManager):
         print('opening scr browser')
 
     def generate_simulation_movies(self):
-        from cc3d.player5.Plugins.ViewManagerPlugins.MovieGeneratorDialog import MovieGeneratorDialog
 
         dlg = MovieGeneratorDialog(self)
         dlg.exec_()
