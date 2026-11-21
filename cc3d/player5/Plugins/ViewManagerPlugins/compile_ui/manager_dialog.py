@@ -98,7 +98,10 @@ class CompiledSteppablesDialog(QDialog):
         page = QWidget(self)
         layout = QVBoxLayout(page)
         form = QFormLayout()
-        self.settings_path_label = QLabel(str(settings_path()))
+        form.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
+        self.settings_path_label = QLineEdit(str(settings_path()))
+        self.settings_path_label.setReadOnly(True)
+        self.settings_path_label.setToolTip(str(settings_path()))
         self.platform_label = QLabel(current_platform_key())
         self.compiler_label = QLabel("Not loaded")
         self.detected_label = QLabel("Switch to this tab to detect compilers")
@@ -106,11 +109,11 @@ class CompiledSteppablesDialog(QDialog):
         self.detection_spinner = QProgressBar()
         self.detection_spinner.setRange(0, 0)
         self.detection_spinner.setVisible(False)
-        for label in (self.settings_path_label, self.platform_label, self.compiler_label,
-                      self.detected_label, self.detection_status):
+        for label in (self.platform_label, self.compiler_label, self.detected_label,
+                      self.detection_status):
             label.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
             label.setWordWrap(True)
-        form.addRow(self._settings_key_label("Settings file:"), self.settings_path_label)
+        form.addRow(self._settings_key_label("Compiler settings file:"), self.settings_path_label)
         form.addRow(self._settings_key_label("Platform:"), self.platform_label)
         form.addRow(self._settings_key_label("Selected compiler:"), self.compiler_label)
         form.addRow(self._settings_key_label("Detected:"), self.detected_label)
@@ -360,8 +363,29 @@ class CompiledSteppablesDialog(QDialog):
         platform = self.settings["platforms"][current_platform_key()]
         detected = platform.get("detected") or {}
         preferred = platform.get("preferred") or {}
-        self.compiler_label.setText(str(preferred or "automatic") + "\n" + str(platform.get("selection_policy")))
-        self.detected_label.setText(str(detected or "No compiler detected"))
+        policy = platform.get("selection_policy") or "automatic"
+        self.compiler_label.setText(
+            self._format_compiler_details(preferred, policy, empty_text="Automatic")
+        )
+        self.detected_label.setText(
+            self._format_compiler_details(detected, empty_text="No compiler detected")
+        )
+
+    @staticmethod
+    def _format_compiler_details(details, policy=None, empty_text="Automatic"):
+        """Render compiler settings as readable rows instead of a raw dict repr."""
+        if not details:
+            return empty_text
+
+        rows = []
+        for key, value in details.items():
+            if value is None or value == "":
+                value = "Automatic"
+            label = key.replace("_", " ").capitalize()
+            rows.append(f"{label}: {value}")
+        if policy:
+            rows.append(f"Selection policy: {policy}")
+        return "\n".join(rows)
 
     def set_policy(self, policy):
         self.settings["platforms"][current_platform_key()]["selection_policy"] = policy
