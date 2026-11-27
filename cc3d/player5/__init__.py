@@ -4,6 +4,12 @@ try:
 except ImportError:
     print('vtk not found. Ignoring for now')
 
+# Configure the Qt6/VTK integration before any player graphics module imports
+# QVTKRenderWindowInteractor.
+from cc3d.player5.Graphics.vtk_qt_setup import configure_vtk_qt
+
+configure_vtk_qt()
+
 from cc3d.core.GraphicsOffScreen import *
 
 

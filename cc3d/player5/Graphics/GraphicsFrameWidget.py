@@ -16,6 +16,10 @@ import sys
 from PyQt6.QtWidgets import QApplication
 
 platform = sys.platform
+from .vtk_qt_setup import configure_vtk_qt
+
+configure_vtk_qt()
+
 from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 MODULENAME = "---- GraphicsFrameWidget.py: "
@@ -53,13 +57,37 @@ class QGraphicsFrame(GraphicsFrame):
         )
 
     def get_vtk_window(self):
-
+        # QOpenGLWidget must be initialized after its containing Qt window has
+        # been shown. Initialization here would block during construction and
+        # can deadlock the simulation draw mutex.
         vtk_widget = QVTKRenderWindowInteractor(self.parent())
 
-        vtk_widget.Initialize()
-        vtk_widget.Start()
+        self._vtk_initialized = False
+        QtCore.QTimer.singleShot(100, self.initialize_vtk)
 
         return vtk_widget.GetRenderWindow(), vtk_widget
+
+    def initialize_vtk(self):
+        """Initialize the Qt/OpenGL VTK surface once it is visible."""
+
+        if self._vtk_initialized:
+            return
+
+        if not self.vtkWidget.isVisible():
+            QtCore.QTimer.singleShot(100, self.initialize_vtk)
+            return
+
+        self.vtkWidget.Initialize()
+        self._vtk_initialized = True
+        self.vtkWidget.GetRenderWindow().Render()
+
+    def Render(self):
+        """Render only after deferred QVTK initialization has completed."""
+
+        if not self._vtk_initialized:
+            return
+
+        super().Render()
 
     def store_gui_vis_config(self, scr_data):
         if self.stv is None:
