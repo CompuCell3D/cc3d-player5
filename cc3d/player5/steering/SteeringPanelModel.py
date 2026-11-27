@@ -1,5 +1,5 @@
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import *
+from PyQt6 import QtCore, QtGui
+from PyQt6.QtCore import *
 
 class SteeringPanelModel(QtCore.QAbstractTableModel):
     def __init__(self, parent=None, *args):
@@ -29,19 +29,19 @@ class SteeringPanelModel(QtCore.QAbstractTableModel):
 
     def headerData(self, p_int, orientation, role=None):
 
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+        if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
             try:
                 return self.header_data[p_int]
             except IndexError:
-                return QVariant()
+                return None
 
-        if orientation == Qt.Vertical and role == Qt.DisplayRole:
+        if orientation == Qt.Orientation.Vertical and role == Qt.ItemDataRole.DisplayRole:
             try:
                 return self.item_data[p_int].name
             except IndexError:
-                return QVariant()
+                return None
 
-        return QVariant()
+        return None
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.item_data)
@@ -56,9 +56,9 @@ class SteeringPanelModel(QtCore.QAbstractTableModel):
         i = index.row()
         return self.item_data[i]
 
-    def data(self, index, role=QtCore.Qt.DisplayRole):
+    def data(self, index, role=QtCore.Qt.ItemDataRole.DisplayRole):
 
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
             i = index.row()
             j = index.column()
             item = self.item_data[i]
@@ -66,7 +66,7 @@ class SteeringPanelModel(QtCore.QAbstractTableModel):
             item_data_to_display = getattr(item, self.item_data_attr_name[j])
             return '{}'.format(item_data_to_display)
 
-        elif role == Qt.BackgroundRole:
+        elif role == Qt.ItemDataRole.BackgroundRole:
             batch = (index.row()) % 2
             if batch == 0:
                 return QtGui.QColor('white')
@@ -74,7 +74,7 @@ class SteeringPanelModel(QtCore.QAbstractTableModel):
             else:
                 return QtGui.QColor('gray')
 
-        elif role == Qt.ToolTipRole:
+        elif role == Qt.ItemDataRole.ToolTipRole:
             i = index.row()
             j = index.column()
             item = self.item_data[i]
@@ -82,7 +82,7 @@ class SteeringPanelModel(QtCore.QAbstractTableModel):
 
         else:
 
-            return QtCore.QVariant()
+            return None
 
     def setData(self, index, value, role=None):
         """
@@ -93,7 +93,7 @@ class SteeringPanelModel(QtCore.QAbstractTableModel):
         :return:
         """
 
-        if role != QtCore.Qt.EditRole:
+        if role != QtCore.Qt.ItemDataRole.EditRole:
             return False
 
         if not index.isValid():
@@ -107,10 +107,10 @@ class SteeringPanelModel(QtCore.QAbstractTableModel):
 
     def flags(self, index):
         if not index.isValid():
-            return QtCore.Qt.NoItemFlags
+            return QtCore.Qt.ItemFlag.NoItemFlags
         existingFlags = super(SteeringPanelModel, self).flags(index)
 
-        existingFlags |= QtCore.Qt.ItemIsEditable
+        existingFlags |= QtCore.Qt.ItemFlag.ItemIsEditable
 
         return existingFlags
 

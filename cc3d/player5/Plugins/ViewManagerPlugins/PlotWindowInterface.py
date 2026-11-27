@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import weakref
-from PyQt5 import QtCore
-from PyQt5.QtGui import *
+from PyQt6 import QtCore
+from PyQt6.QtGui import *
 import numpy as np
 from collections import OrderedDict
 from typing import Iterable

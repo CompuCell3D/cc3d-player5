@@ -1,5 +1,5 @@
-from PyQt5 import QtWidgets
-from PyQt5.QtCore import *
+from PyQt6 import QtWidgets
+from PyQt6.QtCore import *
 from cc3d import CompuCellSetup
 
 class SteeringPanelView(QtWidgets.QTableView):
@@ -13,7 +13,7 @@ class SteeringPanelView(QtWidgets.QTableView):
         if pg.steering_panel_synchronizer.locked():
             return
 
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             index = self.indexAt(event.pos())
             col_name = self.get_col_name(index)
             if col_name == 'Value':

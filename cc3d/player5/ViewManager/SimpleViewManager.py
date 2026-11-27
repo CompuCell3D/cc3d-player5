@@ -3,9 +3,9 @@
 import sys
 import json
 from weakref import ref
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
 import cc3d.player5.Configuration as Configuration
 from cc3d.player5 import DefaultData
 import cc3d
@@ -216,7 +216,7 @@ class SimpleViewManager(QObject):
         :return:
         """
         menu = QMenu(QApplication.translate('ViewManager', '&Window'), self.ui)
-        menu.menuAction().setMenuRole(QAction.NoRole)
+        menu.menuAction().setMenuRole(QAction.MenuRole.NoRole)
         menu.addAction(self.new_graphics_window_act)
         menu.addAction(self.tile_act)
         menu.addAction(self.cascade_act)
@@ -347,7 +347,7 @@ class SimpleViewManager(QObject):
         """
 
         self.open_act = QAction(QIcon(gip("fileopen.png")), "&Open Simulation File (.cc3d)", self)
-        self.open_act.setShortcut(Qt.CTRL + Qt.Key_O)
+        self.open_act.setShortcut(QKeySequence("Ctrl+O"))
 
         self.open_lds_act = QAction(QIcon(gip("screenshots_open.png")), "&Open Lattice Description Summary File...",
                                     self)
@@ -365,13 +365,13 @@ class SimpleViewManager(QObject):
         get_icon_path = DefaultData.getIconPath
 
         self.run_act = QAction(QIcon(get_icon_path("play.png")), "&Run", self)
-        self.run_act.setShortcut(Qt.CTRL + Qt.Key_M)
+        self.run_act.setShortcut(QKeySequence("Ctrl+M"))
         self.step_act = QAction(QIcon(get_icon_path("step.png")), "&Step", self)
-        self.step_act.setShortcut(Qt.CTRL + Qt.Key_E)
+        self.step_act.setShortcut(QKeySequence("Ctrl+E"))
         self.pause_act = QAction(QIcon(get_icon_path("pause.png")), "&Pause", self)
-        self.pause_act.setShortcut(Qt.CTRL + Qt.Key_D)
+        self.pause_act.setShortcut(QKeySequence("Ctrl+D"))
         self.stop_act = QAction(QIcon(get_icon_path("stop.png")), "&Stop", self)
-        self.stop_act.setShortcut(Qt.CTRL + Qt.Key_X)
+        self.stop_act.setShortcut(QKeySequence("Ctrl+X"))
 
         self.restore_default_settings_act = QAction("Restore Default Settings For Current Project", self)
         self.restore_default_global_settings_act = QAction("Restore Default Global Settings", self)
@@ -413,7 +413,7 @@ class SimpleViewManager(QObject):
         self.reset_camera_act = QAction("Reset Camera for Graphics Window ('r')", self)
 
         self.zoom_in_act = QAction(QIcon(gip("zoomIn.png")), "&Zoom In", self)
-        self.zoom_in_act.setShortcut(Qt.CTRL + Qt.Key_Y)
+        self.zoom_in_act.setShortcut(QKeySequence("Ctrl+Y"))
         self.zoom_out_act = QAction(QIcon(gip("zoomOut.png")), "&Zoom Out", self)
 
     def init_tools_actions(self):
@@ -423,7 +423,7 @@ class SimpleViewManager(QObject):
         """
         self.config_act = QAction(QIcon(gip("config.png")), "&Configuration...", self)
 
-        self.config_act.setShortcut(Qt.CTRL + Qt.Key_Comma)
+        self.config_act.setShortcut(QKeySequence("Ctrl+,"))
 
         self.config_act.setWhatsThis(
             """<b>Configuration</b>"""

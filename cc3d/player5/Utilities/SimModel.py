@@ -1,5 +1,5 @@
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
 from cc3d.player5.Utilities.TreeMapper import *
 
 PROPERTY, VALUE = list(range(2))
@@ -63,67 +63,67 @@ class SimModel(QAbstractItemModel):
         else:
             return self.__rootItem
 
-    def data(self, index, role=Qt.DisplayRole):  # interface: done
+    def data(self, index, role=Qt.ItemDataRole.DisplayRole):  # interface: done
         if not index.isValid():
-            return QVariant()
+            return None
 
         node = index.internalPointer()
         module_color = self.__moduleStyleColors.get(node.name())
         is_editable_value = index.column() == VALUE and node.type() is not None
         is_attribute = node.elementType() == "attribute"
 
-        if role == Qt.FontRole:
+        if role == Qt.ItemDataRole.FontRole:
             font = QFont()
             if module_color is not None:
                 font.setBold(True)
-                return QVariant(font)
+                return font
             if is_editable_value:
                 if is_attribute:
                     font.setItalic(True)
                 else:
                     font.setBold(True)
-                return QVariant(font)
+                return font
             if is_attribute:
                 font.setItalic(True)
-                return QVariant(font)
+                return font
 
-        if role == Qt.ForegroundRole:
+        if role == Qt.ItemDataRole.ForegroundRole:
             if module_color is not None:
-                return QVariant(QBrush(module_color))
+                return QBrush(module_color)
             if is_editable_value:
-                return QVariant(QBrush(self.__editableValueColor))
+                return QBrush(self.__editableValueColor)
             if is_attribute:
-                return QVariant(QBrush(self.__attributeColor))
+                return QBrush(self.__attributeColor)
 
-        if role == Qt.BackgroundRole and is_editable_value:
-            return QVariant(QBrush(self.__editableValueBackgroundColor))
+        if role == Qt.ItemDataRole.BackgroundRole and is_editable_value:
+            return QBrush(self.__editableValueBackgroundColor)
 
-        if role != Qt.DisplayRole:
-            return QVariant()
+        if role != Qt.ItemDataRole.DisplayRole:
+            return None
 
         rowdata = [node.name(), node.value()]
 
         # Specify which data to display in each column!
         if index.column() in (PROPERTY, VALUE):
-            return QVariant(rowdata[index.column()])
+            return rowdata[index.column()]
 
-        return QVariant()
+        return None
 
     def flags(self, index):
         if not index.isValid():
-            return Qt.ItemIsEnabled
+            return Qt.ItemFlag.ItemIsEnabled
 
         if index.column() == VALUE:
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
+            return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEditable
 
-        return Qt.ItemIsEnabled | Qt.ItemIsSelectable
+        return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
 
     def headerData(self, section, orientation, role):  # interface: done
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+        if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
             if 0 <= section <= len(self.__headers):
-                return QVariant(self.__headers[section])
+                return self.__headers[section]
 
-        return QVariant()
+        return None
 
     def index(self, row, column, parentIndex):  # interface: done
         if self.__rootItem is None:
@@ -176,7 +176,7 @@ class SimModel(QAbstractItemModel):
         except ValueError:
             return None, False
 
-    def setData(self, index, value, role=Qt.EditRole):
+    def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
 
         if index.isValid() and 0 <= index.row() < self.rowCount(index.parent()):
             column = index.column()
@@ -187,7 +187,7 @@ class SimModel(QAbstractItemModel):
 
                 # Check if edited value preserves type
                 # str = value.toString()
-                str = value.value()
+                str = value
 
                 Ival, Iok = self.conv_to_int(str)
                 Fval, Fok = self.conv_to_float(str)

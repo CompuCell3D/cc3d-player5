@@ -1,6 +1,6 @@
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
 from cc3d.core.enums import *
 
 from cc3d.player5 import Graphics
@@ -27,12 +27,14 @@ class SubWindow(QFrame):
         if sys.platform.startswith('darwin'):
             # on OSX we apply different settings than on other platforms
             self.setWindowFlags(
-                Qt.Dialog | Qt.CustomizeWindowHint | Qt.WindowMaximizeButtonHint | Qt.WindowMinimizeButtonHint
-                | Qt.WindowCloseButtonHint | Qt.FramelessWindowHint
+                Qt.WindowType.Dialog | Qt.WindowType.CustomizeWindowHint
+                | Qt.WindowType.WindowMaximizeButtonHint | Qt.WindowType.WindowMinimizeButtonHint
+                | Qt.WindowType.WindowCloseButtonHint | Qt.WindowType.FramelessWindowHint
             )
         else:
             self.setWindowFlags(
-                Qt.Dialog | Qt.WindowMaximizeButtonHint | Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint
+                Qt.WindowType.Dialog | Qt.WindowType.WindowMaximizeButtonHint
+                | Qt.WindowType.WindowMinimizeButtonHint | Qt.WindowType.WindowCloseButtonHint
             )
 
     @property
@@ -72,8 +74,8 @@ class SubWindow(QFrame):
         :param widget:widget to be added to Qframe
         :return:None
         """
-        self.setSizePolicy(QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding))
-        layout = QBoxLayout(QBoxLayout.TopToBottom)
+        self.setSizePolicy(QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding))
+        layout = QBoxLayout(QBoxLayout.Direction.TopToBottom)
         layout.addWidget(widget)
         # layout.setMargin(0)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -220,7 +222,7 @@ class MainArea(QWidget):
         :return:QPoint - position of the next window
         """
 
-        rec = QApplication.desktop().screenGeometry()
+        rec = QApplication.primaryScreen().geometry()
 
         if self.last_suggested_window_position.x() == 0 and self.last_suggested_window_position.y() == 0:
 
@@ -427,7 +429,7 @@ class MainArea(QWidget):
         if screen is not None:
             available_rect = screen.availableGeometry()
         else:
-            available_rect = QApplication.desktop().availableGeometry()
+            available_rect = QApplication.primaryScreen().availableGeometry()
 
         if reserve_main_window:
             return self.__arrangement_rect_excluding_main_window(available_rect)

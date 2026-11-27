@@ -2,12 +2,12 @@
 
 # Form implementation generated from reading ui file 'parameter_scan_dialog.ui'
 #
-# Created by: PyQt5 UI code generator 5.12.3
+# Created by: PyQt6 UI code generator
 #
 # WARNING! All changes made in this file will be lost!
 
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui, QtWidgets
 
 
 class Ui_ParamScanDialog(object):

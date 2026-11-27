@@ -1,5 +1,5 @@
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
 
 class LatticeDataModel(QAbstractTableModel):
 
@@ -20,14 +20,14 @@ class LatticeDataModel(QAbstractTableModel):
 
     def headerData(self, section, orientation, role):  # By default role == Qt.DisplayRole
 
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+        if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
             if 0 <= section <= len(self.__headers):
-                return QVariant(self.__headers[section])
+                return self.__headers[section]
 
-        if orientation == Qt.Vertical and role == Qt.DisplayRole:
-            return QVariant(section)
+        if orientation == Qt.Orientation.Vertical and role == Qt.ItemDataRole.DisplayRole:
+            return section
 
-        return QVariant()
+        return None
 
     def setLatticeDataFileList(self, _fileList):
         """
@@ -52,15 +52,15 @@ class LatticeDataModel(QAbstractTableModel):
     def data(self, index, role):
 
         # Display data and tool tips
-        if role != Qt.DisplayRole and role != Qt.ToolTipRole:
-            return QVariant()
+        if role != Qt.ItemDataRole.DisplayRole and role != Qt.ItemDataRole.ToolTipRole:
+            return None
 
         if not index.isValid():
-            return QVariant()
+            return None
 
         # Specify which data to display in each column!
         if index.column() == 0:  # (0, 1):
 
-            return QVariant(self.__fileList[index.row()])
+            return self.__fileList[index.row()]
 
-        return QVariant()
+        return None

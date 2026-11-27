@@ -1,5 +1,5 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QDialog
 
 from cc3d.player5.Plugins.ViewManagerPlugins.status_label_utils import (
     STATUS_DANGER,

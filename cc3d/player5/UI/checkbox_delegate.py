@@ -1,7 +1,7 @@
-from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtCore import QModelIndex
-from PyQt5.QtGui import QStandardItemModel
-from PyQt5.QtWidgets import QApplication, QTableView, QStyleOptionButton, QStyle
+from PyQt6 import QtCore, QtWidgets, QtGui
+from PyQt6.QtCore import QModelIndex
+from PyQt6.QtGui import QStandardItemModel
+from PyQt6.QtWidgets import QApplication, QTableView, QStyleOptionButton, QStyle
 
 
 class CheckBoxDelegate(QtWidgets.QItemDelegate):
@@ -20,11 +20,11 @@ class CheckBoxDelegate(QtWidgets.QItemDelegate):
     def draw_checkbox(self, value:bool, painter, option):
         checkbox = QStyleOptionButton()
         checkbox.rect = option.rect
-        checkbox.state |= QStyle.State_On if value else QStyle.State_Off
-        checkbox.state |= QStyle.State_Enabled
+        checkbox.state |= QStyle.StateFlag.State_On if value else QStyle.StateFlag.State_Off
+        checkbox.state |= QStyle.StateFlag.State_Enabled
         # checkbox.state |= QStyle.State_MouseOver if option.state & QStyle.State_MouseOver else QStyle.State_None
 
-        QApplication.style().drawControl(QStyle.CE_CheckBox, checkbox, painter)
+        QApplication.style().drawControl(QStyle.ControlElement.CE_CheckBox, checkbox, painter)
 
     def paint(self, painter, option, index):
         """
@@ -49,10 +49,10 @@ class CheckBoxDelegate(QtWidgets.QItemDelegate):
         :param index:
         :return:
         """
-        if not int(index.flags() & QtCore.Qt.ItemIsEditable) > 0:
+        if not int(index.flags() & QtCore.Qt.ItemFlag.ItemIsEditable) > 0:
             return False
 
-        if event.type() == QtCore.QEvent.MouseButtonRelease and event.button() == QtCore.Qt.LeftButton:
+        if event.type() == QtCore.QEvent.Type.MouseButtonRelease and event.button() == QtCore.Qt.MouseButton.LeftButton:
             # Change the checkbox-state
             self.setModelData(None, model, index)
             return True
@@ -67,4 +67,4 @@ class CheckBoxDelegate(QtWidgets.QItemDelegate):
         :param index:
         :return:
         """
-        model.setData(index, 1 if int(index.data()) == 0 else 0, QtCore.Qt.EditRole)
+        model.setData(index, 1 if int(index.data()) == 0 else 0, QtCore.Qt.ItemDataRole.EditRole)

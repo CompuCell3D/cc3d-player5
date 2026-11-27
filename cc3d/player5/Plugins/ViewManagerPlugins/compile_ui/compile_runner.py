@@ -6,7 +6,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt6.QtCore import QObject, pyqtSignal
 
 
 class CompiledSteppableCompileRunner(QObject):

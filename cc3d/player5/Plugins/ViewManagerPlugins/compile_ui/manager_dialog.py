@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PyQt5.QtCore import QObject, QThread, Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QBrush, QFont
-from PyQt5.QtWidgets import (
+from PyQt6.QtCore import QObject, QThread, Qt, pyqtSignal
+from PyQt6.QtGui import QColor, QBrush, QFont
+from PyQt6.QtWidgets import (
     QAbstractItemView, QApplication, QDialog, QFormLayout, QHBoxLayout, QLabel, QMenu,
     QLineEdit, QProgressBar, QPushButton, QTabWidget, QTreeWidget, QTreeWidgetItem,
     QTextEdit,
@@ -64,7 +64,7 @@ class CompiledSteppablesDialog(QDialog):
         self.tree.setAlternatingRowColors(True)
         self.tree.setSelectionMode(QAbstractItemView.SingleSelection)
         self.tree.setUniformRowHeights(False)
-        self.tree.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self._show_tree_context_menu)
         self.tree.setStyleSheet(
             "QTreeWidget { border: 1px solid #c8cdd3; }"
@@ -111,7 +111,9 @@ class CompiledSteppablesDialog(QDialog):
         self.detection_spinner.setVisible(False)
         for label in (self.platform_label, self.compiler_label, self.detected_label,
                       self.detection_status):
-            label.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
+            label.setTextInteractionFlags(
+                Qt.TextInteractionFlag.TextSelectableByMouse | Qt.TextInteractionFlag.TextSelectableByKeyboard
+            )
             label.setWordWrap(True)
         form.addRow(self._settings_key_label("Compiler settings file:"), self.settings_path_label)
         form.addRow(self._settings_key_label("Platform:"), self.platform_label)
@@ -266,7 +268,7 @@ class CompiledSteppablesDialog(QDialog):
             is_entry = input_path == source_path
             label = parts[-1] + (" [entry]" if is_entry else "")
             item = QTreeWidgetItem(parent_item, [label, "", "entry" if is_entry else ""])
-            item.setData(0, Qt.UserRole, str(input_path))
+            item.setData(0, Qt.ItemDataRole.UserRole, str(input_path))
             item.setToolTip(0, str(input_path))
             item.setToolTip(2, str(input_path))
             if is_entry:
@@ -310,11 +312,11 @@ class CompiledSteppablesDialog(QDialog):
         value = item.text(column)
         if not value:
             return
-        copy_value_text = item.data(column, Qt.UserRole) or value
+        copy_value_text = item.data(column, Qt.ItemDataRole.UserRole) or value
         menu = QMenu(self.tree)
         copy_value = menu.addAction("Copy value")
         copy_row = menu.addAction("Copy row")
-        action = menu.exec_(self.tree.viewport().mapToGlobal(position))
+        action = menu.exec(self.tree.viewport().mapToGlobal(position))
         if action == copy_value:
             QApplication.clipboard().setText(str(copy_value_text))
         elif action == copy_row:

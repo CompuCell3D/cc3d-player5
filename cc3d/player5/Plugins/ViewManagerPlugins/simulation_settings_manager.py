@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import Callable, Optional, Tuple
 
-from PyQt5.QtWidgets import QMessageBox
+from PyQt6.QtWidgets import QMessageBox
 
 import cc3d.core.DefaultSettingsData as settings_data
 import cc3d.player5.Configuration as Configuration

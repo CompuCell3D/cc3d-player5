@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QLabel, QProgressBar, QVBoxLayout
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtWidgets import QDialog, QDialogButtonBox, QLabel, QProgressBar, QVBoxLayout
 
 from .compile_runner import CompiledSteppableCompileRunner
 
@@ -15,7 +15,7 @@ class CompiledSteppableCompileDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Compiling C++ Steppables")
         self.setModal(True)
-        self.setWindowModality(Qt.ApplicationModal)
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
         self.setMinimumWidth(520)
 
         self._thread = QThread(self)
@@ -27,12 +27,12 @@ class CompiledSteppableCompileDialog(QDialog):
         layout.setSpacing(10)
 
         title = QLabel("<b>Compiling C++ steppables...</b>", self)
-        title.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        title.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         layout.addWidget(title)
 
         message = QLabel("Please wait while Player builds the compiled steppables required by this simulation.", self)
         message.setWordWrap(True)
-        message.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        message.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
         layout.addWidget(message)
 
         progress = QProgressBar(self)

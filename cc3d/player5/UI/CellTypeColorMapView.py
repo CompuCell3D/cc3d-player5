@@ -1,6 +1,6 @@
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
 import sys
 from .checkbox_delegate import CheckBoxDelegate
 from .color_delegate import ColorDelegate
@@ -10,13 +10,13 @@ class CellTypeColorMapView(QTableView):
 
     def __init__(self, parent, vm):
         QTableView.__init__(self, parent)
-        self.setFrameStyle(QFrame.NoFrame)
-        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setFrameStyle(QFrame.Shape.NoFrame)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setAlternatingRowColors(False)
-        self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.horizontalHeader().setStretchLastSection(True)
-        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.setSelectionMode(QAbstractItemView.NoSelection)
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
 
         # note - delegates need to be member of a class to avoid them being garbage-collected. This would cause
         # cryptic crashes
@@ -48,7 +48,7 @@ class CellTypeColorMapView(QTableView):
 
     def mousePressEvent(self, event):
 
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             index = self.indexAt(event.pos())
             model = index.model()
             if model is None:
@@ -60,7 +60,7 @@ class CellTypeColorMapView(QTableView):
 
     def mouseReleaseEvent(self, event):
 
-        if event.button() == Qt.LeftButton:
+        if event.button() == Qt.MouseButton.LeftButton:
             index = self.indexAt(event.pos())
             model = index.model()
             if model is None:

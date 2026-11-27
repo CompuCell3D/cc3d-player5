@@ -1,7 +1,7 @@
 import sys
 import json
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import *
 from cc3d.player5.Plugins.ViewManagerPlugins import ui_screenshot_description_browser
 from cc3d.player5.Plugins.ViewManagerPlugins.QJsonBrowser import QJsonModel, QJsonTreeView
 import weakref

@@ -1,6 +1,6 @@
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
 from .ConsoleWidgetBase import ConsoleWidgetBase
 
 
@@ -18,9 +18,9 @@ class ConsoleWidget(ConsoleWidgetBase, QTextEdit):
         QTextEdit.__init__(self, parent)
         self.text_color = text_color
         self.setAcceptRichText(False)
-        self.setLineWrapMode(QTextEdit.NoWrap)
+        self.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
         self.setReadOnly(True)
-        self.setFrameStyle(QFrame.NoFrame)
+        self.setFrameStyle(QFrame.Shape.NoFrame)
 
         # Why do I need this? create the context menu
         self.__menu = QMenu(self)
@@ -29,7 +29,7 @@ class ConsoleWidget(ConsoleWidgetBase, QTextEdit):
         self.__menu.addSeparator()
         self.__menu.addAction("Select All", self.selectAll)
 
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__handleShowContextMenu)
         # self.setSizePolicy(
         #     QSizePolicy(QSizePolicy.Expanding,

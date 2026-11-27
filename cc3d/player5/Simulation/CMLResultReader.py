@@ -9,7 +9,7 @@ saves simulation snapshot (currently stored as vtk file)
 
 from cc3d.core.CMLResultsReader import CMLResultReader as CMLResultsReaderBase
 from cc3d.core.enums import *
-from PyQt5.QtCore import *
+from PyQt6.QtCore import *
 from cc3d.cpp import CompuCell
 from cc3d.cpp import PlayerPython
 from cc3d.core import XMLUtils

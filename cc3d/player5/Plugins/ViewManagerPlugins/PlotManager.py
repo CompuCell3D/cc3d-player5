@@ -1,6 +1,6 @@
 from .PlotWindowInterface import PlotWindowInterface
 from cc3d.player5.Graphics.GraphicsWindowData import GraphicsWindowData
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 import sys
 from cc3d.player5.Graphics.PlotFrameWidget import PlotFrameWidget
 import cc3d.player5.Configuration as Configuration

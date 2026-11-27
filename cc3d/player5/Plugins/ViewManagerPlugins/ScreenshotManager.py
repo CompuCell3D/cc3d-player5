@@ -10,7 +10,7 @@ from cc3d.CompuCellSetup import persistent_globals
 from cc3d.CompuCellSetup.utils import standard_screenshot_file
 from cc3d.core.utils import mkdir_p
 from cc3d import CompuCellSetup
-from PyQt5.QtWidgets import *
+from PyQt6.QtWidgets import *
 from typing import List, Optional
 
 

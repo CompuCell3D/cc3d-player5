@@ -1,6 +1,6 @@
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
 import cc3d.player5.Configuration as Configuration
 from cc3d.player5.Plugins.ViewManagerPlugins.ui_movie_generator_dialog import Ui_MovieGeneratorDialog
 import sys
@@ -29,9 +29,9 @@ class MovieGeneratorDialog(QDialog, Ui_MovieGeneratorDialog):
 
         if sys.platform.startswith("win"):
             # dialogs without context help - only close button exists
-            self.setWindowFlags(Qt.Drawer)
+            self.setWindowFlags(Qt.WindowType.Drawer)
 
-        self.setWindowFlags(self.windowFlags() | Qt.Dialog)
+        self.setWindowFlags(self.windowFlags() | Qt.WindowType.Dialog)
         self.setupUi(self)
 
         self.moviesCreatedSignal.connect(self.display_movie_result)

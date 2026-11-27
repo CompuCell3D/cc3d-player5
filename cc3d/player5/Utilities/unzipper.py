@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Union
 from zipfile import ZipFile
 from glob import glob
-from PyQt5.QtWidgets import *
+from PyQt6.QtWidgets import *
 from os.path import *
 import os
 

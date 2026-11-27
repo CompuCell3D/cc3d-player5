@@ -10,9 +10,9 @@ import os
 import sys
 import time
 
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtWidgets import *
 from anyio import sleep
 
 from cc3d.player5.UI.ModelEditor import ModelEditor
@@ -44,7 +44,7 @@ class NullDevice:
 class DockWidget(QDockWidget):
     def __init__(self, _parent):
         super(DockWidget, self).__init__(_parent)
-        features = QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable
+        features = QDockWidget.DockWidgetFeature.DockWidgetMovable | QDockWidget.DockWidgetFeature.DockWidgetFloatable
         self.setFeatures(features)
         self.toggleFcn = None
 
@@ -150,9 +150,9 @@ class UserInterface(QMainWindow):
     def __configureDockOptions(self):
         self.setDockOptions(
             self.dockOptions()
-            | QMainWindow.AllowNestedDocks
-            | QMainWindow.AllowTabbedDocks
-            | QMainWindow.AnimatedDocks
+            | QMainWindow.DockOption.AllowNestedDocks
+            | QMainWindow.DockOption.AllowTabbedDocks
+            | QMainWindow.DockOption.AnimatedDocks
         )
 
     def _configure_drag_and_drop(self):
@@ -195,7 +195,7 @@ class UserInterface(QMainWindow):
         return None
 
     def eventFilter(self, watched, event):
-        if event.type() not in (QEvent.DragEnter, QEvent.DragMove, QEvent.Drop):
+        if event.type() not in (QEvent.Type.DragEnter, QEvent.Type.DragMove, QEvent.Type.Drop):
             return super().eventFilter(watched, event)
 
         if not isinstance(watched, QWidget):
@@ -499,7 +499,7 @@ class UserInterface(QMainWindow):
         self.toolbarSimAct.setCheckable(True)
         self.toolbarSimAct.setChecked(True)
         self.actions.append(self.toolbarSimAct)
-        self.toolbarSimAct.setShortcut(Qt.CTRL + Qt.Key_M)
+        self.toolbarSimAct.setShortcut(QKeySequence("Ctrl+M"))
 
         self.modelAct = QAction("&Model Editor", self)
         self.modelAct.setCheckable(True)
@@ -591,9 +591,9 @@ class UserInterface(QMainWindow):
         model_editor.setModel(self.model)  # Set the default model
         model_editor.setItemDelegate(SimDelegate(self))
         model_editor.setParams()
-        model_editor.setSelectionBehavior(QAbstractItemView.SelectItems)
+        model_editor.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectItems)
         self.viewmanager.setModelEditor(model_editor)  # Sets the Model Editor in the ViewManager
-        self.__setupDockWindow(self.modelEditorDock, Qt.LeftDockWidgetArea, model_editor,
+        self.__setupDockWindow(self.modelEditorDock, Qt.DockWidgetArea.LeftDockWidgetArea, model_editor,
                                "Model Editor")  # projectBrowser
 
         self.latticeDataDock = self.__createDockWindow("LatticeData")
@@ -602,9 +602,9 @@ class UserInterface(QMainWindow):
         self.latticeDataModel = LatticeDataModel()
         self.latticeDataModelTable.setModel(self.latticeDataModel)
 
-        self.__setupDockWindow(self.latticeDataDock, Qt.LeftDockWidgetArea, self.latticeDataModelTable,
+        self.__setupDockWindow(self.latticeDataDock, Qt.DockWidgetArea.LeftDockWidgetArea, self.latticeDataModelTable,
                                "LatticeDataFiles")
-        self.setCorner(Qt.TopLeftCorner, Qt.LeftDockWidgetArea)
+        self.setCorner(Qt.Corner.TopLeftCorner, Qt.DockWidgetArea.LeftDockWidgetArea)
 
 
         self.cell_type_color_map_dock = self.__createDockWindow("CellTypeColorMapView")
@@ -613,10 +613,10 @@ class UserInterface(QMainWindow):
         self.cell_type_color_map_view = CellTypeColorMapView(parent=self.cell_type_color_map_dock, vm=self.viewmanager)
         # self.cell_type_color_map_view.setModel(self.cell_type_color_map_model)
 
-        self.__setupDockWindow(self.cell_type_color_map_dock, Qt.LeftDockWidgetArea, self.cell_type_color_map_view,
+        self.__setupDockWindow(self.cell_type_color_map_dock, Qt.DockWidgetArea.LeftDockWidgetArea, self.cell_type_color_map_view,
                                "Cell Type Colors")
 
-        self.setCorner(Qt.TopLeftCorner, Qt.LeftDockWidgetArea)
+        self.setCorner(Qt.Corner.TopLeftCorner, Qt.DockWidgetArea.LeftDockWidgetArea)
 
 
         # Set up the console
@@ -626,7 +626,7 @@ class UserInterface(QMainWindow):
 
         self.console = Console(self.consoleDock)
         self.consoleDock.setWidget(self.console)
-        self.__setupDockWindow(self.consoleDock, Qt.BottomDockWidgetArea, self.console, "Console")
+        self.__setupDockWindow(self.consoleDock, Qt.DockWidgetArea.BottomDockWidgetArea, self.console, "Console")
         self.__configureResizableFloatingDocks()
         if not self.viewmanager.MDI_ON:
             self.__arrangeFloatingDockStack()
@@ -636,16 +636,16 @@ class UserInterface(QMainWindow):
                 (self.modelEditorDock, self.modelEditorDock.widget()),
                 (self.cell_type_color_map_dock, self.cell_type_color_map_dock.widget()),
                 (self.consoleDock, self.consoleDock.widget())):
-            dock.setAllowedAreas(Qt.AllDockWidgetAreas)
+            dock.setAllowedAreas(Qt.DockWidgetArea.AllDockWidgetAreas)
             dock.setMinimumSize(QSize(160, 40))
-            dock.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            dock.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
             if widget is not None:
                 widget.setMinimumSize(QSize(0, 0))
-                widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+                widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
 
     def __arrangeFloatingDockStack(self):
-        self.splitDockWidget(self.modelEditorDock, self.cell_type_color_map_dock, Qt.Vertical)
-        self.splitDockWidget(self.cell_type_color_map_dock, self.consoleDock, Qt.Vertical)
+        self.splitDockWidget(self.modelEditorDock, self.cell_type_color_map_dock, Qt.Orientation.Vertical)
+        self.splitDockWidget(self.cell_type_color_map_dock, self.consoleDock, Qt.Orientation.Vertical)
 
     def __normalizeFloatingDockSizes(self):
         visible_docks = [
@@ -663,7 +663,7 @@ class UserInterface(QMainWindow):
                 preferred_heights.append(140)
             else:
                 preferred_heights.append(180)
-        self.resizeDocks(visible_docks, preferred_heights, Qt.Vertical)
+        self.resizeDocks(visible_docks, preferred_heights, Qt.Orientation.Vertical)
 
     def __createDockWindow(self, name):
         """

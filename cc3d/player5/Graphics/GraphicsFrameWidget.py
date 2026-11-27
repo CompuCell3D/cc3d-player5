@@ -6,20 +6,17 @@ from weakref import ref
 import cc3d.player5.DefaultData as DefaultData
 import cc3d.player5.Configuration as Configuration
 import cc3d
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import pyqtSlot
+from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtCore import pyqtSlot
 from cc3d.core.GraphicsOffScreen.GenericDrawer import GenericDrawer
 from cc3d.core.GraphicsUtils.GraphicsFrame import GraphicsFrame
 from .GraphicsWindowData import GraphicsWindowData
 import cc3d.CompuCellSetup
 import sys
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication
 
 platform = sys.platform
-if platform == "darwin":
-    from cc3d.player5.Utilities.QVTKRenderWindowInteractor_mac import QVTKRenderWindowInteractor
-else:
-    from cc3d.player5.Utilities.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
+from vtkmodules.qt.QVTKRenderWindowInteractor import QVTKRenderWindowInteractor
 
 MODULENAME = "---- GraphicsFrameWidget.py: "
 
@@ -100,9 +97,13 @@ class QGraphicsFrame(GraphicsFrame):
 
         style = _style.upper()
         if style == "2D":
-            self.vtkWidget.setMouseInteractionSchemeTo2D()
+            set_scheme = getattr(self.vtkWidget, "setMouseInteractionSchemeTo2D", None)
+            if set_scheme is not None:
+                set_scheme()
         elif style == "3D":
-            self.vtkWidget.setMouseInteractionSchemeTo3D()
+            set_scheme = getattr(self.vtkWidget, "setMouseInteractionSchemeTo3D", None)
+            if set_scheme is not None:
+                set_scheme()
 
     def close(self):
         self.vtkWidget.close()
@@ -112,12 +113,12 @@ class QGraphicsFrame(GraphicsFrame):
 class GraphicsFrameWidget(QtWidgets.QFrame):
     def __init__(self, parent=None, originatingWidget=None):
         QtWidgets.QFrame.__init__(self, parent)
-        self.proj_sb_act = QtWidgets.QAction(self)
+        self.proj_sb_act = QtGui.QAction(self)
         self.is_screenshot_widget = False
         self.qvtkWidget = QGraphicsFrame(self, originatingWidget)  # a QWidget
 
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-        self.vertical_resolution = QApplication.desktop().screenGeometry().height()
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)
+        self.vertical_resolution = QApplication.primaryScreen().geometry().height()
 
         # MDIFIX
         self.parentWidget = ref(originatingWidget)
@@ -136,7 +137,7 @@ class GraphicsFrameWidget(QtWidgets.QFrame):
         self.init_cross_section_actions()
         self.cstb = self.init_cross_section_toolbar()
 
-        layout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.TopToBottom)
+        layout = QtWidgets.QBoxLayout(QtWidgets.QBoxLayout.Direction.TopToBottom)
         layout.addWidget(self.cstb)
         layout.addWidget(self.qvtkWidget.vtkWidget)
         self.setLayout(layout)
@@ -430,7 +431,7 @@ class GraphicsFrameWidget(QtWidgets.QFrame):
         :return: None
         """
 
-        self.proj_combo_box_act = QtWidgets.QAction(self)
+        self.proj_combo_box_act = QtGui.QAction(self)
         self.proj_combo_box = QtWidgets.QComboBox()
         self.proj_combo_box.addAction(self.proj_combo_box_act)
 
@@ -443,13 +444,13 @@ class GraphicsFrameWidget(QtWidgets.QFrame):
         self.proj_spin_box = QtWidgets.QSpinBox()
         self.proj_spin_box.addAction(self.proj_sb_act)
 
-        self.field_combo_box_act = QtWidgets.QAction(self)
+        self.field_combo_box_act = QtGui.QAction(self)
         # Note that this is different than the fieldComboBox in the Prefs panel (rf. SimpleTabView.py)
         self.field_combo_box = QtWidgets.QComboBox()
         self.field_combo_box.addAction(self.field_combo_box_act)
 
         gip = DefaultData.getIconPath
-        self.screenshot_act = QtWidgets.QAction(QtGui.QIcon(gip("screenshot.png")), "&Take Screenshot", self)
+        self.screenshot_act = QtGui.QAction(QtGui.QIcon(gip("screenshot.png")), "&Take Screenshot", self)
 
     def proj_combo_box_changed(self):
         """

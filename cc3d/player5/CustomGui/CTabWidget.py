@@ -2,9 +2,9 @@
 Module implementing a TabWidget class substituting QTabWidget.
 """
 
-from PyQt5.QtWidgets import QTabWidget
+from PyQt6.QtWidgets import QTabWidget
 
-from PyQt5.QtCore import Qt
+from PyQt6.QtCore import Qt
 
 class CTabWidget(QTabWidget):
     """
@@ -54,13 +54,13 @@ class CTabWidget(QTabWidget):
         #         SIGNAL("customContextMenuRequested(const QPoint &)"),
         #         self.__handleTabCustomContextMenuRequested)
 
-        if policy == Qt.CustomContextMenu:
+        if policy == Qt.ContextMenuPolicy.CustomContextMenu:
             self.tabBar().customContextMenuRequested.connect(self.__handleTabCustomContextMenuRequested)
             # self.connect(self.tabBar(),
             #              SIGNAL("customContextMenuRequested(const QPoint &)"),
             #              self.__handleTabCustomContextMenuRequested)
         else:
-            self.tabBar().customContextMenuRequested.dicconnect(self.__handleTabCustomContextMenuRequested)
+            self.tabBar().customContextMenuRequested.disconnect(self.__handleTabCustomContextMenuRequested)
             # self.disconnect(self.tabBar(),
             #                 SIGNAL("customContextMenuRequested(const QPoint &)"),
             #                 self.__handleTabCustomContextMenuRequested)

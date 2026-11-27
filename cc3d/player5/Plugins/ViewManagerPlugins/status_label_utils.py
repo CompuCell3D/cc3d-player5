@@ -1,7 +1,7 @@
 from html import escape
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QColor
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QColor
 
 
 STATUS_PANEL_BACKGROUND = "#f5f9ff"
@@ -29,10 +29,10 @@ def status_panel_style(label) -> str:
 
 
 def configure_status_label(label):
-    label.setTextFormat(Qt.RichText)
+    label.setTextFormat(Qt.TextFormat.RichText)
     label.setWordWrap(True)
     label.setOpenExternalLinks(False)
-    label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+    label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
     label.setStyleSheet(status_panel_style(label))
     label.hide()
 

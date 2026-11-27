@@ -3,7 +3,7 @@ import os
 import sys
 import traceback
 # from PyQt5.QtCore import QEvent, Qt
-from PyQt5.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication
 
 
 class CQApplication(QApplication):

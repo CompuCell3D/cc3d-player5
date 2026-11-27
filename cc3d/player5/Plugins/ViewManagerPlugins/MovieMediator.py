@@ -2,7 +2,7 @@ from pathlib import Path
 import sys
 import subprocess
 import cc3d.player5.Configuration as Configuration
-from PyQt5.QtWidgets import QMessageBox
+from PyQt6.QtWidgets import QMessageBox
 from cc3d.core.GraphicsUtils.MovieCreator import makeMovieAsync, subscribeToMovieStatus
 import os
 

@@ -1,6 +1,6 @@
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
 from cc3d.player5.CustomGui.CTabWidget import CTabWidget
 from cc3d.player5 import Configuration
 from .ConsoleWidget import ConsoleWidget
@@ -16,7 +16,7 @@ except ImportError:
 class Console(CTabWidget):
     def __init__(self, parent):
         QTabWidget.__init__(self, parent)
-        self.setTabPosition(QTabWidget.South)
+        self.setTabPosition(QTabWidget.TabPosition.South)
         
         # self.__errorConsole.setText("Error: XML Error \n  File: cellsort_2D_error.xml\n
         # Line: 23 Col: 1 has the following problem not well-formed (invalid token) \n\n\n\n")
@@ -46,7 +46,7 @@ class Console(CTabWidget):
         self.__menu.addSeparator()
         self.__menu.addAction("Select All", self.__handle_select_all)
 
-        self.setTabContextMenuPolicy(Qt.CustomContextMenu)
+        self.setTabContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__handle_show_context_menu)
 
         # self.setSizePolicy(

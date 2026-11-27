@@ -5,11 +5,11 @@ from cc3d.core.GraphicsUtils.utils import *
 from cc3d.player5.UI.cell_type_colors import default_cell_type_color_list
 from collections import namedtuple, OrderedDict
 from typing import Dict, Optional
-from PyQt5.QtGui import QColor, QDesktopServices
-from PyQt5.QtCore import Qt, QUrl
+from PyQt6.QtGui import QColor, QDesktopServices
+from PyQt6.QtCore import Qt, QUrl
 import traceback
 from functools import wraps
-from PyQt5.QtWidgets import QMessageBox, QLabel, QTextEdit, QDialog, QDialogButtonBox, QVBoxLayout, QHBoxLayout, QStyle
+from PyQt6.QtWidgets import QMessageBox, QLabel, QTextEdit, QDialog, QDialogButtonBox, QVBoxLayout, QHBoxLayout, QStyle
 import html
 import sys
 
@@ -85,23 +85,23 @@ class ErrorDetailsDialog(QDialog):
         header_layout.setSpacing(8)
 
         icon_label = QLabel(self)
-        icon_pixmap = self.style().standardIcon(QStyle.SP_MessageBoxCritical).pixmap(32, 32)
+        icon_pixmap = self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical).pixmap(32, 32)
         icon_label.setPixmap(icon_pixmap)
-        icon_label.setAlignment(Qt.AlignVCenter | Qt.AlignHCenter)
-        header_layout.addWidget(icon_label, 0, Qt.AlignVCenter)
+        icon_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter)
+        header_layout.addWidget(icon_label, 0, Qt.AlignmentFlag.AlignVCenter)
 
         title_label = QLabel(f"<b>{message}</b>", self)
         title_label.setWordWrap(True)
-        title_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        title_label.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
+        title_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
         title_label.setContentsMargins(0, 0, 0, 0)
-        header_layout.addWidget(title_label, 1, Qt.AlignVCenter)
+        header_layout.addWidget(title_label, 1, Qt.AlignmentFlag.AlignVCenter)
         layout.addLayout(header_layout)
 
         if informative_text:
             info_label = QLabel(self)
             info_label.setWordWrap(True)
-            info_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            info_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
             info_label.setStyleSheet(
                 "QLabel {"
                 "background: #fff8e1;"
@@ -147,10 +147,10 @@ class ErrorDetailsDialog(QDialog):
         has_details = bool(detailed_text.strip())
         layout.addWidget(self.details_edit, 1)
 
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok, parent=self)
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok, parent=self)
         self.details_button = None
         if has_details:
-            self.details_button = button_box.addButton("Show More", QDialogButtonBox.ActionRole)
+            self.details_button = button_box.addButton("Show More", QDialogButtonBox.ButtonRole.ActionRole)
             self.details_button.clicked.connect(self._toggle_details)
         button_box.accepted.connect(self.accept)
         layout.addWidget(button_box)
@@ -181,7 +181,7 @@ def show_exception_messagebox(
         detailed_text=tb_str,
         parent=parent,
     )
-    dialog.exec_()
+    dialog.exec()
 
 
 def show_text_messagebox(
@@ -198,7 +198,7 @@ def show_text_messagebox(
         detailed_text=detailed_text,
         parent=parent,
     )
-    dialog.exec_()
+    dialog.exec()
 
 
 def show_formatted_error_messagebox(error_text: str, parent=None):

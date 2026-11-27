@@ -1,15 +1,15 @@
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtXml import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtXml import *
+from PyQt6.QtWidgets import *
 #from Utilities.XMLHandler import DomModel
 
 class ModelEditor(QTreeView):
    
     def __init__(self, parent):
         QTreeView.__init__(self, parent)
-        self.setFrameStyle(QFrame.NoFrame)
+        self.setFrameStyle(QFrame.Shape.NoFrame)
         self.parent = parent
         self.__setup_actions()
         
@@ -25,7 +25,7 @@ class ModelEditor(QTreeView):
         self.collapse_all_action.setToolTip("Collapse all model parameters")
         self.collapse_all_action.triggered.connect(self.collapseAll)
 
-        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self.__show_context_menu)
 
     def __show_context_menu(self, position):
@@ -40,13 +40,13 @@ class ModelEditor(QTreeView):
         # the number of columns is equal to 2!
         self.setColumnWidth(0, 180) # Since Qt 4.2  
         self.setColumnWidth(1, 40)
-        self.header().setDefaultAlignment(Qt.AlignHCenter)
+        self.header().setDefaultAlignment(Qt.AlignmentFlag.AlignHCenter)
         # self.expandToDepth(0)
 
         """
         modelEditor.setColumnWidth(0, 180) # Since Qt 4.2  
         modelEditor.setColumnWidth(1, 40)
-        modelEditor.header().setDefaultAlignment(Qt.AlignHCenter)
+        modelEditor.header().setDefaultAlignment(Qt.AlignmentFlag.AlignHCenter)
         modelEditor.expandToDepth(1)
         """
         #self.header().resizeSections(QHeaderView.ResizeToContents)

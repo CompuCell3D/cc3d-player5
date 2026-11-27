@@ -1,7 +1,7 @@
 
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
 
 MODULENAME = '---- UI/LatticeDataModelTable.py: '
 
@@ -9,8 +9,8 @@ class LatticeDataModelTable(QTableView):
    
     def __init__(self, parent, vm): 
         QTableView.__init__(self, parent)
-        self.setFrameStyle(QFrame.NoFrame)
-        self.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.setFrameStyle(QFrame.Shape.NoFrame)
+        self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setColumnWidth(0, 100)
         self.setAlternatingRowColors (False)
         self.horizontalHeader().setStretchLastSection(True)        
@@ -83,7 +83,7 @@ class LatticeDataModelTable(QTableView):
           for i in range(0, self.rowCount()):
              self.setRowHeight(i, 20)
           self.setHorizontalHeaderLabels(["Name", "Description"])
-          self.setFrameStyle(QFrame.NoFrame)
+          self.setFrameStyle(QFrame.Shape.NoFrame)
           self.setColumnWidth(0, 100)
           self.setColumnWidth(1, 120)
         """      

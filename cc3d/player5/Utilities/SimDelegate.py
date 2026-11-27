@@ -1,6 +1,6 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
 
 # Can be used for advanced editing in the Model Editor.
 class SimDelegate(QItemDelegate):
@@ -28,7 +28,7 @@ class SimDelegate(QItemDelegate):
 
 
     def setEditorData(self, editor, index):
-        text = index.model().data(index, Qt.DisplayRole).value()
+        text = index.model().data(index, Qt.ItemDataRole.DisplayRole)
         if index.column() == 1:
             editor.setText(text)
         else:
@@ -38,6 +38,6 @@ class SimDelegate(QItemDelegate):
         # Method uses model.setData()! 
         # Make sure that you implemented setData() method
         if index.column() == 1:
-            model.setData(index, QVariant(editor.text()))
+            model.setData(index, editor.text())
         else:
             QItemDelegate.setModelData(self, editor, model, index)

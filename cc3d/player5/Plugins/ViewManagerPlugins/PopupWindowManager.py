@@ -1,5 +1,5 @@
 from .PopupMessageWindowInterface import PopupMessageWindowInterface
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 from cc3d.player5.Graphics.PopupMessageWidget import PopupMessageWidget
 from cc3d.player5.Plugins.ViewManagerPlugins.PopupWindowManagerBase import PopupWindowManagerBase
 from cc3d.core.enums import *

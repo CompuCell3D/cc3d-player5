@@ -1,7 +1,7 @@
-from PyQt5 import QtCore, QtWidgets, QtGui
-from PyQt5.QtCore import QModelIndex
-from PyQt5.QtGui import QStandardItemModel
-from PyQt5.QtWidgets import QApplication, QTableView
+from PyQt6 import QtCore, QtWidgets, QtGui
+from PyQt6.QtCore import QModelIndex
+from PyQt6.QtGui import QStandardItemModel
+from PyQt6.QtWidgets import QApplication, QTableView
 
 
 class ColorDelegate(QtWidgets.QItemDelegate):

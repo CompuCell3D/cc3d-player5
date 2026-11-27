@@ -1,5 +1,5 @@
-from PyQt5 import QtCore
-from PyQt5.QtWidgets import *
+from PyQt6 import QtCore
+from PyQt6.QtWidgets import *
 from weakref import ref
 
 from cc3d.player5.steering.SteeringPanelView import SteeringPanelView

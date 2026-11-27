@@ -7,7 +7,7 @@ try:
 except ImportError:
     log_py(CompuCell.LOG_WARNING, 'Could not find webcolors. Run "pip install webcolors" to fix this')
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
 
 class PopupMessageWidget(QtWidgets.QFrame):

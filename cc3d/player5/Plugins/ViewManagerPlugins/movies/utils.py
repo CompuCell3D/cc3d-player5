@@ -1,6 +1,6 @@
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
 import cc3d.player5.Configuration as Configuration
 from cc3d.core.GraphicsUtils.MovieCreator import makeMovieAsync
 from cc3d.player5.Plugins.ViewManagerPlugins.status_label_utils import (
@@ -22,7 +22,10 @@ def choose_movie_directory(parent=None):
         root = Path("/").resolve().anchor
         current_project_dir = str(root)
     dir_name = QFileDialog.getExistingDirectory(
-        parent, "Specify CC3D Project Directory", current_project_dir, QFileDialog.ShowDirsOnly
+        parent,
+        "Specify CC3D Project Directory",
+        current_project_dir,
+        QFileDialog.Option.ShowDirsOnly,
     )
     dir_name = str(dir_name)
     dir_name.rstrip()
@@ -50,7 +53,7 @@ def choose_movie_directory(parent=None):
             "Please choose a folder inside your CompuCell3D Workspace that "
             "contains a .cc3d file, a Simulation sub-directory, and at least "
             "one sub-directory with .png files created from screenshots.",
-            QMessageBox.Ok,
+            QMessageBox.StandardButton.Ok,
         )
         return None
 

@@ -2,9 +2,9 @@ import json
 
 # from Qt import QtWidgets, QtCore, __binding__
 
-from PyQt5.QtGui import *
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtGui import *
+from PyQt6.QtCore import *
+from PyQt6.QtWidgets import *
 
 
 class QJsonTreeItem(object):

@@ -1,8 +1,8 @@
 import sys
 from typing import List, Optional
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
 from cc3d.player5 import Configuration
 from cc3d.player5.Plugins.ViewManagerPlugins import ui_demo_browser
 import weakref

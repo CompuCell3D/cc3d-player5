@@ -10,9 +10,9 @@ import re
 import xml
 from pathlib import Path
 from collections import OrderedDict
-from PyQt5.QtCore import *
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QCoreApplication
+from PyQt6.QtCore import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import QCoreApplication
 import cc3d
 from cc3d.core.enums import *
 from os.path import basename, dirname, join
@@ -220,7 +220,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         # for more information on QSignalMapper see Mark Summerfield book "Rapid GUI Development with PyQt"
         self.windowMapper = QSignalMapper(self)
-        self.windowMapper.mapped.connect(self.set_active_sub_window_custom_slot)
+        self.windowMapper.mappedObject.connect(self.set_active_sub_window_custom_slot)
 
         self.prepare_for_new_simulation(force_generic_initialization=True)
 
@@ -680,7 +680,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         syntax_error_console = self.UI.console.get_syntax_error_console()
         syntax_error_console.set_player_main_widget(self)
 
-        syntax_error_console.connect_close_cc3d_signal(qApp.closeAllWindows)
+        syntax_error_console.connect_close_cc3d_signal(QApplication.instance().closeAllWindows)
 
         if syntax_error_console.is_qsci_based():
             self.twedit_act.triggered.connect(syntax_error_console.cc3dSender.establishConnection)
@@ -758,7 +758,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
             simulation_running=self.simulationIsRunning,
             parent=self,
         )
-        dialog.exec_()
+        dialog.exec()
         self.detect_compiled_steppables()
 
     def reset_control_buttons_and_actions(self) -> None:
@@ -1335,7 +1335,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         self.open_lds_act.triggered.connect(self.__openLDSFile)
 
         # qApp is a member of QtGui. closeAllWindows will cause closeEvent and closeEventSimpleTabView will be called
-        self.exit_act.triggered.connect(qApp.closeAllWindows)
+        self.exit_act.triggered.connect(QApplication.instance().closeAllWindows)
 
         self.cells_act.triggered.connect(self.__checkCells)
         self.border_act.triggered.connect(self.__checkBorder)
@@ -2006,7 +2006,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         param_scan_dialog.output_dir_LE.setText(str(proposed_output_dir))
 
-        if param_scan_dialog.exec_():
+        if param_scan_dialog.exec():
             # starting param scan
             try:
                 cml_list = param_scan_dialog.get_cml_list()
@@ -3750,10 +3750,10 @@ class SimpleTabView(MainArea, SimpleViewManager):
 
         dlg.show()
 
-        dlg.exec_()
+        dlg.exec()
         QApplication.processEvents()
 
-        if dlg.result() == QDialog.Accepted:
+        if dlg.result() == QDialog.DialogCode.Accepted:
             # Saves changes from all configuration pages!
             #            dlg.setPreferences()
             Configuration.syncPreferences()
@@ -3867,7 +3867,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
         """
         self.screenshot_desc_browser = ScreenshotDescriptionBrowser(parent=self)
         self.screenshot_desc_browser.load()
-        if self.screenshot_desc_browser.exec_():
+        if self.screenshot_desc_browser.exec():
             print('Screenshots shown')
 
         print('opening scr browser')
@@ -3875,7 +3875,7 @@ class SimpleTabView(MainArea, SimpleViewManager):
     def generate_simulation_movies(self):
 
         dlg = MovieGeneratorDialog(self)
-        dlg.exec_()
+        dlg.exec()
     # def generate_simulation_movies(self):
     #     pass
 

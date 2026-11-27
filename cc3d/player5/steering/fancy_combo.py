@@ -1,4 +1,4 @@
-from PyQt5 import QtCore, QtGui, QtOpenGL, QtWidgets
+from PyQt6 import QtCore, QtGui, QtOpenGL, QtWidgets
 
 
 class FancyCombo(QtWidgets.QComboBox):

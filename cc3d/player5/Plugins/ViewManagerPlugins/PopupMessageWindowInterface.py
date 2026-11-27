@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import weakref
-from PyQt5 import QtCore
+from PyQt6 import QtCore
 from cc3d.core.PySteppables import *
 from cc3d.core.logging import log_py
 from cc3d.cpp import CompuCell

@@ -1,6 +1,6 @@
-from PyQt5 import QtCore
-from PyQt5.QtCore import *
-from PyQt5.QtNetwork import *
+from PyQt6 import QtCore
+from PyQt6.QtCore import *
+from PyQt6.QtNetwork import *
 from weakref import ref
 
 

@@ -2,8 +2,8 @@
 import os
 import weakref
 from cc3d.cpp import PlayerPython
-from PyQt5 import QtCore
-from PyQt5.QtCore import *
+from PyQt6 import QtCore
+from PyQt6.QtCore import *
 from cc3d import CompuCellSetup
 from cc3d.CompuCellSetup.sim_runner import run_cc3d_project
 from cc3d.CompuCellSetup.SimulationThread import SimulationThread as SimulationThreadBase

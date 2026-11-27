@@ -7,9 +7,9 @@ from cc3d import player5
 from cc3d.player5.CMLParser import CMLParser
 from cc3d.player5.UI.UserInterface import UserInterface
 from cc3d.player5.Utilities import show_exception_messagebox
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
-from PyQt5.QtWidgets import *
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
+from PyQt6.QtWidgets import *
 from cc3d.player5.CQt.CQApplication import CQApplication
 # setting debug information output
 from cc3d.player5.Messaging import setDebugging
@@ -89,11 +89,11 @@ def main(argv=None):
 
     first_message = base_message + "Loading User Interface ..."
 
-    splash.showMessage(first_message, Qt.AlignLeft, Qt.white)
+    splash.showMessage(first_message, Qt.AlignmentFlag.AlignLeft, Qt.GlobalColor.white)
 
     second_message = base_message + "Loading CompuCell3D Python Modules..."
 
-    splash.showMessage(second_message, Qt.AlignLeft, Qt.white)
+    splash.showMessage(second_message, Qt.AlignmentFlag.AlignLeft, Qt.GlobalColor.white)
 
     app.processEvents()
 
@@ -121,7 +121,7 @@ def main(argv=None):
 
     main_window.raise_()
 
-    error_code_local = app.exec_()
+    error_code_local = app.exec()
 
     print('EXITING WITH ERROR CODE=', error_code_local)
     return error_code_local

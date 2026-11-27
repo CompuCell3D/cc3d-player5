@@ -1,5 +1,5 @@
-from PyQt5.QtGui import QColor
-from PyQt5.QtCore import QByteArray, QPoint, QSize
+from PyQt6.QtGui import QColor
+from PyQt6.QtCore import QByteArray, QPoint, QSize
 
 from cc3d.core.Configuration.settingdict import SerializerUtil as SerializerUtilCore
 from cc3d.core.Configuration.settingdict import SettingsSQL as SettingsSQLCore

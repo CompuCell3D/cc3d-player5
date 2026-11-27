@@ -1,6 +1,6 @@
-from PyQt5 import QtCore, QtGui
-from PyQt5.QtCore import *
-from PyQt5.QtGui import *
+from PyQt6 import QtCore, QtGui
+from PyQt6.QtCore import *
+from PyQt6.QtGui import *
 
 from collections import OrderedDict
 from cc3d import CompuCellSetup
@@ -88,20 +88,20 @@ class CellTypeColorMapModel(QtCore.QAbstractTableModel):
         if self.item_data is None or not len(self.item_data):
             return
 
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+        if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
             try:
                 return self.header_data[p_int]
             except IndexError:
-                return QVariant()
+                return None
 
-        if orientation == Qt.Vertical and role == Qt.DisplayRole:
+        if orientation == Qt.Orientation.Vertical and role == Qt.ItemDataRole.DisplayRole:
             try:
                 # return self.item_data[p_int].name
                 return self.item_data[p_int]
             except KeyError:
-                return QVariant()
+                return None
 
-        return QVariant()
+        return None
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         if self.item_data is None:
@@ -118,9 +118,9 @@ class CellTypeColorMapModel(QtCore.QAbstractTableModel):
         i = index.row()
         return self.item_data[i]
 
-    def data(self, index, role=QtCore.Qt.DisplayRole):
+    def data(self, index, role=QtCore.Qt.ItemDataRole.DisplayRole):
 
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
             i = index.row()
             j = index.column()
             # item is a list of [type name, color]
@@ -132,19 +132,19 @@ class CellTypeColorMapModel(QtCore.QAbstractTableModel):
             if j == self.show_in_3d_idx:
                 return item[self.show_in_3d_idx_in_list]
             else:
-                return QVariant()
+                return None
 
         # elif role == Qt.BackgroundRole:
         # background for color column is handled via delegate
 
-        elif role == Qt.ToolTipRole:
+        elif role == Qt.ItemDataRole.ToolTipRole:
             i = index.row()
             item = self.item_data[i]
 
             return str(item[self.type_name_idx_in_list])
 
         else:
-            return QVariant()
+            return None
 
     def setData(self, index, value, role=None):
         """
@@ -155,7 +155,7 @@ class CellTypeColorMapModel(QtCore.QAbstractTableModel):
         :return:
         """
 
-        if role != QtCore.Qt.EditRole:
+        if role != QtCore.Qt.ItemDataRole.EditRole:
             return False
 
         if not index.isValid():
@@ -211,12 +211,12 @@ class CellTypeColorMapModel(QtCore.QAbstractTableModel):
 
     def flags(self, index):
         if not index.isValid():
-            return QtCore.Qt.NoItemFlags
+            return QtCore.Qt.ItemFlag.NoItemFlags
         existing_flags = super(CellTypeColorMapModel, self).flags(index)
 
-        existing_flags |= QtCore.Qt.ItemIsEditable
+        existing_flags |= QtCore.Qt.ItemFlag.ItemIsEditable
 
         if index.column() == self.color_idx:
-            return Qt.ItemIsEnabled | Qt.ItemIsSelectable | Qt.ItemIsEditable
+            return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEditable
 
         return existing_flags

@@ -1,5 +1,5 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import *
+from PyQt6.QtWidgets import *
+from PyQt6.QtCore import *
 
 from .fancy_slider import FancySlider
 from .fancy_combo import FancyCombo
@@ -38,7 +38,7 @@ class SteeringEditorDelegate(QStyledItemDelegate):
         item = index.model().get_item(index)
 
         slider = FancySlider(parent)
-        slider.setOrientation(Qt.Horizontal)
+        slider.setOrientation(Qt.Orientation.Horizontal)
 
         item_type = item.item_type
 
@@ -144,7 +144,7 @@ class SteeringEditorDelegate(QStyledItemDelegate):
         if not column_name:
             return
         if column_name == 'Value':
-            value = index.model().data(index, Qt.DisplayRole)
+            value = index.model().data(index, Qt.ItemDataRole.DisplayRole)
             print('i,j=', index.column(), index.row())
             print('val=', value)
             # editor.setText(str(value.toInt()))
@@ -212,7 +212,7 @@ class SteeringEditorDelegate(QStyledItemDelegate):
             # editor.interpretText()
             # value = editor.value()
 
-        model.setData(index, value, Qt.EditRole)
+        model.setData(index, value, Qt.ItemDataRole.EditRole)
 
     def updateEditorGeometry(self, editor, option, index):
         editor.setGeometry(option.rect)
