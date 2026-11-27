@@ -6,7 +6,7 @@ from PyQt6.QtCore import QObject, QThread, Qt, pyqtSignal
 from PyQt6.QtGui import QColor, QBrush, QFont
 from PyQt6.QtWidgets import (
     QAbstractItemView, QApplication, QDialog, QFormLayout, QHBoxLayout, QLabel, QMenu,
-    QLineEdit, QProgressBar, QPushButton, QTabWidget, QTreeWidget, QTreeWidgetItem,
+    QHeaderView, QLineEdit, QProgressBar, QPushButton, QTabWidget, QTreeWidget, QTreeWidgetItem,
     QTextEdit,
     QVBoxLayout, QWidget,
 )
@@ -62,7 +62,7 @@ class CompiledSteppablesDialog(QDialog):
         self.tree = QTreeWidget(page)
         self.tree.setHeaderLabels(["Property", "Value", "Validation"])
         self.tree.setAlternatingRowColors(True)
-        self.tree.setSelectionMode(QAbstractItemView.SingleSelection)
+        self.tree.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.tree.setUniformRowHeights(False)
         self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self._show_tree_context_menu)
@@ -72,9 +72,9 @@ class CompiledSteppablesDialog(QDialog):
             "QTreeWidget::item:selected { background: #cfe8ff; color: #1f2933; }"
         )
         self.tree.header().setStretchLastSection(False)
-        self.tree.header().setSectionResizeMode(0, self.tree.header().ResizeToContents)
-        self.tree.header().setSectionResizeMode(1, self.tree.header().Stretch)
-        self.tree.header().setSectionResizeMode(2, self.tree.header().ResizeToContents)
+        self.tree.header().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self.tree.header().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self.tree.header().setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         layout.addWidget(self.tree)
 
         self.details = QTextEdit(page)
@@ -98,7 +98,7 @@ class CompiledSteppablesDialog(QDialog):
         page = QWidget(self)
         layout = QVBoxLayout(page)
         form = QFormLayout()
-        form.setFieldGrowthPolicy(QFormLayout.AllNonFixedFieldsGrow)
+        form.setFieldGrowthPolicy(QFormLayout.FieldGrowthPolicy.AllNonFixedFieldsGrow)
         self.settings_path_label = QLineEdit(str(settings_path()))
         self.settings_path_label.setReadOnly(True)
         self.settings_path_label.setToolTip(str(settings_path()))

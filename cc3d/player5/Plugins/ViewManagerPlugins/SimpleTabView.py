@@ -11,6 +11,7 @@ import xml
 from pathlib import Path
 from collections import OrderedDict
 from PyQt6.QtCore import *
+from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import QCoreApplication
 import cc3d

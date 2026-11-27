@@ -40,7 +40,9 @@ class CompiledSteppableCompileDialog(QDialog):
         layout.addWidget(progress)
 
         button_box = QDialogButtonBox(self)
-        self._interrupt_button = button_box.addButton("Interrupt Compilation", QDialogButtonBox.RejectRole)
+        self._interrupt_button = button_box.addButton(
+            "Interrupt Compilation", QDialogButtonBox.ButtonRole.RejectRole
+        )
         self._interrupt_button.clicked.connect(self._interrupt)
         layout.addWidget(button_box)
 
